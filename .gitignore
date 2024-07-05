@@ -1,0 +1,10 @@
+__pycache__/
+*.py[cod]
+
+.mypy_cache
+.pytest_cache
+.ve
+.ve-vagrant
+.vagrant
+
+.env

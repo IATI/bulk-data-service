@@ -1,0 +1,71 @@
+[project]
+name = "bulk-data-service"
+version = "0.0.1"
+requires-python = ">= 3.12"
+readme = "README.md"
+dependencies = [
+    "azure-storage-blob==12.20.0",
+    "psycopg[binary,pool]==3.1.18",
+    "requests==2.31.0",
+    "yoyo-migrations==8.2.0",
+    "prometheus-client==0.20.0"
+]
+
+
+[project.optional-dependencies]
+dev = [
+    "pip-tools",
+    "isort",
+    "mypy",
+    "pytest",
+    "black",
+    "flake8",
+    "flake8-pyproject",
+    "types-requests",
+    "python-dotenv"
+]
+
+
+[tool.pip-tools]
+strip-extras = true
+
+
+[tool.pytest.ini_options]
+testpaths = ["tests/unit", "tests/integration"]
+addopts = [
+    "--import-mode=importlib"
+]
+pythonpath = [
+  "src", "tests"
+]
+filterwarnings = [
+    "ignore::DeprecationWarning:yoyo.*:",  # ignore deprecations from all modules
+    "ignore::DeprecationWarning:yoyo.*:",  # ignore deprecations from all modules
+    "default::DeprecationWarning:bulk_data_service.*:",  # except the app
+]
+
+
+[tool.isort]
+py_version=312
+extend_skip = ['__pycache__', '.mypy_cache', '.ve', '.venv', '.vagrant-ve']
+skip_gitignore = true
+src_paths = ['src', 'tests']
+line_length = 120
+
+
+[tool.mypy]
+files=["src/"]
+mypy_path=["tests/"]
+
+
+[tool.flake8]
+max-line-length = 120
+extend_ignore = ['E203', 'W503', 'E275']
+exclude = ['__pycache__', '.mypy_cache', '.pytest_cache', '.ve', '.venv', '.vagrant-ve']
+max_complexity = 7
+
+
+[tool.black]
+line-length = 120
+target-version = ['py312']
+include='''src/.*/*.py$'''

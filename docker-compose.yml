@@ -1,0 +1,32 @@
+
+services:
+
+  iati-bulk-data-service-azurite:
+    image: mcr.microsoft.com/azure-storage/azurite
+    ports:
+      - 10000:10000
+      - 10001:10001
+      - 10002:10002
+    command: azurite --blobHost 0.0.0.0 --blobPort 10000 --queueHost 0.0.0.0 --queuePort 10001 --tableHost 0.0.0.0 --tablePort 10002 --location /data --loose --skipApiVersionCheck
+    volumes:
+      - iati-bulk-data-service-azurite:/data
+
+  iati-bulk-data-service-postgres:
+    image: postgres:15
+    ports:
+      - "${DB_PORT}:${DB_PORT}"
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASS}
+      - PGPORT=${DB_PORT}
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - iati-bulk-data-service-postgres:/var/lib/postgresql/data
+
+volumes:
+  iati-bulk-data-service-azurite:
+    driver: local
+  iati-bulk-data-service-postgres:
+    driver: local
+
