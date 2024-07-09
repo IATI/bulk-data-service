@@ -1,0 +1,40 @@
+
+services:
+      
+  iati-bulk-data-service-azurite-tests:
+    image: mcr.microsoft.com/azure-storage/azurite
+    ports:
+      - 11000:11000
+      - 11001:11001
+      - 11002:11002
+    command: azurite --blobHost 0.0.0.0 --blobPort 11000 --queueHost 0.0.0.0 --queuePort 11001 --tableHost 0.0.0.0 --tablePort 11002 --location /data --loose --skipApiVersionCheck 
+    tmpfs:
+      - /data
+
+  iati-bulk-data-service-postgres-tests:
+    image: postgres:15
+    ports:
+      - "${DB_PORT}:${DB_PORT}"
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASS}
+      - PGPORT=${DB_PORT}
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    tmpfs:
+      - /var/lib/postgresql/data
+
+  mock-registration-and-data-service:
+    image: mockoon/cli:latest
+    ports:
+      - 3000:3000
+    volumes:
+      - type: bind
+        source: mockoon-registration-and-data-server-config.json
+        target: /server-config.json
+      - type: bind
+        source: ../tests/artifacts
+        target: /tests/artifacts
+        read_only: true
+    command: ["--data", "server-config.json", "-p", "3000"]
+
