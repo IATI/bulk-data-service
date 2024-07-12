@@ -1,15 +1,19 @@
 
 services:
-      
+
   iati-bulk-data-service-azurite-tests:
     image: mcr.microsoft.com/azure-storage/azurite
     ports:
       - 11000:11000
       - 11001:11001
       - 11002:11002
-    command: azurite --blobHost 0.0.0.0 --blobPort 11000 --queueHost 0.0.0.0 --queuePort 11001 --tableHost 0.0.0.0 --tablePort 11002 --location /data --loose --skipApiVersionCheck 
+    command: azurite --blobHost 0.0.0.0 --blobPort 11000 --queueHost 0.0.0.0 --queuePort 11001 --tableHost 0.0.0.0 --tablePort 11002 --location /data --loose --skipApiVersionCheck
     tmpfs:
       - /data
+    healthcheck:
+      test: nc 127.0.0.1 11000 -z
+      interval: 5s
+      retries: 1
 
   iati-bulk-data-service-postgres-tests:
     image: postgres:15
@@ -23,6 +27,11 @@ services:
       - PGDATA=/var/lib/postgresql/data/pgdata
     tmpfs:
       - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bds -d bulk_data_service_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   mock-registration-and-data-service:
     image: mockoon/cli:latest
@@ -37,4 +46,19 @@ services:
         target: /tests/artifacts
         read_only: true
     command: ["--data", "server-config.json", "-p", "3000"]
+    healthcheck:
+      test: curl -s -o /dev/null 'http://localhost:3000/registration/datasets-01'
+      interval: 10s
+      timeout: 10s
+      retries: 1
 
+  all-services-running:
+    image: alpine
+    entrypoint: ["tail", "-f", "/dev/null"]
+    depends_on:
+      iati-bulk-data-service-azurite-tests:
+        condition: service_healthy
+      iati-bulk-data-service-postgres-tests:
+        condition: service_healthy
+      mock-registration-and-data-service:
+        condition: service_healthy
