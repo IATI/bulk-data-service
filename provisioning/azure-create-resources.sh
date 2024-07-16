@@ -90,11 +90,17 @@ echo
 
 STORAGE_ACCOUNT_ID=$(az storage account list | jq -r ".[] | select(.name==\"$STORAGE_ACCOUNT_NAME\") | .id")
 
-az resource update --ids="STORAGE_ACCOUNT_ID" --set properties.allowBlobPublicAccess=true
+echo az resource update --ids="$STORAGE_ACCOUNT_ID" --set properties.allowBlobPublicAccess=true
+az resource update --ids="$STORAGE_ACCOUNT_ID" --set properties.allowBlobPublicAccess=true
 
-az storage container set-permission --name iati-xml --account-name $STORAGE_ACCOUNT_NAME --public-access container
+echo "Waiting for 30 seconds before creating containers on the new storage account"
+sleep 30
 
-az storage container set-permission --name iati-zip --account-name $STORAGE_ACCOUNT_NAME --public-access container
+echo az storage container create --name iati-xml --account-name $STORAGE_ACCOUNT_NAME --public-access container
+az storage container create --name iati-xml --account-name $STORAGE_ACCOUNT_NAME --public-access container | jq
+
+echo az storage container create --name iati-zip --account-name $STORAGE_ACCOUNT_NAME --public-access container
+az storage container create --name iati-zip --account-name $STORAGE_ACCOUNT_NAME --public-access container | jq
 
 az storage blob service-properties update --account-name $STORAGE_ACCOUNT_NAME \
                                           --static-website --404-document 404.html \
@@ -108,6 +114,10 @@ sed -e "s#{{WEB_BASE_URL}}#$WEB_BASE_URL#" web/index-template.html > web/index.h
 az storage blob upload-batch -s web -d '$web' --account-name $STORAGE_ACCOUNT_NAME --overwrite
 
 # Provision Postgres Server
+echo az postgres flexible-server create -y -g $RESOURCE_GROUP_NAME \
+                                   -n $POSTGRES_SERVER_NAME --location $LOCATION \
+                                   --admin-user bds --admin-password $BDS_DB_ADMIN_PASSWORD \
+                                   --sku-name Standard_B1ms --tier Burstable --storage-size 32
 az postgres flexible-server create -y -g $RESOURCE_GROUP_NAME \
                                    -n $POSTGRES_SERVER_NAME --location $LOCATION \
                                    --admin-user bds --admin-password $BDS_DB_ADMIN_PASSWORD \
