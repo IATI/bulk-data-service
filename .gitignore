@@ -1,10 +1,14 @@
-__pycache__/
+__pycache__
 *.py[cod]
+
+/.actrc
 
 .mypy_cache
 .pytest_cache
 .ve
-.ve-vagrant
-.vagrant
 
 /.env
+
+/web/index.html
+/azure-deployment/azure-resource-manager-deployment-manifest.yml
+/azure-deployment/secrets-for-manual-azure-deploy.env

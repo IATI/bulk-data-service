@@ -27,29 +27,39 @@ if [ $(which jq > /dev/null) > 0 ]; then
      exit 3
 fi
 
-SERVICE_NAME=bulk-data-service
+TARGET_ENVIRONMENT_ENV_VAR=$(echo "$1" | tr '[:lower:]' '[:upper:]')
 
-SERVICE_NAME_NO_HYPHENS=$(echo $SERVICE_NAME | sed -e 's/-//g')
+SUBSCRIPTION_ID=$(az account list | jq -r '.[0].id')
 
-RESOURCE_GROUP_NAME=rg-${SERVICE_NAME}-$1
+APP_NAME=bulk-data-service
 
-LOG_ANALYTICS_NAME=log-${SERVICE_NAME}-$1
+APP_NAME_NO_HYPHENS=$(echo $APP_NAME | sed -e 's/-//g')
 
-STORAGE_ACCOUNT_NAME=sa${SERVICE_NAME_NO_HYPHENS}$1
+RESOURCE_GROUP_NAME=rg-${APP_NAME}-$1
 
-POSTGRES_SERVER_NAME=${SERVICE_NAME}-db-$1
+LOG_ANALYTICS_NAME=log-${APP_NAME}-$1
+
+STORAGE_ACCOUNT_NAME=sa${APP_NAME_NO_HYPHENS}$1
+
+POSTGRES_SERVER_NAME=${APP_NAME}-db-$1
+
+SERVICE_PRINCIPAL_NAME=sp-${APP_NAME}-$1
 
 LOCATION=uksouth
 
 echo
 echo "Proceeding will create Azure services with the following names:"
 echo
-echo "Service base name              : $SERVICE_NAME"
+echo "App base name                  : $APP_NAME"
 echo "Resource group name            : $RESOURCE_GROUP_NAME"
 echo "Log analytics workspace name   : $LOG_ANALYTICS_NAME"
 echo "Storage account name           : $STORAGE_ACCOUNT_NAME"
 echo "Postgres server name           : $POSTGRES_SERVER_NAME"
-echo ""
+echo "Service principal name         : $SERVICE_PRINCIPAL_NAME"
+echo
+echo
+echo "(Using subscription: $SUBSCRIPTION_ID)"
+echo
 echo
 
 read -p "Do you want to continue? ([y]es or [n]o) " -n 1 -r
@@ -66,12 +76,26 @@ echo az group create --name $RESOURCE_GROUP_NAME --location $LOCATION
 az group create --name $RESOURCE_GROUP_NAME --location $LOCATION
 echo
 
+
 # Create Log Analytics Workspace
 echo az monitor log-analytics workspace create --resource-group $RESOURCE_GROUP_NAME \
                                                --workspace-name $LOG_ANALYTICS_NAME
-az monitor log-analytics workspace create --resource-group $RESOURCE_GROUP_NAME \
-                                          --workspace-name $LOG_ANALYTICS_NAME
-echo
+LOG_ANALYTICS_CREATE_OUTPUT=$(az monitor log-analytics workspace create --resource-group $RESOURCE_GROUP_NAME \
+                                                                        --workspace-name $LOG_ANALYTICS_NAME)
+
+echo "LOG_ANALYTICS_WORKSPACE_ID=echo ${LOG_ANALYTICS_CREATE_OUTPUT//[$'\t\r\n ']} | jq -r '.customerId'"
+
+LOG_ANALYTICS_WORKSPACE_ID=$(echo "${LOG_ANALYTICS_CREATE_OUTPUT//[$'\t\r\n ']}" | jq -r '.customerId')
+
+echo Workspace ID is: $LOG_ANALYTICS_WORKSPACE_ID
+
+echo az monitor log-analytics workspace get-shared-keys \
+                                   -g $RESOURCE_GROUP_NAME \
+                                   -n $LOG_ANALYTICS_NAME \| jq -r '.primarySharedKey'
+
+LOG_ANALYTICS_WORKSPACE_KEY=$(az monitor log-analytics workspace get-shared-keys -g $RESOURCE_GROUP_NAME -n $LOG_ANALYTICS_NAME | jq -r '.primarySharedKey')
+
+echo Workspace key is: $LOG_ANALYTICS_WORKSPACE_KEY
 
 # Create storage account
 echo az storage account create --resource-group $RESOURCE_GROUP_NAME \
@@ -105,6 +129,13 @@ az storage container create --name iati-zip --account-name $STORAGE_ACCOUNT_NAME
 az storage blob service-properties update --account-name $STORAGE_ACCOUNT_NAME \
                                           --static-website --404-document 404.html \
                                           --index-document index.html
+
+echo az storage account show-connection-string --name $STORAGE_ACCOUNT_NAME \
+                                               --resource-group $RESOURCE_GROUP_NAME \
+                                               \| jq -r '.connectionString'
+
+STORAGE_ACCOUNT_CONNECTION_STRING=$(az storage account show-connection-string --name $STORAGE_ACCOUNT_NAME --resource-group $RESOURCE_GROUP_NAME | jq -r '.connectionString')
+
 
 WEB_BASE_URL="https://$STORAGE_ACCOUNT_NAME.blob.core.windows.net"
 # $(az storage account show -n $STORAGE_ACCOUNT_NAME -g $RESOURCE_GROUP_NAME --query "primaryEndpoints.web" --output tsv)
@@ -151,3 +182,58 @@ az postgres flexible-server parameter set --resource-group $RESOURCE_GROUP_NAME 
                                           --server-name $POSTGRES_SERVER_NAME \
                                           --name "max_connections" \
                                           --value 85
+
+# create Azure service-principal
+
+RESOURCE_GROUP_ID_STRING=$(az group list --query "[?name=='$RESOURCE_GROUP_NAME']" | jq -r '.[0].id')
+
+echo az ad sp create-for-rbac --name $SERVICE_PRINCIPAL_NAME \
+                         --role contributor \
+                         --scopes $RESOURCE_GROUP_ID_STRING
+SP_DETAILS=$(az ad sp create-for-rbac --name $SERVICE_PRINCIPAL_NAME \
+                         --role contributor \
+                         --scopes $RESOURCE_GROUP_ID_STRING)
+
+CREDS=$(echo $SP_DETAILS | jq "with_entries(if .key == \"appId\" then .key = \"clientId\" elif .key == \"tenant\" then .key = \"tenantId\" elif .key == \"password\" then .key = \"clientSecret\" else . end) | . += { \"subscriptionId\" : \"$SUBSCRIPTION_ID\" } | del(.displayName)")
+
+echo
+echo
+echo "--------------------------------------------------"
+echo "Credentials to put into the Github repo's secrets:"
+echo
+
+echo "JSON credentials for Azure: (Secret name: ${TARGET_ENVIRONMENT_ENV_VAR}_AZURE_CREDENTIALS)"
+
+echo $CREDS
+
+echo "Azure storage connection string: (Secret name ${TARGET_ENVIRONMENT_ENV_VAR}_AZURE_STORAGE_CONNECTION_STRING)"
+
+echo $STORAGE_ACCOUNT_CONNECTION_STRING
+
+echo "Database host: (Secret name: ${TARGET_ENVIRONMENT_ENV_VAR}_DB_HOST)"
+
+echo $POSTGRES_SERVER_NAME
+
+echo "Database name: (Secret name: ${TARGET_ENVIRONMENT_ENV_VAR}_DB_PORT)"
+
+echo 5432
+
+echo "Database name: (Secret name: ${TARGET_ENVIRONMENT_ENV_VAR}_DB_NAME)"
+
+echo bulk_data_service_db
+
+echo "Database name: (Secret name: ${TARGET_ENVIRONMENT_ENV_VAR}_DB_USER)"
+
+echo bds
+
+echo "Database name: (Secret name: ${TARGET_ENVIRONMENT_ENV_VAR}_DB_PASS)"
+
+echo $BDS_DB_ADMIN_PASSWORD
+
+echo "Log analytics workspace ID: (Secret name: ${TARGET_ENVIRONMENT_ENV_VAR}_LOG_WORKSPACE_ID)"
+
+echo $LOG_ANALYTICS_WORKSPACE_ID
+
+echo "Log analytics workspace key: (Secret name: ${TARGET_ENVIRONMENT_ENV_VAR}_LOG_WORKSPACE_KEY)"
+
+echo $LOG_ANALYTICS_WORKSPACE_KEY
