@@ -15,7 +15,7 @@ Support | https://iatistandard.org/en/guidance/get-support/
 ## High-level requirements
 
 * Python 3.12
-* Postgres 16
+* Postgres DB
 * Azure storage account with blob storage enabled
 
 ## Running the app locally
@@ -47,7 +47,7 @@ The example file is preconfigured to work with the local docker compose setup.
 
 #### 4. Install some version of `dotenv` (optional)
 
-The `.env` file is used when running things locally to store environment variables that configure the apps mentioned above. To run the apps below, you can either source this file to get the environment variables into your current terminal context, or you can one of the various `dotenv` command line tools to import the environment on each run.
+The `.env` file is used when running things locally to store environment variables that configure the apps mentioned above. Docker Compose will read this automatically, but when running the bulk data service app or `yoyo` directly, you need to get these variables into the shell environment: you can either source this file to get the environment variables into your current terminal context, or you can one of the various `dotenv` command line tools to import the environment on each run (using `dotenv` lets you quickly switch different `.env` files in and out, which can be useful for testing, debugging, etc).
 
 ### Running after first-time setup
 
@@ -65,6 +65,7 @@ Once the docker compose setup is running, start the bulk download app with:
 dotenv run python src/iati_bulk_data_service.py -- --operation checker --single-run --run-for-n-datasets=50
 ```
 
+*Note:* not all versions of `dotenv` require a `run` subcommand.
 
 ## Development on the app
 
@@ -143,9 +144,9 @@ The Bulk Data Service's database schema management is handled by [yoyo](https://
 The following commands may be useful:
 
 ```
-dotenv yoyo -- list       # list available migrations
-dotenv yoyo -- rollback   # rollback, interactively
-dotenv yoyo -- new        # create file for a new migration
+dotenv run yoyo -- list       # list available migrations
+dotenv run yoyo -- rollback   # rollback, interactively
+dotenv run yoyo -- new        # create file for a new migration
 ```
 
 
@@ -180,15 +181,46 @@ This automated test environment is configured via the following files:
 
 You can use the Mockoon GUI application to edit the mockoon server configuration file (`mockoon-registration-and-data-server-config.json`).
 
-## Deployment
+## Provisioning and Deployment
 
-### Building the docker image
+### Initial Provisioning
 
-```
-docker build . -t criati.azurecr.io/bulk-data-service-test
+You can create an Azure-based instance of Bulk Data Service using the `azure-create-resources.sh` script. It must be run from the root of the repository, and it requires (i) the environment variable `BDS_DB_ADMIN_PASSWORD` to be set with the password for the database, and (ii) a single parameter which is the name of the environment/instance. For instance, the following command will create a dev instance:
+
+```bash
+BDS_DB_ADMIN_PASSWORD=passwordHere ./azure-provision/azure-create-resources.sh dev`
 ```
 
+This will create a resource group on Azure called `rg-bulk-data-service-dev`, and then create and configure all the Azure resources needed for the Bulk Data Service within that resource group (except for the Container Instance, which is created/updated as part of the deploy stage).
+
+At the end of its run, the `azure-create-resources.sh` script will print out various secrets which need to be added to Github Actions.
+
+### Deployment - CI/CD
+
+The application is setup to deploy to the dev instance when a PR is merged to
+ `develop`, and to production when a release is done on `main` branch.
+
+ Sometimes, when altering the CI/CD setup or otherwise debugging, it can be
+ useful to do things manually. The Bulk Data Service can be released to an Azure instance (e.g., a test instance) using the following command:
+
+ ```bash
+./azure-deployment/manual-azure-deploy-from-local.sh test
 ```
+
+For this to work, you need to put the secrets you want to use in `azure-deployment/manual-azure-deploy-secrets.env` and the variables you want to use in `azure-deployment/manual-azure-deploy-variables.env`. These is an example of each of these files that can be used as a starting point.
+
+
+### Manually building the docker image (to test/develop the deployment setup)
+
+You can build the docker image using the following command, replacing `INSTANCE_NAME` with the relevant instance:
+
+```bash
+docker build . -t criati.azurecr.io/bulk-data-service-INSTANCE_NAME
+```
+
+To run it locally:
+
+```bash
 docker container run --env-file=.env-docker "criati.azurecr.io/bulk-data-service-dev" --operation checker --single-run --run-for-n-datasets 20
 ```
 

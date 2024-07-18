@@ -11,4 +11,5 @@ __pycache__
 
 /web/index.html
 /azure-deployment/azure-resource-manager-deployment-manifest.yml
-/azure-deployment/secrets-for-manual-azure-deploy.env
+/azure-deployment/manual-azure-deploy-secrets.env
+/azure-deployment/manual-azure-deploy-variables.env
