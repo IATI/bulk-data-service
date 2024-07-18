@@ -11,7 +11,10 @@ on:
 
 
 jobs:
+  run-tests:
+    uses: ./.github/workflows/test.yml
   call-build-and-deploy:
+    needs: run-tests
     uses: ./.github/workflows/build-and-deploy-job.yml
     secrets: inherit
     with:

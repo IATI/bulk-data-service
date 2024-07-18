@@ -19,7 +19,7 @@ properties: # Properties of container group
           requests:
             memoryInGB: 4
             cpu: 1
-        image: "#ACR_LOGIN_SERVER#/#APP_NAME#-#TARGET_ENVIRONMENT#"
+        image: "#ACR_LOGIN_SERVER#/#APP_NAME#-#TARGET_ENVIRONMENT#:#DOCKER_IMAGE_TAG#"
         ports:
           - port: 9090
         command:
@@ -65,9 +65,18 @@ properties: # Properties of container group
             secureValue: "#DB_SSL_MODE#"
           - name: DB_CONNECTION_TIMEOUT
             secureValue: "#DB_CONNECTION_TIMEOUT#"
-
+    - name: nginx-proxy-for-prometheus
+      properties:
+        image: "#ACR_LOGIN_SERVER#/bds-prom-nginx-reverse-proxy-#TARGET_ENVIRONMENT#:#DOCKER_IMAGE_TAG#"
+        ports:
+          - port: 9158
+            protocol: TCP
+        resources:
+          requests:
+            cpu: 1.0
+            memoryInGB: 0.5
   ipAddress:
     type: "public"
     dnsNameLabel: "#APP_NAME#-#TARGET_ENVIRONMENT#"
     ports:
-      - port: 9090
+      - port: 9158

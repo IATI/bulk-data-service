@@ -9,7 +9,9 @@ __pycache__
 
 /.env
 
-/web/index.html
 /azure-deployment/azure-resource-manager-deployment-manifest.yml
 /azure-deployment/manual-azure-deploy-secrets.env
 /azure-deployment/manual-azure-deploy-variables.env
+/azure-deployment/nginx-reverse-proxy/htpasswd
+
+/web/index.html

@@ -14,7 +14,6 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-
     env:
       APP_NAME: ${{ inputs.APP_NAME }}
       TARGET_ENVIRONMENT: ${{ inputs.TARGET_ENVIRONMENT }}
@@ -67,8 +66,14 @@ jobs:
           docker build . -f Dockerfile -t $IMAGE_NAME
           docker push $IMAGE_NAME
 
-      - name: 'Print IMAGE_NAME'
+      - name: 'Print IMAGE_NAME for Bulk Data Service image'
         run: echo $IMAGE_NAME
+
+      - name: 'Create htpasswd file for nginx reverse proxy'
+        run: |
+          htpasswd -c -b ./azure-deployment/nginx-reverse-proxy/htpasswd prom "${{ secrets.PROM_NGINX_REVERSE_PROXY_PASSWORD }}"
+          docker build ./azure-deployment/nginx-reverse-proxy -t criati.azurecr.io/bds-prom-nginx-reverse-proxy-$TARGET_ENVIRONMENT:$DOCKER_IMAGE_TAG
+          docker push criati.azurecr.io/bds-prom-nginx-reverse-proxy-$TARGET_ENVIRONMENT:$DOCKER_IMAGE_TAG
 
       - name: 'Delete existing container group'
         uses: 'azure/CLI@v2'

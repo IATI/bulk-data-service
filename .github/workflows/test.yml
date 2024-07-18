@@ -1,10 +1,13 @@
 name: Run Automated Tests
 
 on:
+  workflow_call:
   workflow_dispatch:
   push:
     branches:
-      develop
+      - '**'
+      - '!develop'
+      - '!main'
 
 jobs:
   run-tests:

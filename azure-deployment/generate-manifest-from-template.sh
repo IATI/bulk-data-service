@@ -19,6 +19,7 @@ cp -f ./azure-deployment/azure-resource-manager-deployment-template.yml ./azure-
 
 sed -i "s^#APP_NAME#^$APP_NAME^g" ./azure-deployment/azure-resource-manager-deployment-manifest.yml
 sed -i "s^#TARGET_ENVIRONMENT#^$TARGET_ENVIRONMENT^g" ./azure-deployment/azure-resource-manager-deployment-manifest.yml
+sed -i "s^#DOCKER_IMAGE_TAG#^$DOCKER_IMAGE_TAG^g" ./azure-deployment/azure-resource-manager-deployment-manifest.yml
 
 sed -i ''s^#ACR_LOGIN_SERVER#^$ACR_LOGIN_SERVER^g'' ./azure-deployment/azure-resource-manager-deployment-manifest.yml
 sed -i ''s^#ACR_USERNAME#^$ACR_USERNAME^g'' ./azure-deployment/azure-resource-manager-deployment-manifest.yml
