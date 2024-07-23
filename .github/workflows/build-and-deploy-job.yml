@@ -1,0 +1,123 @@
+name: Generic build and deploy (called by other workflows)
+
+on:
+  workflow_call:
+    inputs:
+      APP_NAME:
+        required: true
+        type: string
+      TARGET_ENVIRONMENT:
+        required: true
+        type: string
+
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    env:
+      APP_NAME: ${{ inputs.APP_NAME }}
+      TARGET_ENVIRONMENT: ${{ inputs.TARGET_ENVIRONMENT }}
+
+      DOCKER_IMAGE_TAG: ${{ github.sha }}
+
+      # Needed as an environment variable for use of 'az' cmd in inline shell script
+      ACR_LOGIN_SERVER: ${{ secrets.ACR_LOGIN_SERVER }}
+      ACR_USERNAME: ${{ secrets.ACR_USERNAME }}
+      ACR_PASSWORD: ${{ secrets.ACR_PASSWORD }}
+
+    steps:
+      - name: 'Generate/build derived environment variables'
+        run: |
+          echo "TARGET_ENVIRONMENT_UPPER=${TARGET_ENVIRONMENT^^}" >> ${GITHUB_ENV}
+          echo "CONTAINER_INSTANCE_BASE_NAME=aci-${APP_NAME}" >> ${GITHUB_ENV}
+          echo "RESOURCE_GROUP_BASE_NAME=rg-${APP_NAME}" >> ${GITHUB_ENV}
+
+      - name: 'Print calculated environment variables'
+        run: |
+          echo $TARGET_ENVIRONMENT_UPPER
+          echo $CONTAINER_INSTANCE_BASE_NAME
+          echo $RESOURCE_GROUP_BASE_NAME
+
+      - name: 'Checkout GitHub Action'
+        uses: actions/checkout@v4
+
+      - name: 'Login via Azure CLI'
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'AZURE_CREDENTIALS')] }}
+
+      - name: 'Login to Docker Hub'
+        uses: docker/login-action@v3.2.0
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+
+      - name: 'Login to Azure Container Registry'
+        uses: azure/docker-login@v2
+        with:
+          login-server: ${{ env.ACR_LOGIN_SERVER }}
+          username: ${{ env.ACR_USERNAME }}
+          password: ${{ env.ACR_PASSWORD }}
+
+      - name: 'Build and push image'
+        run: |
+          IMAGE_NAME=$ACR_LOGIN_SERVER/$APP_NAME-$TARGET_ENVIRONMENT:$DOCKER_IMAGE_TAG
+          echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_ENV
+          docker build . -f Dockerfile -t $IMAGE_NAME
+          docker push $IMAGE_NAME
+
+      - name: 'Print IMAGE_NAME for Bulk Data Service image'
+        run: echo $IMAGE_NAME
+
+      - name: 'Create htpasswd file for nginx reverse proxy'
+        run: |
+          htpasswd -c -b ./azure-deployment/nginx-reverse-proxy/htpasswd prom "${{ secrets.PROM_NGINX_REVERSE_PROXY_PASSWORD }}"
+          docker build ./azure-deployment/nginx-reverse-proxy -t criati.azurecr.io/bds-prom-nginx-reverse-proxy-$TARGET_ENVIRONMENT:$DOCKER_IMAGE_TAG
+          docker push criati.azurecr.io/bds-prom-nginx-reverse-proxy-$TARGET_ENVIRONMENT:$DOCKER_IMAGE_TAG
+
+      - name: 'Delete existing container group'
+        uses: 'azure/CLI@v2'
+        with:
+          inlineScript: |
+            az -v
+            az container delete -y \
+              --name "${{ env.CONTAINER_INSTANCE_BASE_NAME }}-${{ env.TARGET_ENVIRONMENT }}" \
+              --resource-group "${{ env.RESOURCE_GROUP_BASE_NAME }}-${{ env.TARGET_ENVIRONMENT }}"
+
+      - name: 'Replace Env Vars and Secrets in ARM Yaml template'
+        env:
+          # Credentials for the app's resources
+          AZURE_STORAGE_CONNECTION_STRING: ${{ secrets[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'AZURE_STORAGE_CONNECTION_STRING')] }}
+
+          DB_HOST: ${{ secrets[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'DB_HOST')] }}
+          DB_USER: ${{ secrets[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'DB_USER')] }}
+          DB_PASS: ${{ secrets[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'DB_PASS')] }}
+          DB_NAME: ${{ secrets[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'DB_NAME')] }}
+          DB_PORT: ${{ secrets[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'DB_PORT')] }}
+          DB_SSL_MODE: ${{ secrets[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'DB_SSL_MODE')] }}
+          DB_CONNECTION_TIMEOUT: ${{ secrets[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'DB_CONNECTION_TIMEOUT')] }}
+
+          LOG_WORKSPACE_ID: ${{ secrets[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'LOG_WORKSPACE_ID')] }}
+          LOG_WORKSPACE_KEY: ${{ secrets[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'LOG_WORKSPACE_KEY')] }}
+
+          # Variables which configure the app
+          DATA_REGISTRATION: ${{ vars[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'DATA_REGISTRATION')] }}
+          DATA_REGISTRY_BASE_URL: ${{ vars[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'DATA_REGISTRY_BASE_URL')] }}
+          NUMBER_DOWNLOADER_THREADS: ${{ vars[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'NUMBER_DOWNLOADER_THREADS')] }}
+          FORCE_REDOWNLOAD_AFTER_HOURS: ${{ vars[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'FORCE_REDOWNLOAD_AFTER_HOURS')] }}
+          REMOVE_LAST_GOOD_DOWNLOAD_AFTER_FAILING_HOURS: ${{ vars[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'REMOVE_LAST_GOOD_DOWNLOAD_AFTER_FAILING_HOURS')] }}
+          ZIP_WORKING_DIR: ${{ vars[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'ZIP_WORKING_DIR')] }}
+          AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_XML: ${{ vars[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_XML')] }}
+          AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_ZIP: ${{ vars[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_ZIP')] }}
+
+        run: |
+          ./azure-deployment/generate-manifest-from-template.sh
+
+      - name: 'Deploy group to Azure Container Instances'
+        uses: 'azure/CLI@v2'
+        with:
+          inlineScript: |
+            az -v
+            az container create --debug \
+            --resource-group "${{ env.RESOURCE_GROUP_BASE_NAME }}-${{ env.TARGET_ENVIRONMENT }}" \
+            --file ./azure-deployment/azure-resource-manager-deployment-manifest.yml

@@ -1,0 +1,207 @@
+{
+    "help": "https://iatiregistry.org/api/3/action/help_show?name=package_search",
+    "success": true,
+    "result": {
+        "count": 2,
+        "facets": {},
+        "results": [
+            {
+                "author": null,
+                "author_email": "publisher@email-here.com",
+                "creator_user_id": "4abc4897-94b7-4b0e-84c2-c8778f435ccb",
+                "id": "c8a40aa5-9f31-4bcf-a36f-51c1fc2cc159",
+                "isopen": true,
+                "license_id": "other-at",
+                "license_title": "Other (Attribution)",
+                "maintainer": null,
+                "maintainer_email": null,
+                "metadata_created": "2024-03-04T10:24:11.373108",
+                "metadata_modified": "2024-05-07T15:38:58.740018",
+                "name": "test_foundation_a-dataset-001",
+                "notes": "",
+                "num_resources": 1,
+                "num_tags": 0,
+                "organization": {
+                    "id": "ea055d99-f7e9-456f-9f99-963e95493c1b",
+                    "name": "test_foundation_a",
+                    "title": "Test Foundation A",
+                    "type": "organization",
+                    "description": "",
+                    "image_url": "",
+                    "created": "2020-02-24T20:56:01.763851",
+                    "is_organization": true,
+                    "approval_status": "approved",
+                    "state": "active"
+                },
+                "owner_org": "5d04f169-c702-45fe-8162-da7834859d86",
+                "private": false,
+                "state": "active",
+                "title": "040324",
+                "type": "dataset",
+                "url": null,
+                "version": null,
+                "extras": [
+                    {
+                        "key": "activity_count",
+                        "value": "10"
+                    },
+                    {
+                        "key": "country",
+                        "value": "GB"
+                    },
+                    {
+                        "key": "data_updated",
+                        "value": "2024-03-01 14:24:09"
+                    },
+                    {
+                        "key": "filetype",
+                        "value": "activity"
+                    },
+                    {
+                        "key": "iati_version",
+                        "value": "2.03"
+                    },
+                    {
+                        "key": "language",
+                        "value": ""
+                    },
+                    {
+                        "key": "secondary_publisher",
+                        "value": ""
+                    },
+                    {
+                        "key": "validation_status",
+                        "value": "Not Found"
+                    }
+                ],
+                "resources": [
+                    {
+                        "cache_last_updated": null,
+                        "cache_url": null,
+                        "created": "2024-05-07T15:38:57.312249",
+                        "description": null,
+                        "format": "IATI-XML",
+                        "hash": "f6bb14d61bb2652f1014d6ebfee3c4b873241bac",
+                        "id": "d1b3d323-c8ba-48c5-89ce-6e745241d7fe",
+                        "last_modified": null,
+                        "metadata_modified": "2024-05-07T15:38:58.757860",
+                        "mimetype": "",
+                        "mimetype_inner": null,
+                        "name": null,
+                        "package_id": "b83ebe89-d522-4d3b-87e9-53aa9ac8eee9",
+                        "position": 0,
+                        "resource_type": null,
+                        "size": 399382,
+                        "state": "active",
+                        "url": "http://localhost:3000/data/test_foundation_a-dataset-001.xml",
+                        "url_type": null
+                    }
+                ],
+                "tags": [],
+                "groups": [],
+                "relationships_as_subject": [],
+                "relationships_as_object": []
+            },
+
+            {
+                "author": null,
+                "author_email": "publisher@email-here.com",
+                "creator_user_id": "444659cc-998e-4e31-922b-0c6b04240c4c",
+                "id": "90f4282f-9ac5-4385-804d-1a377f5b57be",
+                "isopen": true,
+                "license_id": "other-at",
+                "license_title": "Other (Attribution)",
+                "maintainer": null,
+                "maintainer_email": null,
+                "metadata_created": "2024-03-04T10:24:11.373108",
+                "metadata_modified": "2024-05-07T15:38:58.740018",
+                "name": "test_foundation_b-dataset-001",
+                "notes": "",
+                "num_resources": 1,
+                "num_tags": 0,
+                "organization": {
+                    "id": "373cd7dc-114b-4a91-a63f-cb2e25cd1249",
+                    "name": "test_foundation_b",
+                    "title": "Test Foundation B",
+                    "type": "organization",
+                    "description": "",
+                    "image_url": "",
+                    "created": "2020-02-24T20:56:01.763851",
+                    "is_organization": true,
+                    "approval_status": "approved",
+                    "state": "active"
+                },
+                "owner_org": "c22c9225-8410-4dae-ab71-127faccc0afb",
+                "private": false,
+                "state": "active",
+                "title": "040324",
+                "type": "dataset",
+                "url": null,
+                "version": null,
+                "extras": [
+                    {
+                        "key": "activity_count",
+                        "value": "10"
+                    },
+                    {
+                        "key": "country",
+                        "value": "GB"
+                    },
+                    {
+                        "key": "data_updated",
+                        "value": "2024-03-01 14:24:09"
+                    },
+                    {
+                        "key": "filetype",
+                        "value": "activity"
+                    },
+                    {
+                        "key": "iati_version",
+                        "value": "2.03"
+                    },
+                    {
+                        "key": "language",
+                        "value": ""
+                    },
+                    {
+                        "key": "secondary_publisher",
+                        "value": ""
+                    },
+                    {
+                        "key": "validation_status",
+                        "value": "Not Found"
+                    }
+                ],
+                "resources": [
+                    {
+                        "cache_last_updated": null,
+                        "cache_url": null,
+                        "created": "2024-05-07T15:38:57.312249",
+                        "description": null,
+                        "format": "IATI-XML",
+                        "hash": "f6bb14d61bb2652f1014d6ebfee3c4b873241bac",
+                        "id": "570c9e2d-6a9f-429f-8347-05758a195c97",
+                        "last_modified": null,
+                        "metadata_modified": "2024-05-07T15:38:58.757860",
+                        "mimetype": "",
+                        "mimetype_inner": null,
+                        "name": null,
+                        "package_id": "4d8c94ed-af9a-4f8d-be00-2e692717b227",
+                        "position": 0,
+                        "resource_type": null,
+                        "size": 399382,
+                        "state": "active",
+                        "url": "http://localhost:3000/data/test_foundation_b-dataset-001.xml",
+                        "url_type": null
+                    }
+                ],
+                "tags": [],
+                "groups": [],
+                "relationships_as_subject": [],
+                "relationships_as_object": []
+            }            
+        ],
+        "sort": "title_string asc",
+        "search_facets": {}
+    }
+}

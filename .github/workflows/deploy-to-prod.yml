@@ -1,0 +1,16 @@
+name: Deploy Bulk Data Service to production
+
+
+on:
+  workflow_dispatch:
+  release:
+    types: [published]
+
+
+jobs:
+  call-build-and-deploy:
+    uses: ./.github/workflows/build-and-deploy-job.yml
+    secrets: inherit
+    with:
+      APP_NAME: "bulk-data-service"
+      TARGET_ENVIRONMENT: "test"

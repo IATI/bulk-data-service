@@ -1,0 +1,82 @@
+name: "aci-#APP_NAME#-#TARGET_ENVIRONMENT#"
+apiVersion: "2021-10-01"
+location: "uksouth"
+properties: # Properties of container group
+  imageRegistryCredentials: # Credentials to pull a private image
+    - server: "#ACR_LOGIN_SERVER#"
+      username: "#ACR_USERNAME#"
+      password: "#ACR_PASSWORD#"
+  restartPolicy: "Never"
+  osType: "Linux"
+  diagnostics:
+    logAnalytics:
+      workspaceId: "#LOG_WORKSPACE_ID#"
+      workspaceKey: "#LOG_WORKSPACE_KEY#"
+  containers:
+    - name: "#APP_NAME#-#TARGET_ENVIRONMENT#"
+      properties: # Properties of an instance
+        resources: # Resource requirements of the instance
+          requests:
+            memoryInGB: 4
+            cpu: 1
+        image: "#ACR_LOGIN_SERVER#/#APP_NAME#-#TARGET_ENVIRONMENT#:#DOCKER_IMAGE_TAG#"
+        ports:
+          - port: 9090
+        command:
+          - "/usr/local/bin/python"
+          - "src/iati_bulk_data_service.py"
+          - "--operation"
+          - "checker"
+        environmentVariables:
+          - name: DATA_REGISTRATION
+            value: "#DATA_REGISTRATION#"
+          - name: DATA_REGISTRY_BASE_URL
+            value: "#DATA_REGISTRY_BASE_URL#"
+          - name: BLOB_STORAGE_BASE_PUBLIC_URL
+            value: "https://sabulkdataservice#TARGET_ENVIRONMENT#.blob.core.windows.net"
+          - name: NUMBER_DOWNLOADER_THREADS
+            value: "#NUMBER_DOWNLOADER_THREADS#"
+          - name: FORCE_REDOWNLOAD_AFTER_HOURS
+            value: "#FORCE_REDOWNLOAD_AFTER_HOURS#"
+          - name: REMOVE_LAST_GOOD_DOWNLOAD_AFTER_FAILING_HOURS
+            value: "#REMOVE_LAST_GOOD_DOWNLOAD_AFTER_FAILING_HOURS#"
+          - name: LOGFILE
+            value: ""
+          - name: ZIP_WORKING_DIR
+            value: "#ZIP_WORKING_DIR#"
+          - name: AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_XML
+            value: "#AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_XML#"
+          - name: AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_ZIP
+            value: "#AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_ZIP#"
+
+          - name: AZURE_STORAGE_CONNECTION_STRING
+            secureValue: "#AZURE_STORAGE_CONNECTION_STRING#"
+          - name: DB_HOST
+            secureValue: "#APP_NAME#-db-#TARGET_ENVIRONMENT#.postgres.database.azure.com"
+          - name: DB_PORT
+            secureValue: "#DB_PORT#"
+          - name: DB_USER
+            secureValue: "#DB_USER#"
+          - name: DB_PASS
+            secureValue: "#DB_PASS#"
+          - name: DB_NAME
+            secureValue: "#DB_NAME#"
+          - name: DB_SSL_MODE
+            secureValue: "#DB_SSL_MODE#"
+          - name: DB_CONNECTION_TIMEOUT
+            secureValue: "#DB_CONNECTION_TIMEOUT#"
+    - name: nginx-proxy-for-prometheus
+      properties:
+        image: "#ACR_LOGIN_SERVER#/bds-prom-nginx-reverse-proxy-#TARGET_ENVIRONMENT#:#DOCKER_IMAGE_TAG#"
+        ports:
+          - port: 9158
+            protocol: TCP
+        resources:
+          requests:
+            cpu: 1.0
+            memoryInGB: 0.5
+  ipAddress:
+    type: "public"
+    dnsNameLabel: "#APP_NAME#-#TARGET_ENVIRONMENT#"
+    ports:
+      - port: 9158
