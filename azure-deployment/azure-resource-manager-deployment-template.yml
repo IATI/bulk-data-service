@@ -32,8 +32,8 @@ properties: # Properties of container group
             value: "#DATA_REGISTRATION#"
           - name: DATA_REGISTRY_BASE_URL
             value: "#DATA_REGISTRY_BASE_URL#"
-          - name: BLOB_STORAGE_BASE_PUBLIC_URL
-            value: "https://sabulkdataservice#TARGET_ENVIRONMENT#.blob.core.windows.net"
+          - name: WEB_BASE_URL
+            value: "#WEB_BASE_URL#"
           - name: NUMBER_DOWNLOADER_THREADS
             value: "#NUMBER_DOWNLOADER_THREADS#"
           - name: FORCE_REDOWNLOAD_AFTER_HOURS

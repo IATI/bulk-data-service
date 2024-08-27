@@ -49,3 +49,4 @@ sed -i ''s^#REMOVE_LAST_GOOD_DOWNLOAD_AFTER_FAILING_HOURS#^$REMOVE_LAST_GOOD_DOW
 sed -i ''s^#ZIP_WORKING_DIR#^$ZIP_WORKING_DIR^g'' ./azure-deployment/azure-resource-manager-deployment-manifest.yml
 sed -i ''s^#AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_XML#^$AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_XML^g'' ./azure-deployment/azure-resource-manager-deployment-manifest.yml
 sed -i ''s^#AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_ZIP#^$AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_ZIP^g'' ./azure-deployment/azure-resource-manager-deployment-manifest.yml
+sed -i ''s^#WEB_BASE_URL#^$WEB_BASE_URL^g'' ./azure-deployment/azure-resource-manager-deployment-manifest.yml
