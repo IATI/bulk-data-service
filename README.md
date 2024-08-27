@@ -181,6 +181,8 @@ This automated test environment is configured via the following files:
 
 You can use the Mockoon GUI application to edit the mockoon server configuration file (`mockoon-registration-and-data-server-config.json`).
 
+The automated tests are safe to run alongside the `docker compose` setup for development.
+
 ## Provisioning and Deployment
 
 ### Initial Provisioning
