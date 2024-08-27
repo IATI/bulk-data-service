@@ -56,11 +56,23 @@ POSTGRES_SERVER_NAME="${APP_NAME}-db-$TARGET_ENVIRONMENT"
 
 SERVICE_PRINCIPAL_NAME="sp-${APP_NAME}-$TARGET_ENVIRONMENT"
 
+CDN_PROFILE_NAME="cdn-profile-${APP_NAME}-$TARGET_ENVIRONMENT"
+
+CDN_ENDPOINT_NAME="cdn-endpoint-${APP_NAME}-$TARGET_ENVIRONMENT"
+
+CDN_CUSTOM_DOMAIN_NAME="cdn-custom-domain-${APP_NAME}-$TARGET_ENVIRONMENT"
+
+HOST_FOR_CLOUDFLARE="$CDN_ENDPOINT_NAME.azureedge.net"
+
 LOCATION="uksouth"
 
 WEB_BASE_URL_PREFIX=$([[ "$TARGET_ENVIRONMENT" == "prod" ]] && echo "" || echo "${TARGET_ENVIRONMENT}-")
 
-WEB_BASE_URL="https://${WEB_BASE_URL_PREFIX}bulk-data.iatistandard.org"
+SUBDOMAIN="${WEB_BASE_URL_PREFIX}bulk-data"
+
+CUSTOM_DOMAIN="${SUBDOMAIN}.iatistandard.org"
+
+WEB_BASE_URL="https://${CUSTOM_DOMAIN}"
 
 echo
 echo "Proceeding will create Azure services with the following names:"
@@ -71,10 +83,18 @@ echo "Log analytics workspace name   : $LOG_ANALYTICS_NAME"
 echo "Storage account name           : $STORAGE_ACCOUNT_NAME"
 echo "Postgres server name           : $POSTGRES_SERVER_NAME"
 echo "Service principal name         : $SERVICE_PRINCIPAL_NAME"
+echo "CDN profile name               : $CDN_PROFILE_NAME"
+echo "CDN endpoint name              : $CDN_ENDPOINT_NAME"
+echo "CDN custom domain id/name      : $CDN_CUSTOM_DOMAIN_NAME"
+echo "Custom domain                  : $CUSTOM_DOMAIN"
 echo "Public-facing access URL       : $WEB_BASE_URL"
 echo
-echo
 echo "(Using subscription: $SUBSCRIPTION_ID)"
+echo
+echo
+echo "**NOTE:** Before continuing you should ensure that there is a CNAME record created in Cloudflare"
+echo "          for subdomain $SUBDOMAIN on iatistandard.org pointing to "
+echo "          $HOST_FOR_CLOUDFLARE"
 echo
 echo
 
@@ -118,13 +138,13 @@ echo az storage account create --resource-group "$RESOURCE_GROUP_NAME" \
                                --name $STORAGE_ACCOUNT_NAME \
                                --location $LOCATION \
                                --sku Standard_LRS \
-                               --enable-hierarchical-namespace true \
+                               --enable-hierarchical-namespace false \
                                --kind StorageV2
 az storage account create --resource-group "$RESOURCE_GROUP_NAME" \
                           --name $STORAGE_ACCOUNT_NAME \
                           --location $LOCATION \
                           --sku Standard_LRS \
-                          --enable-hierarchical-namespace true \
+                          --enable-hierarchical-namespace false \
                           --kind StorageV2
 echo
 
@@ -133,32 +153,73 @@ STORAGE_ACCOUNT_ID=$(az storage account list | jq -r ".[] | select(.name==\"$STO
 echo az resource update --ids="$STORAGE_ACCOUNT_ID" --set properties.allowBlobPublicAccess=true
 az resource update --ids="$STORAGE_ACCOUNT_ID" --set properties.allowBlobPublicAccess=true
 
-echo "Waiting for 30 seconds before creating containers on the new storage account"
-sleep 30
+echo "Waiting for 10 seconds before updating properties on the new storage account"
+sleep 10
 
-echo az storage container create --name iati-xml --account-name $STORAGE_ACCOUNT_NAME --public-access container
-az storage container create --name iati-xml --account-name $STORAGE_ACCOUNT_NAME --public-access container | jq
-
-echo az storage container create --name iati-zip --account-name $STORAGE_ACCOUNT_NAME --public-access container
-az storage container create --name iati-zip --account-name $STORAGE_ACCOUNT_NAME --public-access container | jq
-
-az storage blob service-properties update --account-name $STORAGE_ACCOUNT_NAME \
+echo "Creating a static website on the storage account..."
+echo az storage blob service-properties update --account-name "$STORAGE_ACCOUNT_NAME" \
                                           --static-website --404-document 404.html \
                                           --index-document index.html
 
-echo az storage account show-connection-string --name $STORAGE_ACCOUNT_NAME \
-                                               --resource-group "$RESOURCE_GROUP_NAME" \
-                                               \| jq -r '.connectionString'
+az storage blob service-properties update --account-name "$STORAGE_ACCOUNT_NAME" \
+                                          --static-website --404-document 404.html \
+                                          --index-document index.html
 
-STORAGE_ACCOUNT_CONNECTION_STRING=$(az storage account show-connection-string --name $STORAGE_ACCOUNT_NAME --resource-group "$RESOURCE_GROUP_NAME" | jq -r '.connectionString')
+echo "Fetching connection string for storage account..."
+
+STORAGE_ACCOUNT_CONNECTION_STRING=$(az storage account show-connection-string --name "$STORAGE_ACCOUNT_NAME" --resource-group "$RESOURCE_GROUP_NAME" | jq -r '.connectionString')
 
 # Shown to user, as may be needed for Cloudflare setup on very first run
 AZURE_BASE_URL=$(az storage account show -n "$STORAGE_ACCOUNT_NAME" -g "$RESOURCE_GROUP_NAME" --query "primaryEndpoints.web" --output tsv)
 
-# Calculated above from TARGET_ENVIRONMENT, bearing in mind 'prod' doesn' thave prefix
+AZURE_BASE_HOSTNAME="$(sed "s#https://\(.*\)/#\1#" <<< $AZURE_BASE_URL)"
+
+# WEB_BASE_URL is calculated above from TARGET_ENVIRONMENT, bearing in mind 'prod' doesn't have prefix
 sed -e "s#{{WEB_BASE_URL}}#$WEB_BASE_URL#" web/index-template.html > web/index.html
 
+echo "Uploading index and 404 pages to storage account..."
 az storage blob upload-batch -s web -d '$web' --account-name $STORAGE_ACCOUNT_NAME --overwrite
+
+
+# Create a CDN profile and endpoint, so we can use SSL with a custom domain
+echo "Creating CDN profile and endpoint for https with a custom domain..."
+
+echo az cdn profile create --resource-group "$RESOURCE_GROUP_NAME" \
+                      --name "$CDN_PROFILE_NAME" \
+                      --sku Standard_Microsoft
+
+az cdn profile create --resource-group "$RESOURCE_GROUP_NAME" \
+                      --name "$CDN_PROFILE_NAME" \
+                      --sku Standard_Microsoft
+
+echo az cdn endpoint create --resource-group "$RESOURCE_GROUP_NAME" \
+                       --name "$CDN_ENDPOINT_NAME" \
+                       --profile-name "$CDN_PROFILE_NAME" \
+                       --origin "$AZURE_BASE_HOSTNAME" \
+                       --origin-host-header "$AZURE_BASE_HOSTNAME" \
+                       --location global
+
+az cdn endpoint create --resource-group "$RESOURCE_GROUP_NAME" \
+                       --name "$CDN_ENDPOINT_NAME" \
+                       --profile-name "$CDN_PROFILE_NAME" \
+                       --origin "$AZURE_BASE_HOSTNAME" \
+                       --origin-host-header "$AZURE_BASE_HOSTNAME" \
+                       --location global
+
+
+read -p "Press any key when the CNAME has been created on Cloudflare " -n 1 -r
+
+
+az cdn custom-domain create --resource-group "$RESOURCE_GROUP_NAME" \
+                            --endpoint-name "$CDN_ENDPOINT_NAME" \
+                            --profile-name "$CDN_PROFILE_NAME" \
+                            --name "$CDN_CUSTOM_DOMAIN_NAME" \
+                            --hostname "$CUSTOM_DOMAIN"
+
+az cdn custom-domain enable-https --resource-group "$RESOURCE_GROUP_NAME" \
+                                  --endpoint-name "$CDN_ENDPOINT_NAME" \
+                                  --profile-name "$CDN_PROFILE_NAME" \
+                                  --name "$CDN_CUSTOM_DOMAIN_NAME"
 
 # Provision Postgres Server
 echo az postgres flexible-server create -y -g "$RESOURCE_GROUP_NAME" \
@@ -219,12 +280,10 @@ echo "--------------------------------------------------"
 echo "Configuration settings you will need:"
 
 echo
-
 echo "Base URL for Azure Storage Account: ${AZURE_BASE_URL}"
-echo "(You may need to put this into the Cloudflare DNS setup if recreating dev/production)"
+echo
+echo
 
-echo
-echo
 echo "--------------------------------------------------"
 echo "Credentials to put into the Github repo's secrets:"
 echo
@@ -272,6 +331,14 @@ echo "$LOG_ANALYTICS_WORKSPACE_ID"
 echo "Log analytics workspace key: (Secret name: ${TARGET_ENVIRONMENT_UPPER}_LOG_WORKSPACE_KEY)"
 
 echo "$LOG_ANALYTICS_WORKSPACE_KEY"
+
+echo "--------------------------------------------------"
+echo "Values to put into the Github repo's variables:"
+echo
+
+echo "Public-facing base URL: (Variable name: ${TARGET_ENVIRONMENT_UPPER}_WEB_BASE_URL)"
+
+echo $WEB_BASE_URL
 
 echo
 
