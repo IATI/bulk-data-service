@@ -9,7 +9,7 @@ def test_config_blob_storage_base_url_has_no_trailing_slash_1():
 
     config = get_config()
 
-    assert config["BLOB_STORAGE_BASE_PUBLIC_URL"] == 'http://127.0.0.1:10000/devstoreaccount1'
+    assert config["WEB_BASE_URL"] == 'http://127.0.0.1:10000/devstoreaccount1'
 
 
 def test_config_blob_storage_base_url_has_no_trailing_slash_2():
@@ -18,4 +18,4 @@ def test_config_blob_storage_base_url_has_no_trailing_slash_2():
 
     config = get_config()
 
-    assert config["BLOB_STORAGE_BASE_PUBLIC_URL"] == 'http://127.0.0.1:10000/devstoreaccount1'
+    assert config["WEB_BASE_URL"] == 'http://127.0.0.1:10000/devstoreaccount1'
