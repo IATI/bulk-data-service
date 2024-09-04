@@ -1,5 +1,6 @@
 import concurrent.futures
 import uuid
+import json
 from datetime import datetime, timedelta
 from itertools import batched
 from random import random
@@ -111,7 +112,9 @@ def add_or_update_registered_dataset(
             context["logger"].info("dataset id: {} - Added/updated dataset".format(bds_dataset["id"]))
 
         except RuntimeError as e:
-            bds_dataset["download_error_message"] = "Download of IATI XML failed with non-200 HTTP status: {}".format(e)
+            bds_dataset["download_error_message"] = json.dumps(
+                {"bds_message": "Download of IATI XML failed with non-200 HTTP status"} | e.args[0]
+            )
             context["logger"].warning(
                 "dataset id: {} - {}".format(registered_dataset_id, bds_dataset["download_error_message"])
             )
@@ -120,8 +123,11 @@ def add_or_update_registered_dataset(
             insert_or_update_dataset(db_conn, bds_dataset)
         except Exception as e:
             bds_dataset["last_download_attempt"] = get_timestamp()
-            bds_dataset["download_error_message"] = (
-                "Download of IATI XML produced EXCEPTION with GET request: {}".format(e)
+            bds_dataset["download_error_message"] = json.dumps(
+                {
+                    "bds_message": "Download of IATI XML produced EXCEPTION with GET request",
+                    "message": "{}".format(e),
+                }
             )
             context["logger"].warning(
                 "dataset id: {} - {}".format(registered_dataset_id, bds_dataset["download_error_message"])
@@ -144,7 +150,11 @@ def dataset_downloaded_within(bds_dataset: dict, hours: int) -> bool:
 
 
 def check_dataset_etag_last_mod_header(
-    context: dict, db_conn: psycopg.Connection, session: requests.Session, bds_dataset: dict, download_within_hours: int
+    context: dict,
+    db_conn: psycopg.Connection,
+    session: requests.Session,
+    bds_dataset: dict,
+    download_within_hours: int,
 ) -> bool:
 
     attempt_download = True
@@ -189,17 +199,22 @@ def check_dataset_etag_last_mod_header(
     except RuntimeError as e:
 
         if dataset_downloaded_within(bds_dataset, 6):
-            extra_err_message = "Dataset downloaded within the last 6 hours so not " "forcing full re-download attempt."
+            extra_err_message = "Dataset downloaded within the last 6 hours so not forcing full re-download attempt."
             attempt_download = False
         else:
-            extra_err_message = "Dataset not downloaded within the last 6 hours so " "forcing full re-download attempt."
+            extra_err_message = "Dataset not downloaded within the last 6 hours so forcing full re-download attempt."
             attempt_download = True
 
-        bds_dataset["head_error_message"] = (
-            "Last successful download within {} hours, "
-            "but HEAD request to check ETag/Last-Modified "
-            "return non-200 status. {} "
-            "HEAD request exception details: {}".format(download_within_hours, extra_err_message, e)
+        bds_dataset["head_error_message"] = json.dumps(
+            {
+                "bds_message": (
+                    "Last successful download within {} hours, "
+                    "but HEAD request to check ETag/Last-Modified "
+                    "return non-200 status. {} "
+                    "HEAD request exception details: {}".format(download_within_hours, extra_err_message, e)
+                ),
+                "message": "{}".format(e),
+            }
         )
 
         context["logger"].warning("dataset id: {} - {}".format(bds_dataset["id"], bds_dataset["head_error_message"]))

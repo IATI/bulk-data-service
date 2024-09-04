@@ -9,6 +9,8 @@ __pycache__
 
 /.env
 
+/azure-provision/default-github-config.env
+
 /azure-deployment/azure-resource-manager-deployment-manifest.yml
 /azure-deployment/manual-azure-deploy-secrets.env
 /azure-deployment/manual-azure-deploy-variables.env
