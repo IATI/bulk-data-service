@@ -38,7 +38,7 @@ def http_head_dataset(session: requests.Session, url: str, timeout: int = 10, re
                 "http_method": "HEAD",
                 "http_status_code": response.status_code,
                 "http_reason": response.reason,
-                "http_headers": response.headers,
+                "http_headers": dict(response.headers),
             }
         )
 
@@ -59,7 +59,7 @@ def http_download_dataset(
                 "http_method": "GET",
                 "http_status_code": response.status_code,
                 "http_reason": response.reason,
-                "http_headers": response.headers,
+                "http_headers": dict(response.headers),
             }
         )
 

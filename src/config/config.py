@@ -3,7 +3,7 @@ import os
 _config_variables = [
     "DATA_REGISTRATION",
     "DATA_REGISTRY_BASE_URL",
-    "BLOB_STORAGE_BASE_PUBLIC_URL",
+    "WEB_BASE_URL",
     "NUMBER_DOWNLOADER_THREADS",
     "FORCE_REDOWNLOAD_AFTER_HOURS",
     "REMOVE_LAST_GOOD_DOWNLOAD_AFTER_FAILING_HOURS",
@@ -25,6 +25,6 @@ _config_variables = [
 def get_config() -> dict[str, str]:
     config = {env_var: os.getenv(env_var, "") for env_var in _config_variables}
 
-    config["BLOB_STORAGE_BASE_PUBLIC_URL"] = config["BLOB_STORAGE_BASE_PUBLIC_URL"].strip("/")
+    config["WEB_BASE_URL"] = config["WEB_BASE_URL"].strip("/")
 
     return config

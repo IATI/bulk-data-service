@@ -13,6 +13,19 @@ if [ ! -d ".git" ]; then
     exit 1
 fi
 
+if [ ! -f "./azure-deployment/manual-azure-deploy-secrets.env" ]; then
+    echo "$0: there must be a file 'manual-azure-deploy-secrets.env' in"
+    echo "'azure-deployment' containing the secrets. See the examples in manual-azure-deploy-secrets-example.env'"
+    exit 1
+fi
+
+if [ ! -f "./azure-deployment/manual-azure-deploy-variables.env" ]; then
+    echo "$0: there must be a file 'manual-azure-deploy-variables.env' in"
+    echo "'azure-deployment' containing the config variables. See example: manual-azure-deploy-variables-example.env'"
+    exit 1
+fi
+
+
 (git remote -v 2> /dev/null | grep "IATI/bulk-data-service.git" > /dev/null) || (echo "$0: script must be run from the root of the bulk-data-service repository"; exit 1)
 
 . ./azure-deployment/manual-azure-deploy-secrets.env

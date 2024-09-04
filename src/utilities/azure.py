@@ -38,6 +38,7 @@ def create_azure_blob_containers(context: dict):
     try:
         if context["AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_XML"] not in container_names:
             blob_service.create_container(context["AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_XML"])
+            container_names.append(context["AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_XML"])
         if context["AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_ZIP"] not in container_names:
             blob_service.create_container(context["AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_ZIP"])
     except Exception as e:
@@ -93,8 +94,11 @@ def get_azure_blob_name(dataset: dict, iati_blob_type: str) -> str:
 
 
 def get_azure_blob_public_url(context: dict, dataset: dict, iati_blob_type: str) -> str:
-    return "{}/{}/{}".format(
-        context["BLOB_STORAGE_BASE_PUBLIC_URL"],
-        context["AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_" + iati_blob_type.upper()],
+    blob_name = get_azure_container_name(context, iati_blob_type)
+    blob_name_for_url = "{}/".format(blob_name) if blob_name != "$web" else ""
+
+    return "{}/{}{}".format(
+        context["WEB_BASE_URL"],
+        blob_name_for_url,
         get_azure_blob_name(dataset, iati_blob_type),
     )

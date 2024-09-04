@@ -5,6 +5,7 @@ import time
 import uuid
 
 from azure.storage.blob import BlobServiceClient, ContentSettings
+from azure.core.exceptions import ResourceNotFoundError
 
 from bulk_data_service.dataset_indexing import get_index_name
 from utilities.azure import azure_download_blob, get_azure_blob_name, get_azure_container_name
@@ -140,7 +141,12 @@ def download_new_or_updated_to_working_dir(context: dict, updated_datasets: dict
 
         context["logger"].info("dataset id: {} - Downloading".format(dataset["id"]))
 
-        azure_download_blob(az_blob_service, xml_container_name, get_azure_blob_name(dataset, "xml"), filename)
+        try:
+            azure_download_blob(az_blob_service, xml_container_name, get_azure_blob_name(dataset, "xml"), filename)
+        except ResourceNotFoundError as e:
+            context["logger"].error(
+                "dataset id: {} - Failed to download from Azure: {}".format(dataset["id"], e).replace("\n", " ")
+            )
 
     az_blob_service.close()
 
