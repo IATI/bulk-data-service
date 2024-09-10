@@ -4,10 +4,11 @@ import shutil
 import time
 import uuid
 
-from azure.storage.blob import BlobServiceClient, ContentSettings
 from azure.core.exceptions import ResourceNotFoundError
+from azure.storage.blob import BlobServiceClient
 
 from bulk_data_service.dataset_indexing import get_index_name
+from bulk_data_service.zippers import CodeforIATILegacyZipper, IATIBulkDataServiceZipper
 from utilities.azure import azure_download_blob, get_azure_blob_name, get_azure_container_name
 from utilities.db import get_datasets_in_bds
 
@@ -22,59 +23,75 @@ def zipper(context: dict):
         zipper_service_loop(context, {}, datasets)
 
 
-def zipper_service_loop(context: dict, datasets_in_zip: dict[uuid.UUID, dict], datasets_in_bds: dict[uuid.UUID, dict]):
+def zipper_service_loop(
+    context: dict, datasets_in_working_dir: dict[uuid.UUID, dict], datasets_in_bds: dict[uuid.UUID, dict]
+):
 
     while True:
-        zipper_run(context, datasets_in_zip, datasets_in_bds)
+        zipper_run(context, datasets_in_working_dir, datasets_in_bds)
 
         time.sleep(60 * 30)
 
 
-def zipper_run(context: dict, datasets_in_zip: dict[uuid.UUID, dict], datasets_in_bds: dict[uuid.UUID, dict]):
+def zipper_run(context: dict, datasets_in_working_dir: dict[uuid.UUID, dict], datasets_in_bds: dict[uuid.UUID, dict]):
 
     run_start = datetime.datetime.now(datetime.UTC)
-    context["logger"].info("Zipper starting run")
+    context["logger"].info("Zipper run starting")
 
-    clean_working_dir(context, datasets_in_zip)
+    setup_working_dir_with_downloaded_datasets(context, datasets_in_working_dir, datasets_in_bds)
+
+    zip_creators = [
+        IATIBulkDataServiceZipper(
+            context, "{}-1".format(context["ZIP_WORKING_DIR"]), datasets_in_working_dir, datasets_in_bds
+        ),
+        CodeforIATILegacyZipper(
+            context, "{}-2".format(context["ZIP_WORKING_DIR"]), datasets_in_working_dir, datasets_in_bds
+        ),
+    ]
+
+    for zip_creator in zip_creators:
+
+        if os.path.exists(zip_creator.zip_working_dir):
+            shutil.rmtree(zip_creator.zip_working_dir)
+        shutil.copytree(context["ZIP_WORKING_DIR"], zip_creator.zip_working_dir)
+
+        zip_creator.prepare()
+
+        zip_creator.zip()
+
+        zip_creator.upload()
+
+    run_end = datetime.datetime.now(datetime.UTC)
+    context["logger"].info("Zipper run finished in {}.".format(run_end - run_start))
+
+
+def setup_working_dir_with_downloaded_datasets(
+    context: dict, datasets_in_working_dir: dict[uuid.UUID, dict], datasets_in_bds: dict[uuid.UUID, dict]
+):
+
+    clean_working_dir(context, datasets_in_working_dir)
 
     datasets_with_downloads = {k: v for k, v in datasets_in_bds.items() if v["last_successful_download"] is not None}
 
-    remove_datasets_without_dls_from_working_dir(context, datasets_in_zip, datasets_with_downloads)
+    remove_datasets_without_dls_from_working_dir(context, datasets_in_working_dir, datasets_with_downloads)
 
     new_or_updated_datasets = {
         k: v
         for k, v in datasets_with_downloads.items()
-        if k not in datasets_in_zip or datasets_in_zip[k]["hash"] != datasets_with_downloads[k]["hash"]
+        if k not in datasets_in_working_dir or datasets_in_working_dir[k]["hash"] != datasets_with_downloads[k]["hash"]
     }
 
     context["logger"].info(
-        "Found {} datasets to ZIP. {} are new or updated and will be (re-)downloaded.".format(
+        "Found {} datasets with downloads. "
+        "{} are new or updated and will be (re-)downloaded.".format(
             len(datasets_with_downloads), len(new_or_updated_datasets)
         )
     )
 
     download_new_or_updated_to_working_dir(context, new_or_updated_datasets)
 
-    download_indices_to_working_dir(context)
-
-    context["logger"].info("Zipping {} datasets.".format(len(datasets_with_downloads)))
-    shutil.make_archive(
-        get_big_zip_local_pathname_no_extension(context),
-        "zip",
-        root_dir=context["ZIP_WORKING_DIR"],
-        base_dir="iati-data",
-    )
-
-    context["logger"].info("Uploading zipped datasets.")
-    upload_zip_to_azure(context)
-
-    run_end = datetime.datetime.now(datetime.UTC)
-    context["logger"].info(
-        "Zipper finished in {}. Datasets zipped: {}.".format(run_end - run_start, len(datasets_with_downloads))
-    )
-
-    datasets_in_zip.clear()
-    datasets_in_zip.update(datasets_with_downloads)
+    datasets_in_working_dir.clear()
+    datasets_in_working_dir.update(datasets_with_downloads)
 
 
 def clean_working_dir(context: dict, datasets_in_zip: dict[uuid.UUID, dict]):
@@ -90,21 +107,6 @@ def remove_datasets_without_dls_from_working_dir(
 
     for dataset in datasets_removed.values():
         delete_local_xml_from_zip_working_dir(context, dataset)
-
-
-def upload_zip_to_azure(context: dict):
-    az_blob_service = BlobServiceClient.from_connection_string(context["AZURE_STORAGE_CONNECTION_STRING"])
-
-    blob_client = az_blob_service.get_blob_client(
-        context["AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_ZIP"], get_big_zip_full_filename(context)
-    )
-
-    content_settings = ContentSettings(content_type="zip")
-
-    with open(get_big_zip_local_pathname(context), "rb") as data:
-        blob_client.upload_blob(data, overwrite=True, content_settings=content_settings)
-
-    az_blob_service.close()
 
 
 def download_indices_to_working_dir(context: dict):
@@ -134,6 +136,8 @@ def download_new_or_updated_to_working_dir(context: dict, updated_datasets: dict
 
     xml_container_name = get_azure_container_name(context, "xml")
 
+    os.makedirs("{}/iati-data/datasets".format(context["ZIP_WORKING_DIR"]), exist_ok=True)
+
     for dataset in updated_datasets.values():
         filename = get_local_pathname_dataset_xml(context, dataset)
 
@@ -149,22 +153,6 @@ def download_new_or_updated_to_working_dir(context: dict, updated_datasets: dict
             )
 
     az_blob_service.close()
-
-
-def get_big_zip_local_pathname_no_extension(context: dict) -> str:
-    return "{}/{}".format(context["ZIP_WORKING_DIR"], get_big_zip_base_filename(context))
-
-
-def get_big_zip_local_pathname(context: dict) -> str:
-    return "{}/{}".format(context["ZIP_WORKING_DIR"], get_big_zip_full_filename(context))
-
-
-def get_big_zip_base_filename(context: dict) -> str:
-    return "iati-data"
-
-
-def get_big_zip_full_filename(context: dict) -> str:
-    return "{}.zip".format(get_big_zip_base_filename(context))
 
 
 def get_local_pathname_dataset_xml(context: dict, dataset: dict) -> str:
