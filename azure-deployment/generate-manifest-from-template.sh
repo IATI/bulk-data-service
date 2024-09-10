@@ -43,6 +43,8 @@ sed -i ''s^#DB_CONNECTION_TIMEOUT#^$DB_CONNECTION_TIMEOUT^g'' ./azure-deployment
 
 sed -i ''s^#DATA_REGISTRATION#^$DATA_REGISTRATION^g'' ./azure-deployment/azure-resource-manager-deployment-manifest.yml
 sed -i ''s^#DATA_REGISTRY_BASE_URL#^$DATA_REGISTRY_BASE_URL^g'' ./azure-deployment/azure-resource-manager-deployment-manifest.yml
+sed -i ''s^#DATA_REGISTRY_PUBLISHER_METADATA_URL#^$DATA_REGISTRY_PUBLISHER_METADATA_URL^g'' ./azure-deployment/azure-resource-manager-deployment-manifest.yml
+sed -i ''s^#DATA_REGISTRY_PUBLISHER_METADATA_REFRESH_AFTER_HOURS#^$DATA_REGISTRY_PUBLISHER_METADATA_REFRESH_AFTER_HOURS^g'' ./azure-deployment/azure-resource-manager-deployment-manifest.yml
 sed -i ''s^#NUMBER_DOWNLOADER_THREADS#^$NUMBER_DOWNLOADER_THREADS^g'' ./azure-deployment/azure-resource-manager-deployment-manifest.yml
 sed -i ''s^#FORCE_REDOWNLOAD_AFTER_HOURS#^$FORCE_REDOWNLOAD_AFTER_HOURS^g'' ./azure-deployment/azure-resource-manager-deployment-manifest.yml
 sed -i ''s^#REMOVE_LAST_GOOD_DOWNLOAD_AFTER_FAILING_HOURS#^$REMOVE_LAST_GOOD_DOWNLOAD_AFTER_FAILING_HOURS^g'' ./azure-deployment/azure-resource-manager-deployment-manifest.yml
@@ -50,3 +52,4 @@ sed -i ''s^#ZIP_WORKING_DIR#^$ZIP_WORKING_DIR^g'' ./azure-deployment/azure-resou
 sed -i ''s^#AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_XML#^$AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_XML^g'' ./azure-deployment/azure-resource-manager-deployment-manifest.yml
 sed -i ''s^#AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_ZIP#^$AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_ZIP^g'' ./azure-deployment/azure-resource-manager-deployment-manifest.yml
 sed -i ''s^#WEB_BASE_URL#^$WEB_BASE_URL^g'' ./azure-deployment/azure-resource-manager-deployment-manifest.yml
+sed -i ''s^#CHECKER_LOOP_WAIT_MINS#^$CHECKER_LOOP_WAIT_MINS^g'' ./azure-deployment/azure-resource-manager-deployment-manifest.yml
