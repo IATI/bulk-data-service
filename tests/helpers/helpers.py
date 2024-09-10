@@ -1,4 +1,6 @@
 import glob
+import os
+import shutil
 from unittest import mock
 
 import pytest
@@ -41,3 +43,9 @@ def get_and_clear_up_context():
     yield context
     truncate_db_table(context)
     delete_azure_blob_containers(context)
+    # this is a sanity check to ensure we don't remove important files on a misconfiguration
+    if context["ZIP_WORKING_DIR"].startswith("/tmp"):
+        zip_dirs = [context["ZIP_WORKING_DIR"], f"{context['ZIP_WORKING_DIR']}-1", f"{context['ZIP_WORKING_DIR']}-2"]
+        for zip_dir in zip_dirs:
+            if os.path.exists(zip_dir):
+                shutil.rmtree(zip_dir)
