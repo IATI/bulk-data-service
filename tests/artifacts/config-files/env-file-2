@@ -1,5 +1,7 @@
 DATA_REGISTRATION=ckan-registry
 DATA_REGISTRY_BASE_URL=http://localhost:3000/registration-service/
+DATA_REGISTRY_PUBLISHER_METADATA_URL=http://localhost:3000/registration/ckan-publishers
+DATA_REGISTRY_PUBLISHER_METADATA_REFRESH_AFTER_HOURS=24
 
 WEB_BASE_URL=http://127.0.0.1:10000/devstoreaccount1/
 
@@ -8,9 +10,6 @@ NUMBER_DOWNLOADER_THREADS=1
 FORCE_REDOWNLOAD_AFTER_HOURS=24
 
 REMOVE_LAST_GOOD_DOWNLOAD_AFTER_FAILING_HOURS=72
-
-# Log file
-LOGFILE=
 
 ZIP_WORKING_DIR=/tmp/bulk-data-service-zip
 
@@ -29,5 +28,5 @@ DB_CONNECTION_TIMEOUT=30
 AZURE_STORAGE_CONNECTION_STRING=AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;DefaultEndpointsProtocol=http;BlobEndpoint=http://127.0.0.1:10000/devstoreaccount1;QueueEndpoint=http://127.0.0.1:10001/devstoreaccount1;TableEndpoint=http://127.0.0.1:10002/devstoreaccount1;
 
 
-AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_XML=iati-xml
-AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_ZIP=iati-zip
+AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_XML="test-data"
+AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_ZIP="test-data"
