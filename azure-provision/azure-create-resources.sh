@@ -206,6 +206,11 @@ az cdn endpoint create --resource-group "$RESOURCE_GROUP_NAME" \
                        --origin-host-header "$AZURE_BASE_HOSTNAME" \
                        --location global
 
+az cdn endpoint rule add --resource-group "$RESOURCE_GROUP_NAME" \
+                         --profile-name "$CDN_PROFILE_NAME" \
+                         --name "$CDN_ENDPOINT_NAME" \
+                         --action-name "CacheExpiration" \
+                         --cache-behavior BypassCache --rule-name global --order 0
 
 read -p "Press any key when the CNAME has been created on Cloudflare " -n 1 -r
 

@@ -32,16 +32,20 @@ properties: # Properties of container group
             value: "#DATA_REGISTRATION#"
           - name: DATA_REGISTRY_BASE_URL
             value: "#DATA_REGISTRY_BASE_URL#"
+          - name: DATA_REGISTRY_PUBLISHER_METADATA_URL
+            value: "#DATA_REGISTRY_PUBLISHER_METADATA_URL#"
+          - name: DATA_REGISTRY_PUBLISHER_METADATA_REFRESH_AFTER_HOURS
+            value: "#DATA_REGISTRY_PUBLISHER_METADATA_REFRESH_AFTER_HOURS#"
           - name: WEB_BASE_URL
             value: "#WEB_BASE_URL#"
+          - name: CHECKER_LOOP_WAIT_MINS
+            value: "#CHECKER_LOOP_WAIT_MINS#"
           - name: NUMBER_DOWNLOADER_THREADS
             value: "#NUMBER_DOWNLOADER_THREADS#"
           - name: FORCE_REDOWNLOAD_AFTER_HOURS
             value: "#FORCE_REDOWNLOAD_AFTER_HOURS#"
           - name: REMOVE_LAST_GOOD_DOWNLOAD_AFTER_FAILING_HOURS
             value: "#REMOVE_LAST_GOOD_DOWNLOAD_AFTER_FAILING_HOURS#"
-          - name: LOGFILE
-            value: ""
           - name: ZIP_WORKING_DIR
             value: "#ZIP_WORKING_DIR#"
           - name: AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_XML

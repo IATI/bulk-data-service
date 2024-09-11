@@ -1,8 +1,20 @@
-from typing import Any
+import datetime
+from typing import Any, Optional
 
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util import Retry
+
+
+def parse_last_modified_header(last_modified_header: str) -> Optional[datetime.datetime]:
+    last_modified_header_parsed = None
+    try:
+        last_modified_header_parsed = datetime.datetime.strptime(
+            last_modified_header, "%a, %d %b %Y %H:%M:%S %Z"
+        ).replace(tzinfo=datetime.timezone.utc)
+    except ValueError:
+        pass
+    return last_modified_header_parsed
 
 
 def get_requests_session() -> requests.Session:
@@ -28,7 +40,7 @@ def http_get_json(session: requests.Session, url: str, timeout: int = 30, except
 
 def http_head_dataset(session: requests.Session, url: str, timeout: int = 10, retries: int = 2) -> requests.Response:
 
-    response = session.head(url=url, timeout=timeout, allow_redirects=True)
+    response = session.head(url=url, timeout=timeout, allow_redirects=True, verify=False)
 
     if response.status_code != 200:
         raise RuntimeError(
@@ -49,7 +61,7 @@ def http_download_dataset(
     session: requests.Session, url: str, timeout: int = 25, retries: int = 2
 ) -> requests.Response:
 
-    response = session.get(url=url, timeout=timeout, allow_redirects=True)
+    response = session.get(url=url, timeout=timeout, allow_redirects=True, verify=False)
 
     if response.status_code != 200:
         raise RuntimeError(

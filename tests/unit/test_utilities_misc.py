@@ -1,4 +1,6 @@
-from utilities.misc import get_hash, get_hash_excluding_generated_timestamp
+import pytest
+
+from utilities.misc import filter_dict_by_structure, get_hash, get_hash_excluding_generated_timestamp
 
 
 def test_get_hash():
@@ -51,3 +53,105 @@ def test_get_hash_excluding_generated_timestamp():
     hash = get_hash_excluding_generated_timestamp(yiplActivitiesXmlFile)
 
     assert(hash == "759eaa39276381f3fc146232cefd2111a2abc199")
+
+
+@pytest.mark.parametrize("input,structure,expected", [
+    ({"a": 10}, {"a" : None}, {"a": 10}),
+    ({"a": None}, {"a" : None}, {"a": None}),
+    ({"a": 10, "b": "should be filtered"}, {"a" : None}, {"a": 10}),
+    ({"a": 10, "b": "should be filtered", "c" : "also filtered"}, {"a" : None}, {"a": 10}),
+    ({"a": 10, "b": "included"}, {"a" : None, "b": None}, {"a": 10, "b": "included"}),
+    ({"b": "included"}, {"a" : None, "b": None}, {"b": "included"}),
+    ({"c": 10}, {"a" : None, "b": None}, {}),
+    ({}, {"a" : None, "b": None}, {}),
+    ({}, {}, {}),
+])
+def test_filter_dict_atomic_value(input, structure, expected):
+
+    assert filter_dict_by_structure(input, structure) == expected
+
+
+@pytest.mark.parametrize("input,structure,expected", [
+    ({},
+     {"a": {"include": None}},
+     {}),
+
+    ({"a": {}},
+     {"a": {"include": None}},
+     {"a": {}}),
+
+    ({"a": {"include": 10, "filter out": 20}},
+     {"a": {"include": None}},
+     {"a": {"include": 10}}),
+
+    ({"a": {"filter out": 20}},
+     {"a": {"include": None}},
+     {"a": {}}),
+
+    ({"a": {"filter out": 20}},
+     {"a": {}},
+     {"a": {}}),
+
+    ({"a": None},
+     {"a": {}},
+     {"a": None}),
+
+    ({"a": None},
+     {"a": {"b": None}},
+     {"a": None}),
+
+    ({"a": 10},
+     {"a": {"b": {}}},
+     {"a": 10}),
+
+    ({"a": ["test"]},
+     {"a": {"b": {}}},
+     {"a": ["test"]}),
+
+
+])
+def test_filter_dict_nested_dict(input, structure, expected):
+
+    assert filter_dict_by_structure(input, structure) == expected
+
+
+@pytest.mark.parametrize("input,structure,expected", [
+    ({},
+     {"a": []},
+     {}),
+
+    ({"a": []},
+     {"a": None},
+     {"a": []}),
+
+    ({"a": ["one", "two"]},
+     {"a": None},
+     {"a": ["one", "two"]}),
+
+])
+def test_filter_dict_with_list_no_dict_items(input, structure, expected):
+
+    assert filter_dict_by_structure(input, structure) == expected
+
+
+@pytest.mark.parametrize("input,structure,expected", [
+    ({},
+     {"a": [{}]},
+     {}),
+
+    ({"a": []},
+     {"a": [{}]},
+     {"a": []}),
+
+    ({"a": ["one", "two"]},
+     {"a": [{}]},
+     {"a": [{}, {}]}),
+
+    ({"a": [{"include": 10, "filter": 20}]},
+     {"a": [{"include": None}]},
+     {"a": [{"include": 10}]}),
+
+])
+def test_filter_dict_with_list_with_dict_items(input, structure, expected):
+
+    assert filter_dict_by_structure(input, structure) == expected

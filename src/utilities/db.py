@@ -74,7 +74,10 @@ def insert_or_update_dataset(connection: psycopg.Connection, data):
                         content_modified_excluding_generated_timestamp =
                             %(content_modified_excluding_generated_timestamp)s,
                         server_header_last_modified = %(server_header_last_modified)s,
-                        server_header_etag = %(server_header_etag)s
+                        server_header_etag = %(server_header_etag)s,
+                        registration_service_dataset_metadata = %(registration_service_dataset_metadata)s,
+                        registration_service_publisher_metadata = %(registration_service_publisher_metadata)s,
+                        registration_service_name = %(registration_service_name)s
                     WHERE
                         iati_datasets.id = %(id)s
         """.format(
