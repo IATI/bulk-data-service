@@ -29,9 +29,20 @@ fi
 
 TARGET_ENVIRONMENT="$1"
 
+WEB_BASE_URL_PREFIX=$([[ "$TARGET_ENVIRONMENT" == "prod" ]] && echo "" || echo "${TARGET_ENVIRONMENT}-")
+
+SUBDOMAIN="${WEB_BASE_URL_PREFIX}bulk-data"
+
+CUSTOM_DOMAIN="${SUBDOMAIN}.iatistandard.org"
+
+WEB_BASE_URL="https://${CUSTOM_DOMAIN}"
+
+echo $WEB_BASE_URL
+
 cp -f azure-provision/default-github-config-template.env azure-provision/default-github-config.env
 
 sed -i "s/^/${TARGET_ENVIRONMENT^^}/g" azure-provision/default-github-config.env
 sed -i "s/{{TARGET_ENVIRONMENT}}/${TARGET_ENVIRONMENT}/g" azure-provision/default-github-config.env
+sed -i "s#{{WEB_BASE_URL}}#${WEB_BASE_URL}#g" azure-provision/default-github-config.env
 
 gh variable set --env-file ./azure-provision/default-github-config.env
