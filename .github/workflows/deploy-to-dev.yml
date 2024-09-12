@@ -19,4 +19,4 @@ jobs:
     secrets: inherit
     with:
       APP_NAME: "bulk-data-service"
-      TARGET_ENVIRONMENT: "test"
+      TARGET_ENVIRONMENT: "dev"

@@ -32,5 +32,6 @@ TARGET_ENVIRONMENT="$1"
 cp -f azure-provision/default-github-config-template.env azure-provision/default-github-config.env
 
 sed -i "s/^/${TARGET_ENVIRONMENT^^}/g" azure-provision/default-github-config.env
+sed -i "s/{{TARGET_ENVIRONMENT}}/${TARGET_ENVIRONMENT}/g" azure-provision/default-github-config.env
 
 gh variable set --env-file ./azure-provision/default-github-config.env

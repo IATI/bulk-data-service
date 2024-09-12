@@ -20,9 +20,4 @@ def initialise_logging(config: dict) -> logging.Logger:
 
     bds_logger.addHandler(handler_stdout)
 
-    if config["LOGFILE"] != "":
-        handler_file = logging.FileHandler(config["LOGFILE"])
-        handler_file.setFormatter(formatter)
-        bds_logger.addHandler(handler_file)
-
     return bds_logger

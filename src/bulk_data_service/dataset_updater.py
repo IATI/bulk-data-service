@@ -1,6 +1,7 @@
 import concurrent.futures
-import uuid
 import json
+import traceback
+import uuid
 from datetime import datetime, timedelta
 from itertools import batched
 from random import random
@@ -9,9 +10,9 @@ import psycopg
 import requests
 from azure.storage.blob import BlobServiceClient
 
-from utilities.azure import azure_upload_to_blob
+from utilities.azure import azure_blob_exists, azure_upload_to_blob
 from utilities.db import get_db_connection, insert_or_update_dataset
-from utilities.http import get_requests_session, http_download_dataset, http_head_dataset
+from utilities.http import get_requests_session, http_download_dataset, http_head_dataset, parse_last_modified_header
 from utilities.misc import (
     get_hash,
     get_hash_excluding_generated_timestamp,
@@ -227,8 +228,10 @@ def check_dataset_etag_last_mod_header(
 
     except Exception as e:
         context["logger"].warning(
-            "dataset id: {} - EXCEPTION with HEAD request, details: " "{}".format(bds_dataset["id"], e)
+            "dataset id: {} - EXCEPTION with HEAD request, details: {}".format(bds_dataset["id"], e)
         )
+        if "{}".format(e) == "str.replace() takes no keyword arguments":
+            context["logger"].error("Full traceback: " "{}".format(traceback.format_exc()))
 
     return attempt_download
 
@@ -252,7 +255,7 @@ def download_and_save_dataset(
     else:
         iati_xml_zipped = zip_data_as_single_file(bds_dataset["name"] + ".xml", download_response.text)
 
-        azure_upload_to_blob(
+        response_xml = azure_upload_to_blob(
             az_blob_service,
             context["AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_XML"],
             "{}/{}.xml".format(bds_dataset["publisher_name"], bds_dataset["name"]),
@@ -260,13 +263,31 @@ def download_and_save_dataset(
             "application/xml",
         )
 
-        azure_upload_to_blob(
+        context["logger"].debug(
+            "dataset id: {} - Azure XML upload response: {}".format(bds_dataset["id"], response_xml)
+        )
+
+        response_zip = azure_upload_to_blob(
             az_blob_service,
             context["AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_ZIP"],
             "{}/{}.zip".format(bds_dataset["publisher_name"], bds_dataset["name"]),
             iati_xml_zipped,
             "application/zip",
         )
+
+        if not azure_blob_exists(
+            az_blob_service,
+            context["AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_XML"],
+            "{}/{}.xml".format(bds_dataset["publisher_name"], bds_dataset["name"]),
+        ):
+            context["logger"].error("dataset id: {} - Azure XML upload failed")
+            context["logger"].debug(
+                "dataset id: {} - Azure ZIP upload response: {}".format(bds_dataset["id"], response_xml)
+            )
+
+    last_modified_header = None
+    if download_response.headers.get("Last-Modified", None) is not None:
+        last_modified_header = parse_last_modified_header(download_response.headers.get("Last-Modified", ""))
 
     bds_dataset.update(
         {
@@ -280,7 +301,7 @@ def download_and_save_dataset(
             "download_error_message": None,
             "content_modified": None,
             "content_modified_excluding_generated_timestamp": None,
-            "server_header_last_modified": download_response.headers.get("Last-Modified", None),
+            "server_header_last_modified": last_modified_header,
             "server_header_etag": download_response.headers.get("ETag", None),
         }
     )
@@ -315,9 +336,20 @@ def create_bds_dataset(registered_dataset: dict) -> dict:
         "content_modified_excluding_generated_timestamp": None,
         "server_header_last_modified": None,
         "server_header_etag": None,
+        "registration_service_dataset_metadata": registered_dataset["registration_service_dataset_metadata"],
+        "registration_service_publisher_metadata": registered_dataset["registration_service_publisher_metadata"],
+        "registration_service_name": registered_dataset["registration_service_name"],
     }
 
 
 def update_bds_dataset_registration_info(bds_dataset: dict, registered_dataset: dict):
-    for field in ["publisher_id", "publisher_name", "type", "source_url"]:
+    for field in [
+        "publisher_id",
+        "publisher_name",
+        "type",
+        "source_url",
+        "registration_service_dataset_metadata",
+        "registration_service_publisher_metadata",
+        "registration_service_name",
+    ]:
         bds_dataset[field] = registered_dataset[field]

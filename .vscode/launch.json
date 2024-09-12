@@ -12,10 +12,39 @@
             "args": [
                 "--operation",
                 "checker",
+                "--single-run",
+                "--run-for-n-datasets",
+                "75"
+            ],
+            "console": "integratedTerminal",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "name": "Python Debugger: Bulk Data Service - Zipper - Single Run",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "src/iati_bulk_data_service.py",
+            "args": [
+                "--operation",
+                "zipper",
                 "--single-run"
             ],
             "console": "integratedTerminal",
             "envFile": "${workspaceFolder}/.env"
-        }
+        },
+        {
+            "name": "Python Debugger: Bulk Data Service - Checker & Zipper Loop",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "src/iati_bulk_data_service.py",
+            "args": [
+                "--operation",
+                "checker",
+                "--run-for-n-datasets",
+                "75"
+            ],
+            "console": "integratedTerminal",
+            "envFile": "${workspaceFolder}/.env"
+        },
     ]
 }
