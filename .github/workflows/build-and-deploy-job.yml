@@ -71,7 +71,7 @@ jobs:
 
       - name: 'Create htpasswd file for nginx reverse proxy'
         run: |
-          htpasswd -c -b ./azure-deployment/nginx-reverse-proxy/htpasswd prom "${{ secrets.PROM_NGINX_REVERSE_PROXY_PASSWORD }}"
+          htpasswd -BC 10 -c -b ./azure-deployment/nginx-reverse-proxy/htpasswd prom "${{ secrets.PROM_NGINX_REVERSE_PROXY_PASSWORD }}"
           docker build ./azure-deployment/nginx-reverse-proxy -t criati.azurecr.io/bds-prom-nginx-reverse-proxy-$TARGET_ENVIRONMENT:$DOCKER_IMAGE_TAG
           docker push criati.azurecr.io/bds-prom-nginx-reverse-proxy-$TARGET_ENVIRONMENT:$DOCKER_IMAGE_TAG
 
