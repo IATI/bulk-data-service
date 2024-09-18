@@ -54,7 +54,7 @@ docker push "criati.azurecr.io/bulk-data-service-$TARGET_ENVIRONMENT:$DOCKER_IMA
 # now configure, build and push the docker image for the nginx reverse proxy
 
 # create password file
-htpasswd -c -b ./azure-deployment/nginx-reverse-proxy/htpasswd prom "$PROM_NGINX_REVERSE_PROXY_PASSWORD"
+htpasswd -BC 10 -c -b ./azure-deployment/nginx-reverse-proxy/htpasswd prom "$PROM_NGINX_REVERSE_PROXY_PASSWORD"
 
 # make the image for the nginx reverse proxy (for putting HTTP basic auth on the
 # prom client)
