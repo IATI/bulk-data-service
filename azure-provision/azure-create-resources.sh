@@ -92,10 +92,13 @@ echo
 echo "(Using subscription: $SUBSCRIPTION_ID)"
 echo
 echo
-echo "**NOTE:** Before continuing you should ensure that there is a CNAME record created in Cloudflare"
-echo "          for subdomain $SUBDOMAIN on iatistandard.org pointing to "
-echo "          $HOST_FOR_CLOUDFLARE"
+echo "**NOTE 1:** Before continuing you should ensure that there is a CNAME record created in Cloudflare"
+echo "            for subdomain $SUBDOMAIN on iatistandard.org pointing to "
+echo "            $HOST_FOR_CLOUDFLARE"
 echo
+echo "**NOTE 2:** It is not (yet) safe to re-run this script for an instance which already exists. It will"
+echo "            fail at the point of database creation, because of how AZ handles creation of Postgres "
+echo "            servers."
 echo
 
 read -p "Do you want to continue? ([y]es or [n]o) " -n 1 -r

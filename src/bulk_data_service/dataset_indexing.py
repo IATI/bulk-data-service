@@ -125,6 +125,7 @@ def get_minimal_index_fields(context: dict) -> list[str]:
     return [
         "id",
         "name",
+        "publisher_id",
         "publisher_name",
         "source_url",
         "hash",
