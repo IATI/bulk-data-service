@@ -213,9 +213,8 @@ def check_dataset_etag_last_mod_header(
                     "but HEAD request to check ETag/Last-Modified "
                     "return non-200 status. {} "
                     "HEAD request exception details: {}".format(download_within_hours, extra_err_message, e)
-                ),
-                "message": "{}".format(e),
-            }
+                )
+            } | e.args[0]
         )
 
         context["logger"].warning("dataset id: {} - {}".format(bds_dataset["id"], bds_dataset["head_error_message"]))
