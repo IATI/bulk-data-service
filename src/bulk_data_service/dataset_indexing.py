@@ -58,8 +58,8 @@ def get_index_entry(context: dict, dataset: dict, index_type: str) -> dict[str, 
     else:
         dataset_index_entry = get_full_index_entry_from_dataset(context, dataset)
 
-    dataset_index_entry["url_xml"] = ""
-    dataset_index_entry["url_zip"] = ""
+    dataset_index_entry["url_xml"] = None
+    dataset_index_entry["url_zip"] = None
 
     if dataset_index_entry["last_successful_download"] is not None:
         dataset_index_entry["url_xml"] = get_azure_blob_public_url(context, dataset, "xml")
@@ -80,7 +80,7 @@ def get_minimal_index_entry_from_dataset(context: dict, dataset: dict) -> dict:
 
 
 def get_full_index_entry_from_dataset(context: dict, dataset: dict) -> dict:
-    full_index_entry = {k: v for k, v in dataset.items() if k in get_full_index_fields(context)}
+    full_index_entry = {k: v for k, v in dataset.items() if k in get_full_index_source_fields(context)}
 
     field_from_json_str_to_object(full_index_entry, "download_error_message", "download_error_details")
 
@@ -96,7 +96,7 @@ def field_from_json_str_to_object(entry: dict, source_field: str, dest_field: st
     del entry[source_field]
 
 
-def get_full_index_fields(context: dict) -> list[str]:
+def get_full_index_source_fields(context: dict) -> list[str]:
     return [
         "id",
         "name",
