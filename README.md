@@ -59,11 +59,20 @@ docker compose up
 
 The example `.env` file (`.env-example`) is configured to use the above docker compose setup. If you don't use the docker compose setup, then you will need to change the values in the `.env` file accordingly.
 
-Once the docker compose setup is running, start the bulk download app with:
+Once the docker compose setup is running, you can run the dataset updater part of the app with (this will download the datasets and upload them to Azurite):
 
 ```
 dotenv run python src/iati_bulk_data_service.py -- --operation checker --single-run --run-for-n-datasets=50
 ```
+
+You can run the zipper operation with:
+
+```
+dotenv run python src/iati_bulk_data_service.py -- --operation zipper --single-run
+```
+
+It will store the ZIP files in the directory defined in the `ZIP_WORKING_DIR` environment variable.
+
 
 *Note:* not all versions of `dotenv` require a `run` subcommand.
 
