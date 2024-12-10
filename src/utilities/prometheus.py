@@ -23,6 +23,10 @@ def get_metrics_definitions(context: dict) -> list:
             "The time taken by the last run of the checker (seconds)",
         ),
         (
+            "zipper_run_duration",
+            "The time taken by the last run of the zipper (seconds)",
+        ),
+        (
             "number_crashes",
             "The number of crashes since app restart",
         ),
