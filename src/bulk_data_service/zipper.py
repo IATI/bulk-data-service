@@ -63,6 +63,7 @@ def zipper_run(context: dict, datasets_in_working_dir: dict[uuid.UUID, dict], da
 
     run_end = datetime.datetime.now(datetime.UTC)
     context["logger"].info("Zipper run finished in {}.".format(run_end - run_start))
+    context["prom_metrics"]["zipper_run_duration"].set((run_end - run_start).seconds)
 
 
 def setup_working_dir_with_downloaded_datasets(
