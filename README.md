@@ -47,7 +47,7 @@ The example file is preconfigured to work with the local docker compose setup.
 
 #### 4. Install some version of `dotenv` (optional)
 
-The `.env` file is used when running things locally to store environment variables that configure the apps mentioned above. Docker Compose will read this automatically, but when running the bulk data service app or `yoyo` directly, you need to get these variables into the shell environment: you can either source this file to get the environment variables into your current terminal context, or you can one of the various `dotenv` command line tools to import the environment on each run (using `dotenv` lets you quickly switch different `.env` files in and out, which can be useful for testing, debugging, etc).
+The `.env` file is used when running things locally to store environment variables that configure the apps mentioned above. Docker Compose will read this automatically, but when running the bulk data service app or `yoyo` directly, you need to get these variables into the shell environment: you can either source this file to get the environment variables into your current terminal context, or you can use one of the various `dotenv` command line tools to import the environment on each run (using `dotenv` lets you quickly switch different `.env` files in and out, which can be useful for testing, debugging, etc).
 
 ### Running after first-time setup
 
