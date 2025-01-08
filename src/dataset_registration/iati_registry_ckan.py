@@ -1,20 +1,33 @@
 import json
 import random
 import uuid
-from datetime import datetime, timedelta
 from logging import Logger
 from typing import Any
 
 import requests
 
 from utilities.http import http_get_json
-from utilities.misc import get_timestamp
-
-PUBLISHER_METADATA: dict[str, Any] = {}
-PUBLISHER_METADATA_LAST_UPDATE: datetime = get_timestamp() - timedelta(hours=25)
+from utilities.misc import is_str_valid_uuid
 
 
-def fetch_datasets_metadata(context: dict, session: requests.Session) -> dict[uuid.UUID, dict]:
+def fetch_organisations_metadata(context: dict) -> dict[uuid.UUID, dict]:
+    session = requests.Session()
+
+    url = context["DATA_REGISTRY_PUBLISHER_METADATA_URL"]
+
+    organisation_metadata = {}
+
+    organisations_metadata = http_get_json(session, url, 120, True)
+
+    organisations_with_valid_ids = [org for org in organisations_metadata["result"] if is_str_valid_uuid(org["id"])]
+
+    organisation_metadata = {uuid.UUID(org["id"]): org for org in organisations_with_valid_ids}
+
+    return organisation_metadata
+
+
+def fetch_datasets_metadata(context: dict, organisations: dict) -> dict[uuid.UUID, dict]:
+    session = requests.Session()
 
     datasets_list_from_registry = fetch_datasets_metadata_from_iati_registry(context, session)
 
@@ -22,7 +35,7 @@ def fetch_datasets_metadata(context: dict, session: requests.Session) -> dict[uu
 
     cleaned_datasets_metadata = clean_datasets_metadata(context["logger"], datasets_list_from_registry)
 
-    add_publisher_metadata(context, session, cleaned_datasets_metadata)
+    add_publisher_metadata(cleaned_datasets_metadata, organisations)
 
     datasets_metadata = convert_datasets_metadata(cleaned_datasets_metadata)
 
@@ -55,50 +68,16 @@ def fetch_datasets_metadata_from_iati_registry(context: dict, session: requests.
     return datasets_metadata
 
 
-def add_publisher_metadata(context: dict, session: requests.Session, datasets_from_registry: list[dict[str, Any]]):
+def add_publisher_metadata(datasets_from_registry: list[dict[str, Any]], organisations: dict[uuid.UUID, dict]):
     for registry_dataset in datasets_from_registry:
         publisher_metadata = ""
-        if "organization" in registry_dataset and "name" in registry_dataset["organization"]:
-            publisher_metadata = get_publisher_metadata_as_str(
-                context, session, registry_dataset["organization"]["name"]
-            )
+        if "organization" in registry_dataset and "id" in registry_dataset["organization"]:
+            publisher_metadata = get_publisher_metadata_as_str(organisations, registry_dataset["organization"]["id"])
         registry_dataset["registration_service_publisher_metadata"] = publisher_metadata
 
 
-def get_publisher_metadata_as_str(context: dict, session: requests.Session, publisher_name: str) -> str:
-    global PUBLISHER_METADATA, PUBLISHER_METADATA_LAST_UPDATE
-
-    if PUBLISHER_METADATA_LAST_UPDATE < get_timestamp() - timedelta(
-        hours=int(context["DATA_REGISTRY_PUBLISHER_METADATA_REFRESH_AFTER_HOURS"])
-    ):
-        context["logger"].info(
-            "Refreshing publisher metadata from IATI Registry (CKAN) "
-            "after {} hours...".format(context["DATA_REGISTRY_PUBLISHER_METADATA_REFRESH_AFTER_HOURS"])
-        )
-        update_publisher_metadata_cache(context, session)
-        PUBLISHER_METADATA_LAST_UPDATE = get_timestamp()
-
-    return PUBLISHER_METADATA[publisher_name] if publisher_name in PUBLISHER_METADATA else "{}"
-
-
-def update_publisher_metadata_cache(context: dict, session: requests.Session):
-    global PUBLISHER_METADATA, PUBLISHER_METADATA_LAST_UPDATE
-
-    url = context["DATA_REGISTRY_PUBLISHER_METADATA_URL"]
-
-    PUBLISHER_METADATA = {}
-
-    try:
-        publishers_metadata = http_get_json(session, url, 60, True)
-
-        PUBLISHER_METADATA = {publisher["name"]: json.dumps(publisher) for publisher in publishers_metadata["result"]}
-
-    except RuntimeError as e:
-        context["logger"].error("HTTP error when fetching publisher metadata from IATI Registry (CKAN): {}".format(e))
-    except Exception as e:
-        context["logger"].error(
-            "Unexpected error when fetching publisher metadata from IATI Registry (CKAN): {}".format(e)
-        )
+def get_publisher_metadata_as_str(organisations: dict[uuid.UUID, dict], publisher_id: str) -> str:
+    return json.dumps(organisations[uuid.UUID(publisher_id)]) if uuid.UUID(publisher_id) in organisations else "{}"
 
 
 def clean_datasets_metadata(logger: Logger, datasets_from_registry: list[dict[str, Any]]) -> list[dict[str, Any]]:

@@ -7,7 +7,7 @@ from bulk_data_service.dataset_indexing import create_and_upload_indices
 from bulk_data_service.dataset_remover import remove_deleted_datasets_from_bds, remove_expired_downloads
 from bulk_data_service.dataset_updater import add_or_update_datasets
 from bulk_data_service.zipper import zipper_run
-from dataset_registration.registration_services import get_registered_datasets
+from dataset_registration.iati_registry_ckan import fetch_datasets_metadata, fetch_organisations_metadata
 from utilities.db import get_datasets_in_bds
 from utilities.prometheus import initialise_prometheus_client, update_metrics_from_db
 
@@ -28,7 +28,6 @@ def checker_service_loop(context: dict):
 
     while True:
         try:
-
             checker_run(context, datasets_in_bds)
 
             zipper_run(context, datasets_in_zip, datasets_in_bds)
@@ -38,7 +37,7 @@ def checker_service_loop(context: dict):
 
         except Exception as e:
             context["logger"].error(
-                "Unknown exception in checker service loop. "
+                "Exception in checker service loop. "
                 "Waiting 10 minutes then restarting. "
                 "Exception message: {}".format(e).replace("\n", "")
             )
@@ -54,14 +53,9 @@ def checker_run(context: dict, datasets_in_bds: dict[uuid.UUID, dict]):
 
     context["logger"].info("Checker starting run")
 
-    try:
-        registered_datasets = get_registered_datasets(context)
-    except RuntimeError as e:
-        context["logger"].error(
-            "Unable to download list of datasets from registration service. " "Details: {}".format(e)
-        )
-        context["logger"].error("Checker aborted.")
-        return
+    registered_organisations = fetch_organisations_metadata(context)
+
+    registered_datasets = fetch_datasets_metadata(context, registered_organisations)
 
     remove_deleted_datasets_from_bds(context, datasets_in_bds, registered_datasets)
 
