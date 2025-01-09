@@ -70,7 +70,7 @@ def checker_run(context: dict, datasets_in_bds: dict[uuid.UUID, dict]):
 
     remove_expired_downloads(context, datasets_in_bds)
 
-    create_and_upload_indices(context, datasets_in_bds)
+    create_and_upload_indices(context, datasets_in_bds, registered_organisations)
 
     update_metrics_from_db(context)
 
