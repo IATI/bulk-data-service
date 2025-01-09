@@ -76,11 +76,11 @@ def get_index_name(context: dict, index_type: str) -> str:
 
 
 def get_minimal_index_entry_from_dataset(context: dict, dataset: dict) -> dict:
-    return {k: v for k, v in dataset.items() if k in get_minimal_index_fields(context)}
+    return {k: v for k, v in dataset.items() if k in get_minimal_index_dataset_fields(context)}
 
 
 def get_full_index_entry_from_dataset(context: dict, dataset: dict) -> dict:
-    full_index_entry = {k: v for k, v in dataset.items() if k in get_full_index_source_fields(context)}
+    full_index_entry = {k: v for k, v in dataset.items() if k in get_full_index_dataset_source_fields(context)}
 
     field_from_json_str_to_object(full_index_entry, "download_error_message", "download_error_details")
 
@@ -96,7 +96,7 @@ def field_from_json_str_to_object(entry: dict, source_field: str, dest_field: st
     del entry[source_field]
 
 
-def get_full_index_source_fields(context: dict) -> list[str]:
+def get_full_index_dataset_source_fields(context: dict) -> list[str]:
     return [
         "id",
         "name",
@@ -121,7 +121,7 @@ def get_full_index_source_fields(context: dict) -> list[str]:
     ]
 
 
-def get_minimal_index_fields(context: dict) -> list[str]:
+def get_minimal_index_dataset_fields(context: dict) -> list[str]:
     return [
         "id",
         "name",
