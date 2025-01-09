@@ -19,10 +19,12 @@ class IATIDataZipper(ABC):
         zip_working_dir: str,
         datasets_in_working_dir: dict[uuid.UUID, dict],
         datasets_in_bds: dict[uuid.UUID, dict],
+        reporting_orgs: dict[uuid.UUID, dict],
     ):
         self.context = context
         self.datasets_in_working_dir = datasets_in_working_dir
         self.datasets_in_bds = datasets_in_bds
+        self.reporting_orgs = reporting_orgs
         self.zip_working_dir = zip_working_dir
 
     @abstractmethod
@@ -137,17 +139,19 @@ class CodeforIATILegacyZipper(IATIDataZipper):
 
     def write_publisher_metadata_files(self):
         for dataset_in_bds_db in self.datasets_in_bds:
-            publisher_metadata_filename = self.get_publisher_metadata_filename(
+            reporting_org_metadata_filename = self.get_publisher_metadata_filename(
                 self.datasets_in_bds[dataset_in_bds_db]["reporting_org_short_name"]
             )
-            # TODO: FIX
-            # if not os.path.exists(publisher_metadata_filename):
-            #     with open(publisher_metadata_filename, "w") as pub_file:
-            #         pub_file.write(
-            #             self.filter_publisher_metadata(
-            #                 self.datasets_in_bds[dataset_in_bds_db]["registration_service_publisher_metadata"]
-            #             )
-            #         )
+            if not os.path.exists(reporting_org_metadata_filename):
+                with open(reporting_org_metadata_filename, "w") as pub_file:
+                    reporting_org_metadata = "{}"
+                    if self.datasets_in_bds[dataset_in_bds_db]["reporting_org_id"] in self.reporting_orgs:
+                       reporting_org_metadata = self.filter_publisher_metadata(
+                            self.reporting_orgs[self.datasets_in_bds[dataset_in_bds_db]["reporting_org_id"]][
+                                "registration_service_reporting_org_metadata"
+                            ]
+                        )
+                    pub_file.write(reporting_org_metadata)
 
     def get_publisher_metadata_filename(self, reporting_org_short_name):
         return os.path.join(
@@ -198,7 +202,10 @@ class CodeforIATILegacyZipper(IATIDataZipper):
 
     def get_dataset_data_pathname(self, dataset_in_bds):
         return os.path.join(
-            self.zip_working_dir, self.zip_internal_directory_name, "data", f"{dataset_in_bds['reporting_org_short_name']}"
+            self.zip_working_dir,
+            self.zip_internal_directory_name,
+            "data",
+            f"{dataset_in_bds['reporting_org_short_name']}",
         )
 
     def get_dataset_data_filename(self, dataset_in_bds):
@@ -206,7 +213,10 @@ class CodeforIATILegacyZipper(IATIDataZipper):
 
     def get_dataset_metadata_pathname(self, dataset_in_bds):
         return os.path.join(
-            self.zip_working_dir, self.zip_internal_directory_name, "metadata", f"{dataset_in_bds['reporting_org_short_name']}"
+            self.zip_working_dir,
+            self.zip_internal_directory_name,
+            "metadata",
+            f"{dataset_in_bds['reporting_org_short_name']}",
         )
 
     def get_dataset_metadata_filename(self, dataset_in_bds):

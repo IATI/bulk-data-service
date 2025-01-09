@@ -8,7 +8,9 @@ from utilities.azure import azure_upload_to_blob, get_azure_blob_public_url
 from utilities.misc import get_timestamp
 
 
-def create_and_upload_indices(context: dict, datasets_in_bds: dict[uuid.UUID, dict], reporting_orgs_in_bds: dict[uuid.UUID, dict]):
+def create_and_upload_indices(
+    context: dict, datasets_in_bds: dict[uuid.UUID, dict], reporting_orgs_in_bds: dict[uuid.UUID, dict]
+):
 
     context["logger"].info("Creating indices")
 
@@ -38,7 +40,12 @@ def upload_index_json_to_azure(context: dict, index_name: str, index_json: str):
     az_blob_service.close()
 
 
-def create_index_json(context: dict, datasets_in_bds: dict[uuid.UUID, dict], reporting_orgs_in_bds: dict[uuid.UUID, dict], index_type: str) -> str:
+def create_index_json(
+    context: dict,
+    datasets_in_bds: dict[uuid.UUID, dict],
+    reporting_orgs_in_bds: dict[uuid.UUID, dict],
+    index_type: str,
+) -> str:
 
     index = {"index_created": get_timestamp(), "datasets": {}}
 
@@ -49,21 +56,29 @@ def create_index_json(context: dict, datasets_in_bds: dict[uuid.UUID, dict], rep
     return json.dumps(index, default=str, sort_keys=True, indent=True)
 
 
-def get_reporting_orgs_for_datasets(context: dict, datasets_in_bds: dict[uuid.UUID, dict], reporting_orgs_in_bds: dict[uuid.UUID, dict]):
+def get_reporting_orgs_for_datasets(
+    context: dict, datasets_in_bds: dict[uuid.UUID, dict], reporting_orgs_in_bds: dict[uuid.UUID, dict]
+):
     reporting_org_names_w_datasets = set([dataset["reporting_org_short_name"] for dataset in datasets_in_bds.values()])
 
-    orgs_w_datasets = {org["short_name"]: {
-        "id": org["id"],
-        "short_name": org["short_name"],
-        "human_readable_name": org["human_readable_name"],
-        "iati_identifier": org["iati_identifier"]
-    } for org in reporting_orgs_in_bds.values() if org["short_name"] in reporting_org_names_w_datasets}
+    orgs_w_datasets = {
+        org["short_name"]: {
+            "id": org["id"],
+            "short_name": org["short_name"],
+            "human_readable_name": org["human_readable_name"],
+            "iati_identifier": org["iati_identifier"],
+        }
+        for org in reporting_orgs_in_bds.values()
+        if org["short_name"] in reporting_org_names_w_datasets
+    }
 
     return orgs_w_datasets
 
 
 def get_dataset_index(context: dict, datasets_in_bds: dict[uuid.UUID, dict], index_type: str) -> dict:
-    return {dataset["short_name"]: get_index_entry(context, dataset, index_type) for _, dataset in datasets_in_bds.items()}
+    return {
+        dataset["short_name"]: get_index_entry(context, dataset, index_type) for _, dataset in datasets_in_bds.items()
+    }
 
 
 def get_index_entry(context: dict, dataset: dict, index_type: str) -> dict[str, Any]:

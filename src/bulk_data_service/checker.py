@@ -31,7 +31,7 @@ def checker_service_loop(context: dict):
         try:
             checker_run(context, datasets_in_bds)
 
-            zipper_run(context, datasets_in_zip, datasets_in_bds)
+            zipper_run(context, datasets_in_zip, datasets_in_bds, get_reporting_orgs_in_bds(context))
 
             context["logger"].info("Pausing for {} mins".format(context["CHECKER_LOOP_WAIT_MINS"]))
             time.sleep(60 * int(context["CHECKER_LOOP_WAIT_MINS"]))

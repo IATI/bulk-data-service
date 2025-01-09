@@ -10,30 +10,40 @@ from azure.storage.blob import BlobServiceClient
 from bulk_data_service.dataset_indexing import get_index_name
 from bulk_data_service.zippers import CodeforIATILegacyZipper, IATIBulkDataServiceZipper
 from utilities.azure import azure_download_blob, get_azure_blob_name, get_azure_container_name
-from utilities.db import get_datasets_in_bds
+from utilities.db import get_datasets_in_bds, get_reporting_orgs_in_bds
 
 
 def zipper(context: dict):
 
     datasets = get_datasets_in_bds(context)
 
+    reporting_orgs = get_reporting_orgs_in_bds(context)
+
     if context["single_run"]:
-        zipper_run(context, {}, datasets)
+        zipper_run(context, {}, datasets, reporting_orgs)
     else:
-        zipper_service_loop(context, {}, datasets)
+        zipper_service_loop(context, {}, datasets, reporting_orgs)
 
 
 def zipper_service_loop(
-    context: dict, datasets_in_working_dir: dict[uuid.UUID, dict], datasets_in_bds: dict[uuid.UUID, dict]
+    context: dict,
+    datasets_in_working_dir: dict[uuid.UUID, dict],
+    datasets_in_bds: dict[uuid.UUID, dict],
+    reporting_orgs: dict[uuid.UUID, dict],
 ):
 
     while True:
-        zipper_run(context, datasets_in_working_dir, datasets_in_bds)
+        zipper_run(context, datasets_in_working_dir, datasets_in_bds, reporting_orgs)
 
         time.sleep(60 * 30)
 
 
-def zipper_run(context: dict, datasets_in_working_dir: dict[uuid.UUID, dict], datasets_in_bds: dict[uuid.UUID, dict]):
+def zipper_run(
+    context: dict,
+    datasets_in_working_dir: dict[uuid.UUID, dict],
+    datasets_in_bds: dict[uuid.UUID, dict],
+    reporting_orgs: dict[uuid.UUID, dict],
+):
 
     run_start = datetime.datetime.now(datetime.UTC)
     context["logger"].info("Zipper run starting")
@@ -42,10 +52,18 @@ def zipper_run(context: dict, datasets_in_working_dir: dict[uuid.UUID, dict], da
 
     zip_creators = [
         IATIBulkDataServiceZipper(
-            context, "{}-1".format(context["ZIP_WORKING_DIR"]), datasets_in_working_dir, datasets_in_bds
+            context,
+            "{}-1".format(context["ZIP_WORKING_DIR"]),
+            datasets_in_working_dir,
+            datasets_in_bds,
+            reporting_orgs,
         ),
         CodeforIATILegacyZipper(
-            context, "{}-2".format(context["ZIP_WORKING_DIR"]), datasets_in_working_dir, datasets_in_bds
+            context,
+            "{}-2".format(context["ZIP_WORKING_DIR"]),
+            datasets_in_working_dir,
+            datasets_in_bds,
+            reporting_orgs,
         ),
     ]
 
