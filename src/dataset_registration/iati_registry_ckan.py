@@ -31,10 +31,10 @@ def fetch_organisations_metadata(context: dict) -> dict[uuid.UUID, dict]:
 def convert_ckan_organisation_metadata(organisation: dict):
     return {
         "id": organisation["id"],
-        "short_id": organisation["name"],
+        "short_name": organisation["name"],
         "iati_identifier": organisation["publisher_iati_id"],
         "human_readable_name": organisation["title"],
-        "registration_service_organisation_metadata": json.dumps(organisation),
+        "registration_service_reporting_org_metadata": json.dumps(organisation),
     }
 
 
@@ -90,7 +90,7 @@ def add_publisher_metadata(datasets_from_registry: list[dict[str, Any]], organis
 
 def get_publisher_metadata_as_str(organisations: dict[uuid.UUID, dict], publisher_id: str) -> str:
     return (
-        organisations[uuid.UUID(publisher_id)]["registration_service_organisation_metadata"]
+        organisations[uuid.UUID(publisher_id)]["registration_service_reporting_org_metadata"]
         if uuid.UUID(publisher_id) in organisations
         else "{}"
     )

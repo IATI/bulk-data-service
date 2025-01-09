@@ -28,7 +28,7 @@ def test_add_organisation_fields_to_db(get_and_clear_up_context):  # noqa: F811
 
     organisation = organisations_in_db[uuid.UUID("ea055d99-f7e9-456f-9f99-963e95493c1b")]
 
-    assert organisation["short_id"] == "test_foundation_a"
+    assert organisation["short_name"] == "test_foundation_a"
     assert organisation["iati_identifier"] == "TEST_FOUNDATION_A"
     assert organisation["human_readable_name"] == "Test Foundation A"
 
@@ -44,7 +44,7 @@ def test_update_organisation_fields_in_db(get_and_clear_up_context):  # noqa: F8
     # original values
     assert uuid.UUID("ea055d99-f7e9-456f-9f99-963e95493c1b") in organisations_in_db
     organisation = organisations_in_db[uuid.UUID("ea055d99-f7e9-456f-9f99-963e95493c1b")]
-    assert organisation["short_id"] == "test_foundation_a"
+    assert organisation["short_name"] == "test_foundation_a"
     assert organisation["iati_identifier"] == "TEST_FOUNDATION_A"
     assert organisation["human_readable_name"] == "Test Foundation A"
 
@@ -57,7 +57,7 @@ def test_update_organisation_fields_in_db(get_and_clear_up_context):  # noqa: F8
     # updated values
     assert uuid.UUID("ea055d99-f7e9-456f-9f99-963e95493c1b") in organisations_in_db
     organisation = organisations_in_db[uuid.UUID("ea055d99-f7e9-456f-9f99-963e95493c1b")]
-    assert organisation["short_id"] == "test_foundation_a_updated"
+    assert organisation["short_name"] == "test_foundation_a_updated"
     assert organisation["iati_identifier"] == "TEST_FOUNDATION_A_UPDATED"
     assert organisation["human_readable_name"] == "Test Foundation A Updated"
 

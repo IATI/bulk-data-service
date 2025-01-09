@@ -110,10 +110,10 @@ def insert_or_update_organisation(connection: psycopg.Connection, data):
                         VALUES ({})
                  ON CONFLICT (id) DO
                     UPDATE SET
-                        short_id = %(short_id)s,
+                        short_name = %(short_name)s,
                         iati_identifier = %(iati_identifier)s,
                         human_readable_name = %(human_readable_name)s,
-                        registration_service_organisation_metadata = %(registration_service_organisation_metadata)s
+                        registration_service_reporting_org_metadata = %(registration_service_reporting_org_metadata)s
                     WHERE
                         iati_organisations.id = %(id)s
         """.format(
