@@ -61,16 +61,21 @@ def test_publisher_metadata_saved_for_successful_metadata_dl(get_and_clear_up_co
     datasets_in_zip = {}
     zipper_run(context, datasets_in_zip, datasets_in_bds)
 
-    assert os.path.exists(context["ZIP_WORKING_DIR"] + "-2/iati-data-main/metadata/test_org_a.json") is True
+    assert os.path.exists(context["ZIP_WORKING_DIR"] + "-2/iati-data-main/metadata/test_foundation_a.json") is True
 
 
 def test_publisher_metadata_content_for_failed_metadata_dl(get_and_clear_up_context):  # noqa: F811
 
     context = get_and_clear_up_context
 
-    run_checker_then_zipper_download_ok(context)
+    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/registration/datasets-06"
+    datasets_in_bds = {}
+    checker_run(context, datasets_in_bds)
 
-    with open(context["ZIP_WORKING_DIR"] + "-2/iati-data-main/metadata/test_foundation_a.json", "r") as f:
+    datasets_in_zip = {}
+    zipper_run(context, datasets_in_zip, datasets_in_bds)
+
+    with open(context["ZIP_WORKING_DIR"] + "-2/iati-data-main/metadata/test_foundation_e.json", "r") as f:
         assert f.read() == "{}"
 
 
@@ -85,11 +90,11 @@ def test_publisher_metadata_content_for_successful_metadata_dl(get_and_clear_up_
     datasets_in_zip = {}
     zipper_run(context, datasets_in_zip, datasets_in_bds)
 
-    with open(context["ZIP_WORKING_DIR"] + "-2/iati-data-main/metadata/test_org_a.json", "r") as f:
+    with open(context["ZIP_WORKING_DIR"] + "-2/iati-data-main/metadata/test_foundation_a.json", "r") as f:
         assert f.read() == json.dumps(
             {
-                "id": "4f0f8498-20d2-4ca5-a20f-f441eedb1d4f",
-                "name": "test_org_a",
+                "id": "ea055d99-f7e9-456f-9f99-963e95493c1b",
+                "name": "test_foundation_a",
             }
         )
 

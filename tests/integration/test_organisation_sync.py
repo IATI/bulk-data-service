@@ -24,13 +24,13 @@ def test_add_organisation_fields_to_db(get_and_clear_up_context):  # noqa: F811
 
     organisations_in_db = get_organisations_in_bds(context)
 
-    assert uuid.UUID("4f0f8498-20d2-4ca5-a20f-f441eedb1d4f") in organisations_in_db
+    assert uuid.UUID("ea055d99-f7e9-456f-9f99-963e95493c1b") in organisations_in_db
 
-    organisation = organisations_in_db[uuid.UUID("4f0f8498-20d2-4ca5-a20f-f441eedb1d4f")]
+    organisation = organisations_in_db[uuid.UUID("ea055d99-f7e9-456f-9f99-963e95493c1b")]
 
-    assert organisation["short_id"] == "test_org_a"
-    assert organisation["iati_identifier"] == "TEST_ORG_A"
-    assert organisation["human_readable_name"] == "Test Organisation A"
+    assert organisation["short_id"] == "test_foundation_a"
+    assert organisation["iati_identifier"] == "TEST_FOUNDATION_A"
+    assert organisation["human_readable_name"] == "Test Foundation A"
 
 
 def test_update_organisation_fields_in_db(get_and_clear_up_context):  # noqa: F811
@@ -42,11 +42,11 @@ def test_update_organisation_fields_in_db(get_and_clear_up_context):  # noqa: F8
     organisations_in_db = get_organisations_in_bds(context)
 
     # original values
-    assert uuid.UUID("4f0f8498-20d2-4ca5-a20f-f441eedb1d4f") in organisations_in_db
-    organisation = organisations_in_db[uuid.UUID("4f0f8498-20d2-4ca5-a20f-f441eedb1d4f")]
-    assert organisation["short_id"] == "test_org_a"
-    assert organisation["iati_identifier"] == "TEST_ORG_A"
-    assert organisation["human_readable_name"] == "Test Organisation A"
+    assert uuid.UUID("ea055d99-f7e9-456f-9f99-963e95493c1b") in organisations_in_db
+    organisation = organisations_in_db[uuid.UUID("ea055d99-f7e9-456f-9f99-963e95493c1b")]
+    assert organisation["short_id"] == "test_foundation_a"
+    assert organisation["iati_identifier"] == "TEST_FOUNDATION_A"
+    assert organisation["human_readable_name"] == "Test Foundation A"
 
     # re-run with updated values
     context["DATA_REGISTRY_PUBLISHER_METADATA_URL"] = "http://localhost:3000/registration/ckan-publishers-02"
@@ -55,11 +55,11 @@ def test_update_organisation_fields_in_db(get_and_clear_up_context):  # noqa: F8
     organisations_in_db = get_organisations_in_bds(context)
 
     # updated values
-    assert uuid.UUID("4f0f8498-20d2-4ca5-a20f-f441eedb1d4f") in organisations_in_db
-    organisation = organisations_in_db[uuid.UUID("4f0f8498-20d2-4ca5-a20f-f441eedb1d4f")]
-    assert organisation["short_id"] == "test_org_a_updated"
-    assert organisation["iati_identifier"] == "TEST_ORG_A_UPDATED"
-    assert organisation["human_readable_name"] == "Test Organisation A Updated"
+    assert uuid.UUID("ea055d99-f7e9-456f-9f99-963e95493c1b") in organisations_in_db
+    organisation = organisations_in_db[uuid.UUID("ea055d99-f7e9-456f-9f99-963e95493c1b")]
+    assert organisation["short_id"] == "test_foundation_a_updated"
+    assert organisation["iati_identifier"] == "TEST_FOUNDATION_A_UPDATED"
+    assert organisation["human_readable_name"] == "Test Foundation A Updated"
 
 
 def test_delete_organisation_fields_from_db(get_and_clear_up_context):  # noqa: F811
@@ -71,7 +71,7 @@ def test_delete_organisation_fields_from_db(get_and_clear_up_context):  # noqa: 
     organisations_in_db = get_organisations_in_bds(context)
 
     # original values
-    assert uuid.UUID("4f0f8498-20d2-4ca5-a20f-f441eedb1d4f") in organisations_in_db
+    assert uuid.UUID("ea055d99-f7e9-456f-9f99-963e95493c1b") in organisations_in_db
 
     # re-run with updated values
     context["DATA_REGISTRY_PUBLISHER_METADATA_URL"] = "http://localhost:3000/registration/ckan-publishers-03"
@@ -80,4 +80,4 @@ def test_delete_organisation_fields_from_db(get_and_clear_up_context):  # noqa: 
     organisations_in_db = get_organisations_in_bds(context)
 
     assert len(organisations_in_db) == 3
-    assert uuid.UUID("4f0f8498-20d2-4ca5-a20f-f441eedb1d4f") not in organisations_in_db
+    assert uuid.UUID("ea055d99-f7e9-456f-9f99-963e95493c1b") not in organisations_in_db

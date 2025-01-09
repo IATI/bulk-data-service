@@ -8,9 +8,6 @@ from helpers.helpers import get_and_clear_up_context  # noqa: F401
 
 
 @pytest.mark.parametrize("field,original,expected", [
-    ("publisher_id", uuid.UUID("ea055d99-f7e9-456f-9f99-963e95493c1b"),
-        uuid.UUID("4f0f8498-20d2-4ca5-a20f-f441eedb1d4f")),
-    ("publisher_name", "test_foundation_a", "test_org_a"),
     ("source_url", "http://localhost:3000/data/test_foundation_a-dataset-001.xml",
         "http://localhost:3000/not_found"),
     ("type", "activity", "organisation"),
@@ -131,8 +128,8 @@ from helpers.helpers import get_and_clear_up_context  # noqa: F401
                 "num_resources": 1,
                 "num_tags": 0,
                 "organization": {
-                    "id": "4f0f8498-20d2-4ca5-a20f-f441eedb1d4f",
-                    "name": "test_org_a",
+                    "id": "ea055d99-f7e9-456f-9f99-963e95493c1b",
+                    "name": "test_foundation_a",
                     "title": "Test Foundation A",
                     "type": "organization",
                     "description": "",
