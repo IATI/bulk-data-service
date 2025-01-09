@@ -68,8 +68,8 @@ def insert_or_update_dataset(connection: psycopg.Connection, data):
                         VALUES ({})
                  ON CONFLICT (id) DO
                     UPDATE SET
-                        publisher_id = %(publisher_id)s,
-                        publisher_name = %(publisher_name)s,
+                        reporting_org_id = %(reporting_org_id)s,
+                        reporting_org_short_name = %(reporting_org_short_name)s,
                         type = %(type)s,
                         source_url = %(source_url)s,
                         hash = %(hash)s,
@@ -89,7 +89,6 @@ def insert_or_update_dataset(connection: psycopg.Connection, data):
                         server_header_last_modified = %(server_header_last_modified)s,
                         server_header_etag = %(server_header_etag)s,
                         registration_service_dataset_metadata = %(registration_service_dataset_metadata)s,
-                        registration_service_publisher_metadata = %(registration_service_publisher_metadata)s,
                         registration_service_name = %(registration_service_name)s
                     WHERE
                         iati_datasets.id = %(id)s

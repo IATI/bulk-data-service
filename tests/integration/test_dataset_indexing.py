@@ -56,9 +56,9 @@ def test_creation_of_dataset_entry_in_minimal_index_when_download_success(get_an
 
     dataset = datasets_in_bds[uuid.UUID("c8a40aa5-9f31-4bcf-a36f-51c1fc2cc159")]
 
-    assert dataset["name"] in minimal_index["datasets"]
+    assert dataset["short_name"] in minimal_index["datasets"]
 
-    index_item = minimal_index["datasets"][dataset["name"]]
+    index_item = minimal_index["datasets"][dataset["short_name"]]
 
     for field in get_minimal_index_dataset_fields(context):
         assert index_item[field] == str(dataset[field])
@@ -119,9 +119,9 @@ def test_minimal_index_creation_for_download_failure(get_and_clear_up_context): 
 
     dataset = datasets_in_bds[uuid.UUID("c8a40aa5-9f31-4bcf-a36f-51c1fc2cc159")]
 
-    assert dataset["name"] in minimal_index["datasets"]
+    assert dataset["short_name"] in minimal_index["datasets"]
 
-    index_item = minimal_index["datasets"][dataset["name"]]
+    index_item = minimal_index["datasets"][dataset["short_name"]]
 
     for field in get_minimal_index_dataset_fields(context):
         if isinstance(dataset[field], uuid.UUID):
@@ -157,9 +157,9 @@ def test_full_index_creation_for_download_success(get_and_clear_up_context):  # 
 
     dataset = datasets_in_bds[uuid.UUID("c8a40aa5-9f31-4bcf-a36f-51c1fc2cc159")]
 
-    assert dataset["name"] in full_index["datasets"]
+    assert dataset["short_name"] in full_index["datasets"]
 
-    full_index_item = full_index["datasets"][dataset["name"]]
+    full_index_item = full_index["datasets"][dataset["short_name"]]
 
     for field in get_full_index_dataset_source_fields(context):
         if field == "download_error_message" or field == "head_error_message":
@@ -194,9 +194,9 @@ def test_full_index_creation_for_download_failure(get_and_clear_up_context):  # 
 
     dataset = datasets_in_bds[uuid.UUID("c8a40aa5-9f31-4bcf-a36f-51c1fc2cc159")]
 
-    assert dataset["name"] in full_index["datasets"]
+    assert dataset["short_name"] in full_index["datasets"]
 
-    full_index_item = full_index["datasets"][dataset["name"]]
+    full_index_item = full_index["datasets"][dataset["short_name"]]
 
     for field in get_full_index_dataset_source_fields(context):
         if field == "download_error_message" or field == "head_error_message":

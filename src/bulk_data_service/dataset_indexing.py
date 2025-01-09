@@ -50,7 +50,7 @@ def create_index_json(context: dict, datasets_in_bds: dict[uuid.UUID, dict], rep
 
 
 def get_reporting_orgs_for_datasets(context: dict, datasets_in_bds: dict[uuid.UUID, dict], reporting_orgs_in_bds: dict[uuid.UUID, dict]):
-    reporting_org_names_w_datasets = set([dataset["publisher_name"] for dataset in datasets_in_bds.values()])
+    reporting_org_names_w_datasets = set([dataset["reporting_org_short_name"] for dataset in datasets_in_bds.values()])
 
     orgs_w_datasets = {org["short_name"]: {
         "id": org["id"],
@@ -63,7 +63,7 @@ def get_reporting_orgs_for_datasets(context: dict, datasets_in_bds: dict[uuid.UU
 
 
 def get_dataset_index(context: dict, datasets_in_bds: dict[uuid.UUID, dict], index_type: str) -> dict:
-    return {v["name"]: get_index_entry(context, v, index_type) for _, v in datasets_in_bds.items()}
+    return {dataset["short_name"]: get_index_entry(context, dataset, index_type) for _, dataset in datasets_in_bds.items()}
 
 
 def get_index_entry(context: dict, dataset: dict, index_type: str) -> dict[str, Any]:
@@ -114,8 +114,9 @@ def field_from_json_str_to_object(entry: dict, source_field: str, dest_field: st
 def get_full_index_dataset_source_fields(context: dict) -> list[str]:
     return [
         "id",
-        "name",
-        "publisher_name",
+        "short_name",
+        "reporting_org_id",
+        "reporting_org_short_name",
         "type",
         "source_url",
         "hash",
@@ -139,9 +140,9 @@ def get_full_index_dataset_source_fields(context: dict) -> list[str]:
 def get_minimal_index_dataset_fields(context: dict) -> list[str]:
     return [
         "id",
-        "name",
-        "publisher_id",
-        "publisher_name",
+        "short_name",
+        "reporting_org_id",
+        "reporting_org_short_name",
         "source_url",
         "hash",
         "hash_excluding_generated_timestamp",

@@ -164,9 +164,9 @@ def convert_datasets_metadata(datasets_from_registry: list[dict]) -> dict[uuid.U
     registered_datasets = {
         uuid.UUID(dataset["id"]): {
             "id": uuid.UUID(dataset["id"]),
-            "name": dataset["name"],
-            "publisher_id": uuid.UUID(dataset["organization"]["id"]),
-            "publisher_name": dataset["organization"]["name"],
+            "short_name": dataset["name"],
+            "reporting_org_id": uuid.UUID(dataset["organization"]["id"]),
+            "reporting_org_short_name": dataset["organization"]["name"],
             "source_url": get_source_url(dataset),
             "type": list(filter(lambda x: x["key"] == "filetype", dataset["extras"]))[0]["value"],
             "registration_service_dataset_metadata": json.dumps(

@@ -138,19 +138,20 @@ class CodeforIATILegacyZipper(IATIDataZipper):
     def write_publisher_metadata_files(self):
         for dataset_in_bds_db in self.datasets_in_bds:
             publisher_metadata_filename = self.get_publisher_metadata_filename(
-                self.datasets_in_bds[dataset_in_bds_db]["publisher_name"]
+                self.datasets_in_bds[dataset_in_bds_db]["reporting_org_short_name"]
             )
-            if not os.path.exists(publisher_metadata_filename):
-                with open(publisher_metadata_filename, "w") as pub_file:
-                    pub_file.write(
-                        self.filter_publisher_metadata(
-                            self.datasets_in_bds[dataset_in_bds_db]["registration_service_publisher_metadata"]
-                        )
-                    )
+            # TODO: FIX
+            # if not os.path.exists(publisher_metadata_filename):
+            #     with open(publisher_metadata_filename, "w") as pub_file:
+            #         pub_file.write(
+            #             self.filter_publisher_metadata(
+            #                 self.datasets_in_bds[dataset_in_bds_db]["registration_service_publisher_metadata"]
+            #             )
+            #         )
 
-    def get_publisher_metadata_filename(self, publisher_name):
+    def get_publisher_metadata_filename(self, reporting_org_short_name):
         return os.path.join(
-            self.zip_working_dir, self.zip_internal_directory_name, "metadata", f"{publisher_name}.json"
+            self.zip_working_dir, self.zip_internal_directory_name, "metadata", f"{reporting_org_short_name}.json"
         )
 
     def filter_publisher_metadata(self, ckan_publisher_metadata: str) -> str:
@@ -197,19 +198,19 @@ class CodeforIATILegacyZipper(IATIDataZipper):
 
     def get_dataset_data_pathname(self, dataset_in_bds):
         return os.path.join(
-            self.zip_working_dir, self.zip_internal_directory_name, "data", f"{dataset_in_bds['publisher_name']}"
+            self.zip_working_dir, self.zip_internal_directory_name, "data", f"{dataset_in_bds['reporting_org_short_name']}"
         )
 
     def get_dataset_data_filename(self, dataset_in_bds):
-        return os.path.join(self.get_dataset_data_pathname(dataset_in_bds), f"{dataset_in_bds['name']}.xml")
+        return os.path.join(self.get_dataset_data_pathname(dataset_in_bds), f"{dataset_in_bds['short_name']}.xml")
 
     def get_dataset_metadata_pathname(self, dataset_in_bds):
         return os.path.join(
-            self.zip_working_dir, self.zip_internal_directory_name, "metadata", f"{dataset_in_bds['publisher_name']}"
+            self.zip_working_dir, self.zip_internal_directory_name, "metadata", f"{dataset_in_bds['reporting_org_short_name']}"
         )
 
     def get_dataset_metadata_filename(self, dataset_in_bds):
-        return os.path.join(self.get_dataset_metadata_pathname(dataset_in_bds), f"{dataset_in_bds['name']}.json")
+        return os.path.join(self.get_dataset_metadata_pathname(dataset_in_bds), f"{dataset_in_bds['short_name']}.json")
 
     @property
     def zip_type(self) -> str:
