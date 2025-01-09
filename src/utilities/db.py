@@ -47,6 +47,19 @@ def get_datasets_in_bds(context: dict) -> dict[uuid.UUID, dict]:
     return results
 
 
+def get_organisations_in_bds(context: dict) -> dict[uuid.UUID, dict]:
+
+    connection = get_db_connection(context)
+    cursor = connection.cursor(row_factory=psycopg.rows.dict_row)
+    cursor.execute("""SELECT * FROM iati_organisations""")
+    results_as_list = cursor.fetchall()
+    cursor.close()
+
+    results = {result["id"]: result for result in results_as_list}
+
+    return results
+
+
 def insert_or_update_dataset(connection: psycopg.Connection, data):
     columns = ", ".join([k for k in data])
     placeholders = ", ".join(["%({})s".format(k) for k in data])
@@ -85,6 +98,37 @@ def insert_or_update_dataset(connection: psycopg.Connection, data):
     )
     cursor = connection.cursor()
     cursor.execute(add_sql, data)  # type: ignore
+    cursor.close()
+    connection.commit()
+
+
+def insert_or_update_organisation(connection: psycopg.Connection, data):
+    columns = ", ".join([k for k in data])
+    placeholders = ", ".join(["%({})s".format(k) for k in data])
+
+    add_sql = """INSERT INTO iati_organisations ({})
+                        VALUES ({})
+                 ON CONFLICT (id) DO
+                    UPDATE SET
+                        short_id = %(short_id)s,
+                        iati_identifier = %(iati_identifier)s,
+                        human_readable_name = %(human_readable_name)s,
+                        registration_service_organisation_metadata = %(registration_service_organisation_metadata)s
+                    WHERE
+                        iati_organisations.id = %(id)s
+        """.format(
+        columns, placeholders
+    )
+    cursor = connection.cursor()
+    cursor.execute(add_sql, data)  # type: ignore
+    cursor.close()
+    connection.commit()
+
+
+def remove_organisation_from_db(connection: psycopg.Connection, organisation_id: uuid.UUID):
+    add_sql = """DELETE FROM iati_organisations WHERE id = %(organisation_id)s"""
+    cursor = connection.cursor()
+    cursor.execute(add_sql, {"organisation_id": organisation_id})
     cursor.close()
     connection.commit()
 

@@ -6,9 +6,10 @@ import uuid
 from bulk_data_service.dataset_indexing import create_and_upload_indices
 from bulk_data_service.dataset_remover import remove_deleted_datasets_from_bds, remove_expired_downloads
 from bulk_data_service.dataset_updater import add_or_update_datasets
+from bulk_data_service.organisation_sync import add_or_update_organisations, remove_deleted_organisations_from_bds
 from bulk_data_service.zipper import zipper_run
 from dataset_registration.iati_registry_ckan import fetch_datasets_metadata, fetch_organisations_metadata
-from utilities.db import get_datasets_in_bds
+from utilities.db import get_datasets_in_bds, get_organisations_in_bds
 from utilities.prometheus import initialise_prometheus_client, update_metrics_from_db
 
 
@@ -54,6 +55,12 @@ def checker_run(context: dict, datasets_in_bds: dict[uuid.UUID, dict]):
     context["logger"].info("Checker starting run")
 
     registered_organisations = fetch_organisations_metadata(context)
+
+    organisations_in_bds = get_organisations_in_bds(context)
+
+    remove_deleted_organisations_from_bds(context, organisations_in_bds, registered_organisations)
+
+    add_or_update_organisations(context, registered_organisations)
 
     registered_datasets = fetch_datasets_metadata(context, registered_organisations)
 

@@ -21,9 +21,21 @@ def fetch_organisations_metadata(context: dict) -> dict[uuid.UUID, dict]:
 
     organisations_with_valid_ids = [org for org in organisations_metadata["result"] if is_str_valid_uuid(org["id"])]
 
-    organisation_metadata = {uuid.UUID(org["id"]): org for org in organisations_with_valid_ids}
+    organisation_metadata = {
+        uuid.UUID(org["id"]): convert_ckan_organisation_metadata(org) for org in organisations_with_valid_ids
+    }
 
     return organisation_metadata
+
+
+def convert_ckan_organisation_metadata(organisation: dict):
+    return {
+        "id": organisation["id"],
+        "short_id": organisation["name"],
+        "iati_identifier": organisation["publisher_iati_id"],
+        "human_readable_name": organisation["title"],
+        "registration_service_organisation_metadata": json.dumps(organisation),
+    }
 
 
 def fetch_datasets_metadata(context: dict, organisations: dict) -> dict[uuid.UUID, dict]:
@@ -77,7 +89,11 @@ def add_publisher_metadata(datasets_from_registry: list[dict[str, Any]], organis
 
 
 def get_publisher_metadata_as_str(organisations: dict[uuid.UUID, dict], publisher_id: str) -> str:
-    return json.dumps(organisations[uuid.UUID(publisher_id)]) if uuid.UUID(publisher_id) in organisations else "{}"
+    return (
+        organisations[uuid.UUID(publisher_id)]["registration_service_organisation_metadata"]
+        if uuid.UUID(publisher_id) in organisations
+        else "{}"
+    )
 
 
 def clean_datasets_metadata(logger: Logger, datasets_from_registry: list[dict[str, Any]]) -> list[dict[str, Any]]:
