@@ -7,5 +7,5 @@ def fetch_datasets_metadata(context: dict, session: requests.Session) -> dict[uu
     return {}
 
 
-def fetch_organisations_metadata(context: dict, session: requests.Session) -> dict[uuid.UUID, dict]:
+def fetch_reporting_orgs_metadata(context: dict, session: requests.Session) -> dict[uuid.UUID, dict]:
     return {}

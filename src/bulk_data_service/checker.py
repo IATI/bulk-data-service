@@ -6,10 +6,10 @@ import uuid
 from bulk_data_service.dataset_indexing import create_and_upload_indices
 from bulk_data_service.dataset_remover import remove_deleted_datasets_from_bds, remove_expired_downloads
 from bulk_data_service.dataset_updater import add_or_update_datasets
-from bulk_data_service.organisation_sync import add_or_update_organisations, remove_deleted_organisations_from_bds
+from bulk_data_service.reporting_org_sync import add_or_update_reporting_orgs, remove_deleted_reporting_orgs_from_bds
 from bulk_data_service.zipper import zipper_run
-from dataset_registration.iati_registry_ckan import fetch_datasets_metadata, fetch_organisations_metadata
-from utilities.db import get_datasets_in_bds, get_organisations_in_bds
+from dataset_registration.iati_registry_ckan import fetch_datasets_metadata, fetch_reporting_orgs_metadata
+from utilities.db import get_datasets_in_bds, get_reporting_orgs_in_bds
 from utilities.prometheus import initialise_prometheus_client, update_metrics_from_db
 
 
@@ -54,15 +54,15 @@ def checker_run(context: dict, datasets_in_bds: dict[uuid.UUID, dict]):
 
     context["logger"].info("Checker starting run")
 
-    registered_organisations = fetch_organisations_metadata(context)
+    registered_reporting_orgs = fetch_reporting_orgs_metadata(context)
 
-    organisations_in_bds = get_organisations_in_bds(context)
+    reporting_orgs_in_bds = get_reporting_orgs_in_bds(context)
 
-    remove_deleted_organisations_from_bds(context, organisations_in_bds, registered_organisations)
+    remove_deleted_reporting_orgs_from_bds(context, reporting_orgs_in_bds, registered_reporting_orgs)
 
-    add_or_update_organisations(context, registered_organisations)
+    add_or_update_reporting_orgs(context, registered_reporting_orgs)
 
-    registered_datasets = fetch_datasets_metadata(context, registered_organisations)
+    registered_datasets = fetch_datasets_metadata(context, registered_reporting_orgs)
 
     remove_deleted_datasets_from_bds(context, datasets_in_bds, registered_datasets)
 
@@ -70,7 +70,7 @@ def checker_run(context: dict, datasets_in_bds: dict[uuid.UUID, dict]):
 
     remove_expired_downloads(context, datasets_in_bds)
 
-    create_and_upload_indices(context, datasets_in_bds, registered_organisations)
+    create_and_upload_indices(context, datasets_in_bds, registered_reporting_orgs)
 
     update_metrics_from_db(context)
 

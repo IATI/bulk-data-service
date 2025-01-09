@@ -10,35 +10,35 @@ from utilities.http import http_get_json
 from utilities.misc import is_str_valid_uuid
 
 
-def fetch_organisations_metadata(context: dict) -> dict[uuid.UUID, dict]:
+def fetch_reporting_orgs_metadata(context: dict) -> dict[uuid.UUID, dict]:
     session = requests.Session()
 
     url = context["DATA_REGISTRY_PUBLISHER_METADATA_URL"]
 
-    organisation_metadata = {}
+    reporting_org_metadata = {}
 
-    organisations_metadata = http_get_json(session, url, 120, True)
+    reporting_orgs_metadata = http_get_json(session, url, 120, True)
 
-    organisations_with_valid_ids = [org for org in organisations_metadata["result"] if is_str_valid_uuid(org["id"])]
+    reporting_orgs_w_valid_ids = [org for org in reporting_orgs_metadata["result"] if is_str_valid_uuid(org["id"])]
 
-    organisation_metadata = {
-        uuid.UUID(org["id"]): convert_ckan_organisation_metadata(org) for org in organisations_with_valid_ids
+    reporting_org_metadata = {
+        uuid.UUID(org["id"]): convert_ckan_reporting_org_metadata(org) for org in reporting_orgs_w_valid_ids
     }
 
-    return organisation_metadata
+    return reporting_org_metadata
 
 
-def convert_ckan_organisation_metadata(organisation: dict):
+def convert_ckan_reporting_org_metadata(reporting_org: dict):
     return {
-        "id": organisation["id"],
-        "short_name": organisation["name"],
-        "iati_identifier": organisation["publisher_iati_id"],
-        "human_readable_name": organisation["title"],
-        "registration_service_reporting_org_metadata": json.dumps(organisation),
+        "id": reporting_org["id"],
+        "short_name": reporting_org["name"],
+        "iati_identifier": reporting_org["publisher_iati_id"],
+        "human_readable_name": reporting_org["title"],
+        "registration_service_reporting_org_metadata": json.dumps(reporting_org),
     }
 
 
-def fetch_datasets_metadata(context: dict, organisations: dict) -> dict[uuid.UUID, dict]:
+def fetch_datasets_metadata(context: dict, reporting_orgs: dict) -> dict[uuid.UUID, dict]:
     session = requests.Session()
 
     datasets_list_from_registry = fetch_datasets_metadata_from_iati_registry(context, session)
@@ -47,7 +47,7 @@ def fetch_datasets_metadata(context: dict, organisations: dict) -> dict[uuid.UUI
 
     cleaned_datasets_metadata = clean_datasets_metadata(context["logger"], datasets_list_from_registry)
 
-    add_publisher_metadata(cleaned_datasets_metadata, organisations)
+    add_publisher_metadata(cleaned_datasets_metadata, reporting_orgs)
 
     datasets_metadata = convert_datasets_metadata(cleaned_datasets_metadata)
 
@@ -80,18 +80,18 @@ def fetch_datasets_metadata_from_iati_registry(context: dict, session: requests.
     return datasets_metadata
 
 
-def add_publisher_metadata(datasets_from_registry: list[dict[str, Any]], organisations: dict[uuid.UUID, dict]):
+def add_publisher_metadata(datasets_from_registry: list[dict[str, Any]], reporting_orgs: dict[uuid.UUID, dict]):
     for registry_dataset in datasets_from_registry:
         publisher_metadata = ""
         if "organization" in registry_dataset and "id" in registry_dataset["organization"]:
-            publisher_metadata = get_publisher_metadata_as_str(organisations, registry_dataset["organization"]["id"])
+            publisher_metadata = get_publisher_metadata_as_str(reporting_orgs, registry_dataset["organization"]["id"])
         registry_dataset["registration_service_publisher_metadata"] = publisher_metadata
 
 
-def get_publisher_metadata_as_str(organisations: dict[uuid.UUID, dict], publisher_id: str) -> str:
+def get_publisher_metadata_as_str(reporting_orgs: dict[uuid.UUID, dict], publisher_id: str) -> str:
     return (
-        organisations[uuid.UUID(publisher_id)]["registration_service_reporting_org_metadata"]
-        if uuid.UUID(publisher_id) in organisations
+        reporting_orgs[uuid.UUID(publisher_id)]["registration_service_reporting_org_metadata"]
+        if uuid.UUID(publisher_id) in reporting_orgs
         else "{}"
     )
 

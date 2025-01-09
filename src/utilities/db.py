@@ -47,11 +47,11 @@ def get_datasets_in_bds(context: dict) -> dict[uuid.UUID, dict]:
     return results
 
 
-def get_organisations_in_bds(context: dict) -> dict[uuid.UUID, dict]:
+def get_reporting_orgs_in_bds(context: dict) -> dict[uuid.UUID, dict]:
 
     connection = get_db_connection(context)
     cursor = connection.cursor(row_factory=psycopg.rows.dict_row)
-    cursor.execute("""SELECT * FROM iati_organisations""")
+    cursor.execute("""SELECT * FROM iati_reporting_orgs""")
     results_as_list = cursor.fetchall()
     cursor.close()
 
@@ -102,11 +102,11 @@ def insert_or_update_dataset(connection: psycopg.Connection, data):
     connection.commit()
 
 
-def insert_or_update_organisation(connection: psycopg.Connection, data):
+def insert_or_update_reporting_org(connection: psycopg.Connection, data):
     columns = ", ".join([k for k in data])
     placeholders = ", ".join(["%({})s".format(k) for k in data])
 
-    add_sql = """INSERT INTO iati_organisations ({})
+    add_sql = """INSERT INTO iati_reporting_orgs ({})
                         VALUES ({})
                  ON CONFLICT (id) DO
                     UPDATE SET
@@ -115,7 +115,7 @@ def insert_or_update_organisation(connection: psycopg.Connection, data):
                         human_readable_name = %(human_readable_name)s,
                         registration_service_reporting_org_metadata = %(registration_service_reporting_org_metadata)s
                     WHERE
-                        iati_organisations.id = %(id)s
+                        iati_reporting_orgs.id = %(id)s
         """.format(
         columns, placeholders
     )
@@ -125,10 +125,10 @@ def insert_or_update_organisation(connection: psycopg.Connection, data):
     connection.commit()
 
 
-def remove_organisation_from_db(connection: psycopg.Connection, organisation_id: uuid.UUID):
-    add_sql = """DELETE FROM iati_organisations WHERE id = %(organisation_id)s"""
+def remove_reporting_org_from_db(connection: psycopg.Connection, reporting_org_id: uuid.UUID):
+    add_sql = """DELETE FROM iati_reporting_orgs WHERE id = %(reporting_org_id)s"""
     cursor = connection.cursor()
-    cursor.execute(add_sql, {"organisation_id": organisation_id})
+    cursor.execute(add_sql, {"reporting_org_id": reporting_org_id})
     cursor.close()
     connection.commit()
 

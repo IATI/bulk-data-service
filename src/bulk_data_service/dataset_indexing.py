@@ -8,13 +8,13 @@ from utilities.azure import azure_upload_to_blob, get_azure_blob_public_url
 from utilities.misc import get_timestamp
 
 
-def create_and_upload_indices(context: dict, datasets_in_bds: dict[uuid.UUID, dict], organisations_in_bds: dict[uuid.UUID, dict]):
+def create_and_upload_indices(context: dict, datasets_in_bds: dict[uuid.UUID, dict], reporting_orgs_in_bds: dict[uuid.UUID, dict]):
 
     context["logger"].info("Creating indices")
 
-    minimal_index = create_index_json(context, datasets_in_bds, organisations_in_bds, "minimal")
+    minimal_index = create_index_json(context, datasets_in_bds, reporting_orgs_in_bds, "minimal")
 
-    full_index = create_index_json(context, datasets_in_bds, organisations_in_bds, "full")
+    full_index = create_index_json(context, datasets_in_bds, reporting_orgs_in_bds, "full")
 
     upload_index_json_to_azure(context, get_index_name(context, "minimal"), minimal_index)
 

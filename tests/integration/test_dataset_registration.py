@@ -3,7 +3,7 @@ import json
 import pytest
 
 from bulk_data_service.checker import checker_run
-from dataset_registration.iati_registry_ckan import fetch_organisations_metadata, get_publisher_metadata_as_str
+from dataset_registration.iati_registry_ckan import fetch_reporting_orgs_metadata, get_publisher_metadata_as_str
 from helpers.helpers import get_and_clear_up_context  # noqa: F401
 
 
@@ -76,9 +76,9 @@ def test_ckan_registry_get_metadata_known_publisher(get_and_clear_up_context):  
 
     context["DATA_REGISTRY_PUBLISHER_METADATA_URL"] = "http://localhost:3000/registration/ckan-publishers"
 
-    organisations = fetch_organisations_metadata(context)
+    reporting_orgs = fetch_reporting_orgs_metadata(context)
 
-    publisher_metadata_str = get_publisher_metadata_as_str(organisations, "1a3e3f42-6704-4adf-897a-9bdf5b854a00")
+    publisher_metadata_str = get_publisher_metadata_as_str(reporting_orgs, "1a3e3f42-6704-4adf-897a-9bdf5b854a00")
 
     assert publisher_metadata_str == expected
 
@@ -89,9 +89,9 @@ def test_ckan_registry_get_metadata_unknown_publisher(get_and_clear_up_context):
 
     context["DATA_REGISTRY_PUBLISHER_METADATA_URL"] = "http://localhost:3000/registration/ckan-publishers"
 
-    organisations = fetch_organisations_metadata(context)
+    reporting_orgs = fetch_reporting_orgs_metadata(context)
 
     # this is an unknown organisation id
-    publisher_metadata_str = get_publisher_metadata_as_str(organisations, "12345678-9000-4adf-897a-9bdf5b854a00")
+    publisher_metadata_str = get_publisher_metadata_as_str(reporting_orgs, "12345678-9000-4adf-897a-9bdf5b854a00")
 
     assert publisher_metadata_str == "{}"

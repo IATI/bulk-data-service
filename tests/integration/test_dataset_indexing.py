@@ -11,7 +11,7 @@ from bulk_data_service.dataset_indexing import (
 )
 from helpers.helpers import get_and_clear_up_context  # noqa: F401
 from utilities.azure import get_azure_container_name
-from utilities.db import get_organisations_in_bds
+from utilities.db import get_reporting_orgs_in_bds
 
 
 def test_index_uploaded_to_blob_storage(get_and_clear_up_context):  # noqa: F811
@@ -69,14 +69,14 @@ def test_creation_of_dataset_entry_in_minimal_index_when_download_success(get_an
     blob_service_client.close()
 
 
-def test_creation_of_organisation_entry_in_minimal_index_when_download_success(get_and_clear_up_context):  # noqa: F811
+def test_create_reporting_org_entry_in_minimal_index_for_download_success(get_and_clear_up_context):  # noqa: F811
     context = get_and_clear_up_context
 
     context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/registration/datasets-01"
     datasets_in_bds = {}
     checker_run(context, datasets_in_bds)
 
-    organisations_in_bds = get_organisations_in_bds(context)
+    reporting_orgs_in_bds = get_reporting_orgs_in_bds(context)
 
     blob_service_client = BlobServiceClient.from_connection_string(context["AZURE_STORAGE_CONNECTION_STRING"])
 
@@ -90,7 +90,7 @@ def test_creation_of_organisation_entry_in_minimal_index_when_download_success(g
 
     blob_service_client.close()
 
-    reporting_orgs_from_db = organisations_in_bds[uuid.UUID("ea055d99-f7e9-456f-9f99-963e95493c1b")]
+    reporting_orgs_from_db = reporting_orgs_in_bds[uuid.UUID("ea055d99-f7e9-456f-9f99-963e95493c1b")]
 
     assert reporting_orgs_from_db["short_name"] in minimal_index["reporting_orgs"]
 
@@ -215,14 +215,14 @@ def test_full_index_creation_for_download_failure(get_and_clear_up_context):  # 
     blob_service_client.close()
 
 
-def test_creation_of_organisation_entry_in_minimal_index_when_download_failure(get_and_clear_up_context):  # noqa: F811
+def test_creation_of_reporting_org_entry_in_minimal_index_when_download_failure(get_and_clear_up_context):  # noqa: F811
     context = get_and_clear_up_context
 
     context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/registration/datasets-03"
     datasets_in_bds = {}
     checker_run(context, datasets_in_bds)
 
-    organisations_in_bds = get_organisations_in_bds(context)
+    reporting_orgs_in_bds = get_reporting_orgs_in_bds(context)
 
     blob_service_client = BlobServiceClient.from_connection_string(context["AZURE_STORAGE_CONNECTION_STRING"])
 
@@ -236,7 +236,7 @@ def test_creation_of_organisation_entry_in_minimal_index_when_download_failure(g
 
     blob_service_client.close()
 
-    reporting_orgs_from_db = organisations_in_bds[uuid.UUID("ea055d99-f7e9-456f-9f99-963e95493c1b")]
+    reporting_orgs_from_db = reporting_orgs_in_bds[uuid.UUID("ea055d99-f7e9-456f-9f99-963e95493c1b")]
 
     assert reporting_orgs_from_db["short_name"] in full_index["reporting_orgs"]
 
