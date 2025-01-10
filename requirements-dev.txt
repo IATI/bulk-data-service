@@ -4,25 +4,25 @@
 #
 #    pip-compile --extra=dev --output-file=requirements-dev.txt --strip-extras pyproject.toml
 #
-azure-core==1.30.2
+azure-core==1.32.0
     # via azure-storage-blob
 azure-storage-blob==12.20.0
     # via bulk-data-service (pyproject.toml)
-black==24.8.0
+black==24.10.0
     # via bulk-data-service (pyproject.toml)
-build==1.2.1
+build==1.2.2.post1
     # via pip-tools
-certifi==2024.8.30
+certifi==2024.12.14
     # via requests
 cffi==1.17.1
     # via cryptography
-charset-normalizer==3.3.2
+charset-normalizer==3.4.1
     # via requests
-click==8.1.7
+click==8.1.8
     # via
     #   black
     #   pip-tools
-cryptography==43.0.1
+cryptography==44.0.0
     # via azure-storage-blob
 flake8==7.1.1
     # via
@@ -30,25 +30,25 @@ flake8==7.1.1
     #   flake8-pyproject
 flake8-pyproject==1.2.3
     # via bulk-data-service (pyproject.toml)
-idna==3.8
+idna==3.10
     # via requests
-importlib-metadata==8.4.0
+importlib-metadata==8.5.0
     # via yoyo-migrations
 iniconfig==2.0.0
     # via pytest
-isodate==0.6.1
+isodate==0.7.2
     # via azure-storage-blob
 isort==5.13.2
     # via bulk-data-service (pyproject.toml)
 mccabe==0.7.0
     # via flake8
-mypy==1.11.2
+mypy==1.14.1
     # via bulk-data-service (pyproject.toml)
 mypy-extensions==1.0.0
     # via
     #   black
     #   mypy
-packaging==24.1
+packaging==24.2
     # via
     #   black
     #   build
@@ -57,7 +57,7 @@ pathspec==0.12.1
     # via black
 pip-tools==7.4.1
     # via bulk-data-service (pyproject.toml)
-platformdirs==4.2.2
+platformdirs==4.3.6
     # via black
 pluggy==1.5.0
     # via pytest
@@ -67,7 +67,7 @@ psycopg==3.1.18
     # via bulk-data-service (pyproject.toml)
 psycopg-binary==3.1.18
     # via psycopg
-psycopg-pool==3.2.2
+psycopg-pool==3.2.4
     # via psycopg
 pycodestyle==2.12.1
     # via flake8
@@ -75,11 +75,11 @@ pycparser==2.22
     # via cffi
 pyflakes==3.2.0
     # via flake8
-pyproject-hooks==1.1.0
+pyproject-hooks==1.2.0
     # via
     #   build
     #   pip-tools
-pytest==8.3.2
+pytest==8.3.4
     # via bulk-data-service (pyproject.toml)
 pytest-watcher==0.4.3
     # via bulk-data-service (pyproject.toml)
@@ -89,15 +89,17 @@ requests==2.31.0
     # via
     #   azure-core
     #   bulk-data-service (pyproject.toml)
-six==1.16.0
-    # via
-    #   azure-core
-    #   isodate
-sqlparse==0.5.1
+six==1.17.0
+    # via azure-core
+sqlparse==0.5.3
     # via yoyo-migrations
 tabulate==0.9.0
     # via yoyo-migrations
-types-requests==2.32.0.20240905
+toml==0.10.2
+    # via bulk-data-service (pyproject.toml)
+types-requests==2.32.0.20241016
+    # via bulk-data-service (pyproject.toml)
+types-toml==0.10.8.20240310
     # via bulk-data-service (pyproject.toml)
 typing-extensions==4.12.2
     # via
@@ -106,17 +108,17 @@ typing-extensions==4.12.2
     #   mypy
     #   psycopg
     #   psycopg-pool
-urllib3==2.2.2
+urllib3==2.3.0
     # via
     #   requests
     #   types-requests
-watchdog==5.0.2
+watchdog==6.0.0
     # via pytest-watcher
-wheel==0.44.0
+wheel==0.45.1
     # via pip-tools
 yoyo-migrations==9.0.0
     # via bulk-data-service (pyproject.toml)
-zipp==3.20.1
+zipp==3.21.0
     # via importlib-metadata
 
 # The following packages are considered to be unsafe in a requirements file:
