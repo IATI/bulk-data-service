@@ -146,7 +146,7 @@ class CodeforIATILegacyZipper(IATIDataZipper):
                 with open(reporting_org_metadata_filename, "w") as pub_file:
                     reporting_org_metadata = "{}"
                     if self.datasets_in_bds[dataset_in_bds_db]["reporting_org_id"] in self.reporting_orgs:
-                       reporting_org_metadata = self.filter_publisher_metadata(
+                        reporting_org_metadata = self.filter_publisher_metadata(
                             self.reporting_orgs[self.datasets_in_bds[dataset_in_bds_db]["reporting_org_id"]][
                                 "registration_service_reporting_org_metadata"
                             ]

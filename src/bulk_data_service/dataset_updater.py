@@ -52,7 +52,7 @@ def add_or_update_dataset_batch(
 
     az_blob_service = BlobServiceClient.from_connection_string(context["AZURE_STORAGE_CONNECTION_STRING"])
 
-    session = get_requests_session()
+    session = get_requests_session(context)
 
     for registered_dataset_id in registered_datasets_to_update:
 
