@@ -10,12 +10,10 @@ from bulk_data_service.reporting_org_sync import add_or_update_reporting_orgs, r
 from bulk_data_service.zipper import zipper_run
 from dataset_registration.iati_registry_ckan import fetch_datasets_metadata, fetch_reporting_orgs_metadata
 from utilities.db import get_datasets_in_bds, get_reporting_orgs_in_bds
-from utilities.prometheus import initialise_prometheus_client, update_metrics_from_db
+from utilities.prometheus import update_metrics_from_db
 
 
 def checker(context: dict):
-    context = initialise_prometheus_client(context)
-
     if context["single_run"]:
         checker_run(context, get_datasets_in_bds(context))
     else:
