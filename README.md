@@ -14,7 +14,8 @@ Support | https://iatistandard.org/en/guidance/get-support/
 
 ## High-level requirements
 
-* Python 3.12
+* Python 3.12.6 or above
+  * (This is specified in .python-version, Dockerfile, and pyproject.toml)
 * Postgres DB
 * Azure storage account with blob storage enabled
 
@@ -205,6 +206,11 @@ BDS_DB_ADMIN_PASSWORD=passwordHere ./azure-provision/azure-create-resources.sh d
 This will create a resource group on Azure called `rg-bulk-data-service-dev`, and then create and configure all the Azure resources needed for the Bulk Data Service within that resource group (except for the Container Instance, which is created/updated as part of the deploy stage).
 
 At the end of its run, the `azure-create-resources.sh` script will print out various secrets which need to be added to Github Actions.
+
+### Deployment - Versioning
+
+The app version is set in `pyproject.toml`, and this is read by the app to use in the `User-Agent` header. When making a new release, set the version here to the appropriate value. Then, when releasing the app using the normal IATI Python app deployment process, choose the tag name to match the version chosen.
+
 
 ### Deployment - CI/CD
 
