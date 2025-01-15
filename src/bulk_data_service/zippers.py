@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 
 from azure.storage.blob import BlobServiceClient
 
-from bulk_data_service.dataset_indexing import get_index_name
+from bulk_data_service.dataset_indexing import get_dataset_index_name, get_reporting_org_index_name
 from utilities.azure import azure_download_blob, get_azure_container_name, upload_zip_to_azure
 from utilities.misc import filter_dict_by_structure, get_number_xml_files_in_dir, get_timestamp_as_str_z
 
@@ -74,9 +74,11 @@ class IATIBulkDataServiceZipper(IATIDataZipper):
     def prepare(self):
         az_blob_service = BlobServiceClient.from_connection_string(self.context["AZURE_STORAGE_CONNECTION_STRING"])
 
-        self.download_index_to_working_dir(az_blob_service, "minimal")
+        self.download_dataset_index_to_working_dir(az_blob_service, "minimal")
 
-        self.download_index_to_working_dir(az_blob_service, "full")
+        self.download_dataset_index_to_working_dir(az_blob_service, "full")
+
+        self.download_reporting_org_index_to_working_dir(az_blob_service)
 
         az_blob_service.close()
 
@@ -84,16 +86,32 @@ class IATIBulkDataServiceZipper(IATIDataZipper):
     def zip_type(self) -> str:
         return "Bulk Data Service"
 
-    def download_index_to_working_dir(self, az_blob_service: BlobServiceClient, index_type: str):
+    def download_dataset_index_to_working_dir(self, az_blob_service: BlobServiceClient, index_type: str):
 
-        index_filename = get_index_name(self.context, index_type)
+        index_filename = get_dataset_index_name(self.context, index_type)
 
-        index_full_pathname = "{}/{}/{}".format(self.zip_working_dir, self.zip_internal_directory_name, index_filename)
+        index_pathname = "{}/{}/{}".format(
+            self.zip_working_dir, self.zip_internal_directory_name, "{}.json".format(index_filename)
+        )
 
-        os.makedirs(os.path.dirname(index_full_pathname), exist_ok=True)
+        os.makedirs(os.path.dirname(index_pathname), exist_ok=True)
 
         azure_download_blob(
-            az_blob_service, get_azure_container_name(self.context, "xml"), index_filename, index_full_pathname
+            az_blob_service, get_azure_container_name(self.context, "xml"), index_filename, index_pathname
+        )
+
+    def download_reporting_org_index_to_working_dir(self, az_blob_service: BlobServiceClient):
+
+        index_filename = get_reporting_org_index_name(self.context)
+
+        index_pathname = "{}/{}/{}".format(
+            self.zip_working_dir, self.zip_internal_directory_name, "{}.json".format(index_filename)
+        )
+
+        os.makedirs(os.path.dirname(index_pathname), exist_ok=True)
+
+        azure_download_blob(
+            az_blob_service, get_azure_container_name(self.context, "xml"), index_filename, index_pathname
         )
 
 

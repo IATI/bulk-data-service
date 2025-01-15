@@ -7,7 +7,6 @@ import uuid
 from azure.core.exceptions import ResourceNotFoundError
 from azure.storage.blob import BlobServiceClient
 
-from bulk_data_service.dataset_indexing import get_index_name
 from bulk_data_service.zippers import CodeforIATILegacyZipper, IATIBulkDataServiceZipper
 from utilities.azure import azure_download_blob, get_azure_blob_name, get_azure_container_name
 from utilities.db import get_datasets_in_bds, get_reporting_orgs_in_bds
@@ -126,27 +125,6 @@ def remove_datasets_without_dls_from_working_dir(
 
     for dataset in datasets_removed.values():
         delete_local_xml_from_zip_working_dir(context, dataset)
-
-
-def download_indices_to_working_dir(context: dict):
-    az_blob_service = BlobServiceClient.from_connection_string(context["AZURE_STORAGE_CONNECTION_STRING"])
-
-    download_index_to_working_dir(context, az_blob_service, "minimal")
-
-    download_index_to_working_dir(context, az_blob_service, "full")
-
-    az_blob_service.close()
-
-
-def download_index_to_working_dir(context: dict, az_blob_service: BlobServiceClient, index_type: str):
-
-    index_filename = get_index_name(context, index_type)
-
-    index_full_pathname = "{}/iati-data/{}".format(context["ZIP_WORKING_DIR"], index_filename)
-
-    os.makedirs(os.path.dirname(index_full_pathname), exist_ok=True)
-
-    azure_download_blob(az_blob_service, get_azure_container_name(context, "xml"), index_filename, index_full_pathname)
 
 
 def download_new_or_updated_to_working_dir(context: dict, updated_datasets: dict[uuid.UUID, dict]):

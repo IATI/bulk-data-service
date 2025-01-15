@@ -5,6 +5,7 @@ import io
 import re
 import uuid
 import zipfile
+from typing import Any
 
 
 def get_hash(content: str) -> str:
@@ -101,3 +102,7 @@ def filter_dict_by_structure(source: dict, structure_to_retain: dict) -> dict:
             ]
 
     return filtered_dict
+
+
+def find_object_by_key(objects: list, key: str, value_to_find: Any):
+    return next(filter(lambda x: x[key] == value_to_find, objects), None)
