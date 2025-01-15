@@ -114,8 +114,9 @@ def test_bds_zip_content_for_download_success(get_and_clear_up_context):  # noqa
 
     filelist = bds_zip_file.namelist()
 
-    assert ("iati-data/dataset-index-minimal.json" in filelist) is True
-    assert ("iati-data/dataset-index-full.json" in filelist) is True
+    assert ("iati-data/datasets-minimal.json" in filelist) is True
+    assert ("iati-data/datasets-full.json" in filelist) is True
+    assert ("iati-data/reporting-orgs.json" in filelist) is True
     assert ("iati-data/datasets/test_foundation_a/test_foundation_a-dataset-001.xml" in filelist) is True
 
 
@@ -133,8 +134,9 @@ def test_bds_zip_content_for_download_fail_but_cached(get_and_clear_up_context):
 
     filelist = bds_zip_file.namelist()
 
-    assert ("iati-data/dataset-index-minimal.json" in filelist) is True
-    assert ("iati-data/dataset-index-full.json" in filelist) is True
+    assert ("iati-data/datasets-minimal.json" in filelist) is True
+    assert ("iati-data/datasets-full.json" in filelist) is True
+    assert ("iati-data/reporting-orgs.json" in filelist) is True
     assert ("iati-data/datasets/test_foundation_a/test_foundation_a-dataset-001.xml" in filelist) is True
 
 
@@ -152,8 +154,9 @@ def test_bds_zip_content_for_download_fail_no_cached(get_and_clear_up_context): 
 
     filelist = bds_zip_file.namelist()
 
-    assert ("iati-data/dataset-index-minimal.json" in filelist) is True
-    assert ("iati-data/dataset-index-full.json" in filelist) is True
+    assert ("iati-data/datasets-minimal.json" in filelist) is True
+    assert ("iati-data/datasets-full.json" in filelist) is True
+    assert ("iati-data/reporting-orgs.json" in filelist) is True
     assert ("iati-data/datasets/test_foundation_a/test_foundation_a-dataset-001.xml" in filelist) is False
 
 
@@ -171,8 +174,9 @@ def test_codeforiati_zip_content_for_download_success(get_and_clear_up_context):
 
     filelist = bds_zip_file.namelist()
 
-    assert ("iati-data/dataset-index-minimal.json" in filelist) is False
-    assert ("iati-data/dataset-index-full.json" in filelist) is False
+    assert ("iati-data/datasets-minimal.json" in filelist) is False
+    assert ("iati-data/datasets-full.json" in filelist) is False
+    assert ("iati-data/reporting-orgs.json" in filelist) is False
     assert ("iati-data-main/metadata.json" in filelist) is True
     assert ("iati-data-main/data/test_foundation_a/test_foundation_a-dataset-001.xml" in filelist) is True
     assert ("iati-data-main/metadata/test_foundation_a.json" in filelist) is True
@@ -193,8 +197,9 @@ def test_codeforiati_zip_content_for_download_fail_but_cached(get_and_clear_up_c
 
     filelist = bds_zip_file.namelist()
 
-    assert ("iati-data/dataset-index-minimal.json" in filelist) is False
-    assert ("iati-data/dataset-index-full.json" in filelist) is False
+    assert ("iati-data/datasets-minimal.json" in filelist) is False
+    assert ("iati-data/datasets-full.json" in filelist) is False
+    assert ("iati-data/reporting-orgs.json" in filelist) is False
     assert ("iati-data-main/metadata.json" in filelist) is True
     assert ("iati-data-main/data/test_foundation_a/test_foundation_a-dataset-001.xml" in filelist) is True
     assert ("iati-data-main/metadata/test_foundation_a.json" in filelist) is True
@@ -216,8 +221,9 @@ def test_codeforiati_zip_content_for_download_fail_no_cached(get_and_clear_up_co
     fileinfolist = bds_zip_file.infolist()
     filelist = [fileinfo.filename for fileinfo in fileinfolist]
 
-    assert ("iati-data/dataset-index-minimal.json" in filelist) is False
-    assert ("iati-data/dataset-index-full.json" in filelist) is False
+    assert ("iati-data/datasets-minimal.json" in filelist) is False
+    assert ("iati-data/datasets-full.json" in filelist) is False
+    assert ("iati-data/reporting-orgs.json" in filelist) is False
     assert ("iati-data-main/metadata.json" in filelist) is True
     assert ("iati-data-main/data/test_foundation_a/test_foundation_a-dataset-001.xml" in filelist) is True
     assert ("iati-data-main/metadata/test_foundation_a.json" in filelist) is True
