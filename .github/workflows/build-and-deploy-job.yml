@@ -31,12 +31,16 @@ jobs:
           echo "TARGET_ENVIRONMENT_UPPER=${TARGET_ENVIRONMENT^^}" >> ${GITHUB_ENV}
           echo "CONTAINER_INSTANCE_BASE_NAME=aci-${APP_NAME}" >> ${GITHUB_ENV}
           echo "RESOURCE_GROUP_BASE_NAME=rg-${APP_NAME}" >> ${GITHUB_ENV}
+          echo "APP_NAME_NO_HYPHENS=${APP_NAME//-/}" >> ${GITHUB_ENV}
+          echo "STORAGE_ACCOUNT_NAME=sa${APP_NAME_NO_HYPHENS}$TARGET_ENVIRONMENT" >> ${GITHUB_ENV}
 
       - name: 'Print calculated environment variables'
         run: |
           echo $TARGET_ENVIRONMENT_UPPER
           echo $CONTAINER_INSTANCE_BASE_NAME
           echo $RESOURCE_GROUP_BASE_NAME
+          echo $APP_NAME_NO_HYPHENS
+          echo $STORAGE_ACCOUNT_NAME
 
       - name: 'Checkout GitHub Action'
         uses: actions/checkout@v4
@@ -125,3 +129,9 @@ jobs:
             az container create --debug \
             --resource-group "${{ env.RESOURCE_GROUP_BASE_NAME }}-${{ env.TARGET_ENVIRONMENT }}" \
             --file ./azure-deployment/azure-resource-manager-deployment-manifest.yml
+
+      - name: 'Update the website'
+        uses: 'azure/CLI@v2'
+        with:
+          inlineScript: |
+            az storage blob upload-batch -s web -d '$web' --account-name $STORAGE_ACCOUNT_NAME --overwrite
