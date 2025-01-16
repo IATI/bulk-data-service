@@ -17,14 +17,14 @@
                 "maintainer_email": null,
                 "metadata_created": "2024-03-04T10:24:11.373108",
                 "metadata_modified": "2024-05-07T15:38:58.740018",
-                "name": "test_foundation_a-dataset-001",
+                "name": "test_foundation_e-dataset-001",
                 "notes": "",
                 "num_resources": 1,
                 "num_tags": 0,
                 "organization": {
-                    "id": "ea055d99-f7e9-456f-9f99-963e95493c1b",
-                    "name": "test_foundation_a",
-                    "title": "Test Foundation A",
+                    "id": "ea055d99-f7e9-456f-9f99-963e95493c1e",
+                    "name": "test_foundation_e",
+                    "title": "Test Foundation E",
                     "type": "organization",
                     "description": "",
                     "image_url": "",
@@ -55,7 +55,7 @@
                     },
                     {
                         "key": "filetype",
-                        "value": "organisation"
+                        "value": "activity"
                     },
                     {
                         "key": "iati_version",
@@ -93,7 +93,7 @@
                         "resource_type": null,
                         "size": 399382,
                         "state": "active",
-                        "url": "http://localhost:3000/not_found",
+                        "url": "http://localhost:3000/data/test_foundation_a-dataset-001.xml",
                         "url_type": null
                     }
                 ],

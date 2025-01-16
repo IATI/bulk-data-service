@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 
 from azure.storage.blob import BlobServiceClient
 
-from bulk_data_service.dataset_indexing import get_index_name
+from bulk_data_service.dataset_indexing import get_dataset_index_name, get_reporting_org_index_name
 from utilities.azure import azure_download_blob, get_azure_container_name, upload_zip_to_azure
 from utilities.misc import filter_dict_by_structure, get_number_xml_files_in_dir, get_timestamp_as_str_z
 
@@ -19,10 +19,12 @@ class IATIDataZipper(ABC):
         zip_working_dir: str,
         datasets_in_working_dir: dict[uuid.UUID, dict],
         datasets_in_bds: dict[uuid.UUID, dict],
+        reporting_orgs: dict[uuid.UUID, dict],
     ):
         self.context = context
         self.datasets_in_working_dir = datasets_in_working_dir
         self.datasets_in_bds = datasets_in_bds
+        self.reporting_orgs = reporting_orgs
         self.zip_working_dir = zip_working_dir
 
     @abstractmethod
@@ -72,9 +74,11 @@ class IATIBulkDataServiceZipper(IATIDataZipper):
     def prepare(self):
         az_blob_service = BlobServiceClient.from_connection_string(self.context["AZURE_STORAGE_CONNECTION_STRING"])
 
-        self.download_index_to_working_dir(az_blob_service, "minimal")
+        self.download_dataset_index_to_working_dir(az_blob_service, "minimal")
 
-        self.download_index_to_working_dir(az_blob_service, "full")
+        self.download_dataset_index_to_working_dir(az_blob_service, "full")
+
+        self.download_reporting_org_index_to_working_dir(az_blob_service)
 
         az_blob_service.close()
 
@@ -82,16 +86,32 @@ class IATIBulkDataServiceZipper(IATIDataZipper):
     def zip_type(self) -> str:
         return "Bulk Data Service"
 
-    def download_index_to_working_dir(self, az_blob_service: BlobServiceClient, index_type: str):
+    def download_dataset_index_to_working_dir(self, az_blob_service: BlobServiceClient, index_type: str):
 
-        index_filename = get_index_name(self.context, index_type)
+        index_filename = get_dataset_index_name(self.context, index_type)
 
-        index_full_pathname = "{}/{}/{}".format(self.zip_working_dir, self.zip_internal_directory_name, index_filename)
+        index_pathname = "{}/{}/{}".format(
+            self.zip_working_dir, self.zip_internal_directory_name, "{}.json".format(index_filename)
+        )
 
-        os.makedirs(os.path.dirname(index_full_pathname), exist_ok=True)
+        os.makedirs(os.path.dirname(index_pathname), exist_ok=True)
 
         azure_download_blob(
-            az_blob_service, get_azure_container_name(self.context, "xml"), index_filename, index_full_pathname
+            az_blob_service, get_azure_container_name(self.context, "xml"), index_filename, index_pathname
+        )
+
+    def download_reporting_org_index_to_working_dir(self, az_blob_service: BlobServiceClient):
+
+        index_filename = get_reporting_org_index_name(self.context)
+
+        index_pathname = "{}/{}/{}".format(
+            self.zip_working_dir, self.zip_internal_directory_name, "{}.json".format(index_filename)
+        )
+
+        os.makedirs(os.path.dirname(index_pathname), exist_ok=True)
+
+        azure_download_blob(
+            az_blob_service, get_azure_container_name(self.context, "xml"), index_filename, index_pathname
         )
 
 
@@ -137,20 +157,23 @@ class CodeforIATILegacyZipper(IATIDataZipper):
 
     def write_publisher_metadata_files(self):
         for dataset_in_bds_db in self.datasets_in_bds:
-            publisher_metadata_filename = self.get_publisher_metadata_filename(
-                self.datasets_in_bds[dataset_in_bds_db]["publisher_name"]
+            reporting_org_metadata_filename = self.get_publisher_metadata_filename(
+                self.datasets_in_bds[dataset_in_bds_db]["reporting_org_short_name"]
             )
-            if not os.path.exists(publisher_metadata_filename):
-                with open(publisher_metadata_filename, "w") as pub_file:
-                    pub_file.write(
-                        self.filter_publisher_metadata(
-                            self.datasets_in_bds[dataset_in_bds_db]["registration_service_publisher_metadata"]
+            if not os.path.exists(reporting_org_metadata_filename):
+                with open(reporting_org_metadata_filename, "w") as pub_file:
+                    reporting_org_metadata = "{}"
+                    if self.datasets_in_bds[dataset_in_bds_db]["reporting_org_id"] in self.reporting_orgs:
+                        reporting_org_metadata = self.filter_publisher_metadata(
+                            self.reporting_orgs[self.datasets_in_bds[dataset_in_bds_db]["reporting_org_id"]][
+                                "registration_service_reporting_org_metadata"
+                            ]
                         )
-                    )
+                    pub_file.write(reporting_org_metadata)
 
-    def get_publisher_metadata_filename(self, publisher_name):
+    def get_publisher_metadata_filename(self, reporting_org_short_name):
         return os.path.join(
-            self.zip_working_dir, self.zip_internal_directory_name, "metadata", f"{publisher_name}.json"
+            self.zip_working_dir, self.zip_internal_directory_name, "metadata", f"{reporting_org_short_name}.json"
         )
 
     def filter_publisher_metadata(self, ckan_publisher_metadata: str) -> str:
@@ -197,19 +220,25 @@ class CodeforIATILegacyZipper(IATIDataZipper):
 
     def get_dataset_data_pathname(self, dataset_in_bds):
         return os.path.join(
-            self.zip_working_dir, self.zip_internal_directory_name, "data", f"{dataset_in_bds['publisher_name']}"
+            self.zip_working_dir,
+            self.zip_internal_directory_name,
+            "data",
+            f"{dataset_in_bds['reporting_org_short_name']}",
         )
 
     def get_dataset_data_filename(self, dataset_in_bds):
-        return os.path.join(self.get_dataset_data_pathname(dataset_in_bds), f"{dataset_in_bds['name']}.xml")
+        return os.path.join(self.get_dataset_data_pathname(dataset_in_bds), f"{dataset_in_bds['short_name']}.xml")
 
     def get_dataset_metadata_pathname(self, dataset_in_bds):
         return os.path.join(
-            self.zip_working_dir, self.zip_internal_directory_name, "metadata", f"{dataset_in_bds['publisher_name']}"
+            self.zip_working_dir,
+            self.zip_internal_directory_name,
+            "metadata",
+            f"{dataset_in_bds['reporting_org_short_name']}",
         )
 
     def get_dataset_metadata_filename(self, dataset_in_bds):
-        return os.path.join(self.get_dataset_metadata_pathname(dataset_in_bds), f"{dataset_in_bds['name']}.json")
+        return os.path.join(self.get_dataset_metadata_pathname(dataset_in_bds), f"{dataset_in_bds['short_name']}.json")
 
     @property
     def zip_type(self) -> str:

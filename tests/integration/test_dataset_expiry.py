@@ -7,7 +7,7 @@ from bulk_data_service.checker import checker_run, zipper_run
 from helpers.helpers import get_and_clear_up_context  # noqa: F401
 from helpers.helpers import get_number_xml_files_in_working_dir
 from utilities.azure import get_azure_blob_name, get_azure_container_name
-from utilities.db import get_datasets_in_bds
+from utilities.db import get_datasets_in_bds, get_reporting_orgs_in_bds
 
 
 def test_dataset_expiry_after_72_hours_failed_downloads(get_and_clear_up_context):  # noqa: F811
@@ -21,7 +21,7 @@ def test_dataset_expiry_after_72_hours_failed_downloads(get_and_clear_up_context
 
     context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/registration/datasets-01"
     checker_run(context, datasets_in_bds)
-    zipper_run(context, datasets_in_zip, datasets_in_bds)
+    zipper_run(context, datasets_in_zip, datasets_in_bds, get_reporting_orgs_in_bds(context))
 
     assert get_number_xml_files_in_working_dir(context) == 1
 
@@ -31,7 +31,7 @@ def test_dataset_expiry_after_72_hours_failed_downloads(get_and_clear_up_context
 
     context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/registration/datasets-03"
     checker_run(context, datasets_in_bds)
-    zipper_run(context, datasets_in_zip, datasets_in_bds)
+    zipper_run(context, datasets_in_zip, datasets_in_bds, get_reporting_orgs_in_bds(context))
 
     dataset = datasets_in_bds[uuid.UUID("c8a40aa5-9f31-4bcf-a36f-51c1fc2cc159")]
 

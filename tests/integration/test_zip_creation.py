@@ -6,6 +6,7 @@ from bulk_data_service.checker import checker_run
 from bulk_data_service.zipper import zipper_run
 from helpers.helpers import get_and_clear_up_context  # noqa: F401
 from helpers.helpers import get_number_xml_files_in_working_dir
+from utilities.db import get_reporting_orgs_in_bds
 
 
 def test_dataset_saved_for_download_success(get_and_clear_up_context):  # noqa: F811
@@ -59,18 +60,23 @@ def test_publisher_metadata_saved_for_successful_metadata_dl(get_and_clear_up_co
     checker_run(context, datasets_in_bds)
 
     datasets_in_zip = {}
-    zipper_run(context, datasets_in_zip, datasets_in_bds)
+    zipper_run(context, datasets_in_zip, datasets_in_bds, get_reporting_orgs_in_bds(context))
 
-    assert os.path.exists(context["ZIP_WORKING_DIR"] + "-2/iati-data-main/metadata/test_org_a.json") is True
+    assert os.path.exists(context["ZIP_WORKING_DIR"] + "-2/iati-data-main/metadata/test_foundation_a.json") is True
 
 
 def test_publisher_metadata_content_for_failed_metadata_dl(get_and_clear_up_context):  # noqa: F811
 
     context = get_and_clear_up_context
 
-    run_checker_then_zipper_download_ok(context)
+    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/registration/datasets-06"
+    datasets_in_bds = {}
+    checker_run(context, datasets_in_bds)
 
-    with open(context["ZIP_WORKING_DIR"] + "-2/iati-data-main/metadata/test_foundation_a.json", "r") as f:
+    datasets_in_zip = {}
+    zipper_run(context, datasets_in_zip, datasets_in_bds, get_reporting_orgs_in_bds(context))
+
+    with open(context["ZIP_WORKING_DIR"] + "-2/iati-data-main/metadata/test_foundation_e.json", "r") as f:
         assert f.read() == "{}"
 
 
@@ -83,13 +89,13 @@ def test_publisher_metadata_content_for_successful_metadata_dl(get_and_clear_up_
     checker_run(context, datasets_in_bds)
 
     datasets_in_zip = {}
-    zipper_run(context, datasets_in_zip, datasets_in_bds)
+    zipper_run(context, datasets_in_zip, datasets_in_bds, get_reporting_orgs_in_bds(context))
 
-    with open(context["ZIP_WORKING_DIR"] + "-2/iati-data-main/metadata/test_org_a.json", "r") as f:
+    with open(context["ZIP_WORKING_DIR"] + "-2/iati-data-main/metadata/test_foundation_a.json", "r") as f:
         assert f.read() == json.dumps(
             {
-                "id": "4f0f8498-20d2-4ca5-a20f-f441eedb1d4f",
-                "name": "test_org_a",
+                "id": "ea055d99-f7e9-456f-9f99-963e95493c1b",
+                "name": "test_foundation_a",
             }
         )
 
@@ -108,8 +114,9 @@ def test_bds_zip_content_for_download_success(get_and_clear_up_context):  # noqa
 
     filelist = bds_zip_file.namelist()
 
-    assert ("iati-data/dataset-index-minimal.json" in filelist) is True
-    assert ("iati-data/dataset-index-full.json" in filelist) is True
+    assert ("iati-data/datasets-minimal.json" in filelist) is True
+    assert ("iati-data/datasets-full.json" in filelist) is True
+    assert ("iati-data/reporting-orgs.json" in filelist) is True
     assert ("iati-data/datasets/test_foundation_a/test_foundation_a-dataset-001.xml" in filelist) is True
 
 
@@ -127,8 +134,9 @@ def test_bds_zip_content_for_download_fail_but_cached(get_and_clear_up_context):
 
     filelist = bds_zip_file.namelist()
 
-    assert ("iati-data/dataset-index-minimal.json" in filelist) is True
-    assert ("iati-data/dataset-index-full.json" in filelist) is True
+    assert ("iati-data/datasets-minimal.json" in filelist) is True
+    assert ("iati-data/datasets-full.json" in filelist) is True
+    assert ("iati-data/reporting-orgs.json" in filelist) is True
     assert ("iati-data/datasets/test_foundation_a/test_foundation_a-dataset-001.xml" in filelist) is True
 
 
@@ -146,8 +154,9 @@ def test_bds_zip_content_for_download_fail_no_cached(get_and_clear_up_context): 
 
     filelist = bds_zip_file.namelist()
 
-    assert ("iati-data/dataset-index-minimal.json" in filelist) is True
-    assert ("iati-data/dataset-index-full.json" in filelist) is True
+    assert ("iati-data/datasets-minimal.json" in filelist) is True
+    assert ("iati-data/datasets-full.json" in filelist) is True
+    assert ("iati-data/reporting-orgs.json" in filelist) is True
     assert ("iati-data/datasets/test_foundation_a/test_foundation_a-dataset-001.xml" in filelist) is False
 
 
@@ -165,8 +174,9 @@ def test_codeforiati_zip_content_for_download_success(get_and_clear_up_context):
 
     filelist = bds_zip_file.namelist()
 
-    assert ("iati-data/dataset-index-minimal.json" in filelist) is False
-    assert ("iati-data/dataset-index-full.json" in filelist) is False
+    assert ("iati-data/datasets-minimal.json" in filelist) is False
+    assert ("iati-data/datasets-full.json" in filelist) is False
+    assert ("iati-data/reporting-orgs.json" in filelist) is False
     assert ("iati-data-main/metadata.json" in filelist) is True
     assert ("iati-data-main/data/test_foundation_a/test_foundation_a-dataset-001.xml" in filelist) is True
     assert ("iati-data-main/metadata/test_foundation_a.json" in filelist) is True
@@ -187,8 +197,9 @@ def test_codeforiati_zip_content_for_download_fail_but_cached(get_and_clear_up_c
 
     filelist = bds_zip_file.namelist()
 
-    assert ("iati-data/dataset-index-minimal.json" in filelist) is False
-    assert ("iati-data/dataset-index-full.json" in filelist) is False
+    assert ("iati-data/datasets-minimal.json" in filelist) is False
+    assert ("iati-data/datasets-full.json" in filelist) is False
+    assert ("iati-data/reporting-orgs.json" in filelist) is False
     assert ("iati-data-main/metadata.json" in filelist) is True
     assert ("iati-data-main/data/test_foundation_a/test_foundation_a-dataset-001.xml" in filelist) is True
     assert ("iati-data-main/metadata/test_foundation_a.json" in filelist) is True
@@ -210,8 +221,9 @@ def test_codeforiati_zip_content_for_download_fail_no_cached(get_and_clear_up_co
     fileinfolist = bds_zip_file.infolist()
     filelist = [fileinfo.filename for fileinfo in fileinfolist]
 
-    assert ("iati-data/dataset-index-minimal.json" in filelist) is False
-    assert ("iati-data/dataset-index-full.json" in filelist) is False
+    assert ("iati-data/datasets-minimal.json" in filelist) is False
+    assert ("iati-data/datasets-full.json" in filelist) is False
+    assert ("iati-data/reporting-orgs.json" in filelist) is False
     assert ("iati-data-main/metadata.json" in filelist) is True
     assert ("iati-data-main/data/test_foundation_a/test_foundation_a-dataset-001.xml" in filelist) is True
     assert ("iati-data-main/metadata/test_foundation_a.json" in filelist) is True
@@ -227,7 +239,7 @@ def run_checker_then_zipper_download_ok(context):
     checker_run(context, datasets_in_bds)
 
     datasets_in_zip = {}
-    zipper_run(context, datasets_in_zip, datasets_in_bds)
+    zipper_run(context, datasets_in_zip, datasets_in_bds, get_reporting_orgs_in_bds(context))
 
 
 def run_checker_then_zipper_download_fail(context):
@@ -236,7 +248,7 @@ def run_checker_then_zipper_download_fail(context):
     checker_run(context, datasets_in_bds)
 
     datasets_in_zip = {}
-    zipper_run(context, datasets_in_zip, datasets_in_bds)
+    zipper_run(context, datasets_in_zip, datasets_in_bds, get_reporting_orgs_in_bds(context))
 
 
 def run_checker_then_zipper_download_fail_but_cached(context):
@@ -249,4 +261,4 @@ def run_checker_then_zipper_download_fail_but_cached(context):
     checker_run(context, datasets_in_bds)
 
     datasets_in_zip = {}
-    zipper_run(context, datasets_in_zip, datasets_in_bds)
+    zipper_run(context, datasets_in_zip, datasets_in_bds, get_reporting_orgs_in_bds(context))

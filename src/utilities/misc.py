@@ -3,7 +3,9 @@ import glob
 import hashlib
 import io
 import re
+import uuid
 import zipfile
+from typing import Any
 
 
 def get_hash(content: str) -> str:
@@ -20,6 +22,14 @@ def get_hash_excluding_generated_timestamp(content: str) -> str:
     hasher = hashlib.sha1()
     hasher.update(content_to_hash.encode("utf-8"))
     return hasher.hexdigest()
+
+
+def is_str_valid_uuid(uuid_str_to_check: str) -> bool:
+    try:
+        uuid_object = uuid.UUID(uuid_str_to_check)
+    except ValueError:
+        return False
+    return str(uuid_object) == uuid_str_to_check
 
 
 def get_timestamp(isodate: str = "") -> datetime.datetime:
@@ -92,3 +102,7 @@ def filter_dict_by_structure(source: dict, structure_to_retain: dict) -> dict:
             ]
 
     return filtered_dict
+
+
+def find_object_by_key(objects: list, key: str, value_to_find: Any):
+    return next(filter(lambda x: x[key] == value_to_find, objects), None)

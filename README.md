@@ -1,22 +1,22 @@
-
 # IATI Bulk Data Service Tool
 
 ## Summary
 
- Product  |  IATI Bulk Data Service
---- | ---
-Description | A Python application which fetches the list of registered IATI datasets and periodically downloads them, making each available individually as an XML file and ZIP file, and also providing a ZIP file containing all the datasets.
-Website |  None
-Related |
-Documentation | Rest of README.md
-Technical Issues | See https://github.com/IATI/bulk-data-service/issues
-Support | https://iatistandard.org/en/guidance/get-support/
+| Product          | IATI Bulk Data Service                                                                                                                                                                                                              |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Description      | A Python application which fetches the list of registered IATI datasets and periodically downloads them, making each available individually as an XML file and ZIP file, and also providing a ZIP file containing all the datasets. |
+| Website          | None                                                                                                                                                                                                                                |
+| Related          |
+| Documentation    | Rest of README.md                                                                                                                                                                                                                   |
+| Technical Issues | See https://github.com/IATI/bulk-data-service/issues                                                                                                                                                                                |
+| Support          | https://iatistandard.org/en/guidance/get-support/                                                                                                                                                                                   |
 
 ## High-level requirements
 
-* Python 3.12
-* Postgres DB
-* Azure storage account with blob storage enabled
+- Python 3.12.6 or above
+  - (This is specified in .python-version, Dockerfile, and pyproject.toml)
+- Postgres DB
+- Azure storage account with blob storage enabled
 
 ## Running the app locally
 
@@ -73,8 +73,7 @@ dotenv run python src/iati_bulk_data_service.py -- --operation zipper --single-r
 
 It will store the ZIP files in the directory defined in the `ZIP_WORKING_DIR` environment variable.
 
-
-*Note:* not all versions of `dotenv` require a `run` subcommand.
+_Note:_ not all versions of `dotenv` require a `run` subcommand.
 
 ## Development on the app
 
@@ -121,7 +120,6 @@ Code formatter `black` is configured via `pyproject.toml` and can be run with:
 black .
 ```
 
-
 ### Adding new dependencies to main project
 
 New dependencies need to be added to `pyproject.toml`.
@@ -157,7 +155,6 @@ dotenv run yoyo -- list       # list available migrations
 dotenv run yoyo -- rollback   # rollback, interactively
 dotenv run yoyo -- new        # create file for a new migration
 ```
-
 
 ### Automated tests
 
@@ -206,20 +203,23 @@ This will create a resource group on Azure called `rg-bulk-data-service-dev`, an
 
 At the end of its run, the `azure-create-resources.sh` script will print out various secrets which need to be added to Github Actions.
 
+### Deployment - Versioning
+
+The app version is set in `pyproject.toml`, and this is read by the app to use in the `User-Agent` header. When making a new release, set the version here to the appropriate value. Then, when releasing the app using the normal IATI Python app deployment process, choose the tag name to match the version chosen.
+
 ### Deployment - CI/CD
 
 The application is setup to deploy to the dev instance when a PR is merged to
- `develop`, and to production when a release is done on `main` branch.
+`develop`, and to production when a release is done on `main` branch.
 
- Sometimes, when altering the CI/CD setup or otherwise debugging, it can be
- useful to do things manually. The Bulk Data Service can be released to an Azure instance (e.g., a test instance) using the following command:
+Sometimes, when altering the CI/CD setup or otherwise debugging, it can be
+useful to do things manually. The Bulk Data Service can be released to an Azure instance (e.g., a test instance) using the following command:
 
- ```bash
+```bash
 ./azure-deployment/manual-azure-deploy-from-local.sh test
 ```
 
 For this to work, you need to put the secrets you want to use in `azure-deployment/manual-azure-deploy-secrets.env` and the variables you want to use in `azure-deployment/manual-azure-deploy-variables.env`. These is an example of each of these files that can be used as a starting point.
-
 
 ### Manually building the docker image (to test/develop the deployment setup)
 
@@ -235,9 +235,6 @@ To run it locally:
 docker container run --env-file=.env-docker "criati.azurecr.io/bulk-data-service-dev" --operation checker --single-run --run-for-n-datasets 20
 ```
 
-
 ## Resources
 
 [Reference docs for the Azure deployment YAML file](https://learn.microsoft.com/en-us/azure/container-instances/container-instances-reference-yaml#schema) (`azure-deployment/deploy.yml`).
-
-

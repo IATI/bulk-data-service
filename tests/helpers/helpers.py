@@ -6,6 +6,7 @@ from unittest import mock
 import pytest
 from dotenv import dotenv_values
 
+from config.config import get_app_version
 from utilities.azure import create_azure_blob_containers, delete_azure_blob_containers
 from utilities.db import apply_db_migrations, get_db_connection
 from utilities.prometheus import get_metrics_definitions
@@ -34,6 +35,8 @@ def get_and_clear_up_context():
             "run_for_n_datasets": None,
             "prom_metrics": {}
         }
+
+    context["BULK_DATA_SERVICE_VERSION"] = get_app_version()
 
     for metric in get_metrics_definitions(context):
         context["prom_metrics"][metric[0]] = mock.Mock()
