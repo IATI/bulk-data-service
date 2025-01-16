@@ -130,6 +130,13 @@ jobs:
             --resource-group "${{ env.RESOURCE_GROUP_BASE_NAME }}-${{ env.TARGET_ENVIRONMENT }}" \
             --file ./azure-deployment/azure-resource-manager-deployment-manifest.yml
 
+      - name: 'Re-generate the website links'
+        env:
+          WEB_BASE_URL: ${{ vars[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'WEB_BASE_URL')] }}
+
+        run: |
+          sed -e "s#{{WEB_BASE_URL}}#$WEB_BASE_URL#" web/index-template.html > web/index.html
+
       - name: 'Update the website'
         uses: 'azure/CLI@v2'
         with:
