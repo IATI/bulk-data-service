@@ -1,6 +1,4 @@
-
 services:
-
   iati-bulk-data-service-azurite-tests:
     image: mcr.microsoft.com/azure-storage/azurite
     ports:

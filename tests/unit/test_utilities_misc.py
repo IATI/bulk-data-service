@@ -1,6 +1,11 @@
 import pytest
 
-from utilities.misc import filter_dict_by_structure, get_hash, get_hash_excluding_generated_timestamp
+from utilities.misc import (
+    filter_dict_by_structure,
+    get_hash,
+    get_hash_excluding_generated_timestamp,
+    is_str_valid_uuid,
+)
 
 
 def test_get_hash():
@@ -53,6 +58,15 @@ def test_get_hash_excluding_generated_timestamp():
     hash = get_hash_excluding_generated_timestamp(yiplActivitiesXmlFile)
 
     assert(hash == "759eaa39276381f3fc146232cefd2111a2abc199")
+
+
+@pytest.mark.parametrize("str_to_test,expected_result", [
+    ("None", False),
+    ("not a uuid", False),
+    ("1a3e3f42-6704-4adf-897a-9bdf5b854a00", True)
+])
+def test_is_str_valid_uuid(str_to_test, expected_result):
+    assert is_str_valid_uuid(str_to_test) == expected_result
 
 
 @pytest.mark.parametrize("input,structure,expected", [

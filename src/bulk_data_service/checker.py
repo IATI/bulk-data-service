@@ -6,15 +6,14 @@ import uuid
 from bulk_data_service.dataset_indexing import create_and_upload_indices
 from bulk_data_service.dataset_remover import remove_deleted_datasets_from_bds, remove_expired_downloads
 from bulk_data_service.dataset_updater import add_or_update_datasets
+from bulk_data_service.reporting_org_sync import add_or_update_reporting_orgs, remove_deleted_reporting_orgs_from_bds
 from bulk_data_service.zipper import zipper_run
-from dataset_registration.registration_services import get_registered_datasets
-from utilities.db import get_datasets_in_bds
-from utilities.prometheus import initialise_prometheus_client, update_metrics_from_db
+from dataset_registration.iati_registry_ckan import fetch_datasets_metadata, fetch_reporting_orgs_metadata
+from utilities.db import get_datasets_in_bds, get_reporting_orgs_in_bds
+from utilities.prometheus import update_metrics_from_db
 
 
 def checker(context: dict):
-    context = initialise_prometheus_client(context)
-
     if context["single_run"]:
         checker_run(context, get_datasets_in_bds(context))
     else:
@@ -28,17 +27,16 @@ def checker_service_loop(context: dict):
 
     while True:
         try:
-
             checker_run(context, datasets_in_bds)
 
-            zipper_run(context, datasets_in_zip, datasets_in_bds)
+            zipper_run(context, datasets_in_zip, datasets_in_bds, get_reporting_orgs_in_bds(context))
 
             context["logger"].info("Pausing for {} mins".format(context["CHECKER_LOOP_WAIT_MINS"]))
             time.sleep(60 * int(context["CHECKER_LOOP_WAIT_MINS"]))
 
         except Exception as e:
             context["logger"].error(
-                "Unknown exception in checker service loop. "
+                "Exception in checker service loop. "
                 "Waiting 10 minutes then restarting. "
                 "Exception message: {}".format(e).replace("\n", "")
             )
@@ -54,14 +52,15 @@ def checker_run(context: dict, datasets_in_bds: dict[uuid.UUID, dict]):
 
     context["logger"].info("Checker starting run")
 
-    try:
-        registered_datasets = get_registered_datasets(context)
-    except RuntimeError as e:
-        context["logger"].error(
-            "Unable to download list of datasets from registration service. " "Details: {}".format(e)
-        )
-        context["logger"].error("Checker aborted.")
-        return
+    registered_reporting_orgs = fetch_reporting_orgs_metadata(context)
+
+    reporting_orgs_in_bds = get_reporting_orgs_in_bds(context)
+
+    remove_deleted_reporting_orgs_from_bds(context, reporting_orgs_in_bds, registered_reporting_orgs)
+
+    add_or_update_reporting_orgs(context, registered_reporting_orgs)
+
+    registered_datasets = fetch_datasets_metadata(context, registered_reporting_orgs)
 
     remove_deleted_datasets_from_bds(context, datasets_in_bds, registered_datasets)
 
@@ -69,7 +68,7 @@ def checker_run(context: dict, datasets_in_bds: dict[uuid.UUID, dict]):
 
     remove_expired_downloads(context, datasets_in_bds)
 
-    create_and_upload_indices(context, datasets_in_bds)
+    create_and_upload_indices(context, datasets_in_bds, registered_reporting_orgs)
 
     update_metrics_from_db(context)
 

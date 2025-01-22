@@ -7,6 +7,7 @@ from config.initialisation import misc_global_initialisation
 from utilities.azure import create_azure_blob_containers
 from utilities.db import apply_db_migrations
 from utilities.logging import initialise_logging
+from utilities.prometheus import initialise_prometheus_client
 
 
 def main(args: argparse.Namespace):
@@ -17,11 +18,19 @@ def main(args: argparse.Namespace):
 
     context = config | {"logger": logger, "single_run": args.single_run, "run_for_n_datasets": args.run_for_n_datasets}
 
+    context["logger"].info(  # type: ignore
+        "Bulk Data Service {} initialising...".format(context["BULK_DATA_SERVICE_VERSION"])
+    )
+
     apply_db_migrations(context)
 
     create_azure_blob_containers(context)
 
     misc_global_initialisation(context)
+
+    context = initialise_prometheus_client(context)
+
+    context["logger"].info("Bulk Data Service {} initialisation complete".format(context["BULK_DATA_SERVICE_VERSION"]))
 
     if args.operation == "checker":
         checker(context)

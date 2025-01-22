@@ -105,7 +105,7 @@ def get_azure_container_name(context: dict, iati_blob_type: str) -> str:
 
 
 def get_azure_blob_name(dataset: dict, iati_blob_type: str) -> str:
-    return "{}/{}.{}".format(dataset["publisher_name"], dataset["name"], iati_blob_type)
+    return "{}/{}.{}".format(dataset["reporting_org_short_name"], dataset["short_name"], iati_blob_type)
 
 
 def get_azure_blob_public_url(context: dict, dataset: dict, iati_blob_type: str) -> str:

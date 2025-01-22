@@ -7,7 +7,7 @@ from bulk_data_service.checker import checker_run
 from bulk_data_service.zipper import get_local_pathname_dataset_xml, zipper_run
 from helpers.helpers import get_and_clear_up_context  # noqa: F401
 from utilities.azure import get_azure_blob_name, get_azure_container_name
-from utilities.db import execute_scalar_db_query, get_datasets_in_bds
+from utilities.db import execute_scalar_db_query, get_datasets_in_bds, get_reporting_orgs_in_bds
 
 
 def test_remove_unregistered_dataset_from_memory(get_and_clear_up_context):  # noqa: F811
@@ -104,7 +104,7 @@ def test_remove_unregistered_dataset_from_zip_working_dir(get_and_clear_up_conte
 
     context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/registration/datasets-02"
     checker_run(context, datasets_in_bds)
-    zipper_run(context, datasets_in_zip, datasets_in_bds)
+    zipper_run(context, datasets_in_zip, datasets_in_bds, get_reporting_orgs_in_bds(context))
     datasets_in_bds = get_datasets_in_bds(context)
 
     # save ref to the dataset which exists in `datasets-02` but not in `datasets-01`
@@ -115,7 +115,7 @@ def test_remove_unregistered_dataset_from_zip_working_dir(get_and_clear_up_conte
 
     context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/registration/datasets-01"
     checker_run(context, datasets_in_bds)
-    zipper_run(context, datasets_in_zip, datasets_in_bds)
+    zipper_run(context, datasets_in_zip, datasets_in_bds, get_reporting_orgs_in_bds(context))
 
     assert os.path.exists(dataset_local_xml_filename) is False
 

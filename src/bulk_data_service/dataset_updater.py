@@ -52,7 +52,7 @@ def add_or_update_dataset_batch(
 
     az_blob_service = BlobServiceClient.from_connection_string(context["AZURE_STORAGE_CONNECTION_STRING"])
 
-    session = get_requests_session()
+    session = get_requests_session(context)
 
     for registered_dataset_id in registered_datasets_to_update:
 
@@ -253,12 +253,12 @@ def download_and_save_dataset(
             "previous value, so not re-zipping and re-uploading to Azure".format(bds_dataset["id"])
         )
     else:
-        iati_xml_zipped = zip_data_as_single_file(bds_dataset["name"] + ".xml", download_response.text)
+        iati_xml_zipped = zip_data_as_single_file(bds_dataset["short_name"] + ".xml", download_response.text)
 
         response_xml = azure_upload_to_blob(
             az_blob_service,
             context["AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_XML"],
-            "{}/{}.xml".format(bds_dataset["publisher_name"], bds_dataset["name"]),
+            "{}/{}.xml".format(bds_dataset["reporting_org_short_name"], bds_dataset["short_name"]),
             download_response.text,
             "application/xml",
         )
@@ -270,7 +270,7 @@ def download_and_save_dataset(
         response_zip = azure_upload_to_blob(
             az_blob_service,
             context["AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_ZIP"],
-            "{}/{}.zip".format(bds_dataset["publisher_name"], bds_dataset["name"]),
+            "{}/{}.zip".format(bds_dataset["reporting_org_short_name"], bds_dataset["short_name"]),
             iati_xml_zipped,
             "application/zip",
         )
@@ -278,7 +278,7 @@ def download_and_save_dataset(
         if not azure_blob_exists(
             az_blob_service,
             context["AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_XML"],
-            "{}/{}.xml".format(bds_dataset["publisher_name"], bds_dataset["name"]),
+            "{}/{}.xml".format(bds_dataset["reporting_org_short_name"], bds_dataset["short_name"]),
         ):
             context["logger"].error("dataset id: {} - Azure XML upload failed")
             context["logger"].debug(
@@ -316,9 +316,9 @@ def update_dataset_head_request_fields(dataset: dict, status_code: int, error_ms
 def create_bds_dataset(registered_dataset: dict) -> dict:
     return {
         "id": registered_dataset["id"],
-        "name": registered_dataset["name"],
-        "publisher_id": registered_dataset["publisher_id"],
-        "publisher_name": registered_dataset["publisher_name"],
+        "short_name": registered_dataset["short_name"],
+        "reporting_org_id": registered_dataset["reporting_org_id"],
+        "reporting_org_short_name": registered_dataset["reporting_org_short_name"],
         "type": registered_dataset["type"],
         "source_url": registered_dataset["source_url"],
         "hash": None,
@@ -337,19 +337,17 @@ def create_bds_dataset(registered_dataset: dict) -> dict:
         "server_header_last_modified": None,
         "server_header_etag": None,
         "registration_service_dataset_metadata": registered_dataset["registration_service_dataset_metadata"],
-        "registration_service_publisher_metadata": registered_dataset["registration_service_publisher_metadata"],
         "registration_service_name": registered_dataset["registration_service_name"],
     }
 
 
 def update_bds_dataset_registration_info(bds_dataset: dict, registered_dataset: dict):
     for field in [
-        "publisher_id",
-        "publisher_name",
+        "reporting_org_id",
+        "reporting_org_short_name",
         "type",
         "source_url",
         "registration_service_dataset_metadata",
-        "registration_service_publisher_metadata",
         "registration_service_name",
     ]:
         bds_dataset[field] = registered_dataset[field]

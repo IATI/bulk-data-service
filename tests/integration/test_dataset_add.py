@@ -8,9 +8,9 @@ from helpers.helpers import get_and_clear_up_context  # noqa: F401
 
 
 @pytest.mark.parametrize("field,expected", [
-    ("name", "test_foundation_a-dataset-001"),
-    ("publisher_id", uuid.UUID("ea055d99-f7e9-456f-9f99-963e95493c1b")),
-    ("publisher_name", "test_foundation_a"),
+    ("short_name", "test_foundation_a-dataset-001"),
+    ("reporting_org_id", uuid.UUID("ea055d99-f7e9-456f-9f99-963e95493c1b")),
+    ("reporting_org_short_name", "test_foundation_a"),
     ("source_url", "http://localhost:3000/data/test_foundation_a-dataset-404.xml"),
     ("type", "activity"),
     ("registration_service_name", "ckan-registry"),
@@ -133,9 +133,9 @@ def test_add_new_undownloadable_dataset(get_and_clear_up_context, field, expecte
 
 
 @pytest.mark.parametrize("field,expected", [
-    ("name", "test_foundation_a-dataset-001"),
-    ("publisher_id", uuid.UUID("ea055d99-f7e9-456f-9f99-963e95493c1b")),
-    ("publisher_name", "test_foundation_a"),
+    ("short_name", "test_foundation_a-dataset-001"),
+    ("reporting_org_id", uuid.UUID("ea055d99-f7e9-456f-9f99-963e95493c1b")),
+    ("reporting_org_short_name", "test_foundation_a"),
     ("source_url", "http://localhost:3000/data/test_foundation_a-dataset-001.xml"),
     ("type", "activity"),
     ("hash", "7703103493edafde0dbce66e507abb642fc7bd52"),

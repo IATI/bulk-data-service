@@ -17,9 +17,9 @@ def parse_last_modified_header(last_modified_header: str) -> Optional[datetime.d
     return last_modified_header_parsed
 
 
-def get_requests_session() -> requests.Session:
+def get_requests_session(context: dict) -> requests.Session:
     session = requests.Session()
-    session.headers.update({"User-Agent": "IATI Bulk Data Service 0.1"})
+    session.headers.update({"User-Agent": "IATI Bulk Data Service {}".format(context["BULK_DATA_SERVICE_VERSION"])})
     retries = Retry(total=2, backoff_factor=0.1)
     session.mount("http://", HTTPAdapter(max_retries=retries))
     session.mount("https://", HTTPAdapter(max_retries=retries))

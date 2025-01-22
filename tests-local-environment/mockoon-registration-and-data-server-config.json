@@ -1,6 +1,6 @@
 {
   "uuid": "f2cf8a6c-fb05-4fd1-b810-b7e675f4fa9b",
-  "lastMigration": 32,
+  "lastMigration": 33,
   "name": "Mock registration and data servers",
   "endpointPrefix": "",
   "latency": 0,
@@ -35,7 +35,9 @@
           "callbacks": []
         }
       ],
-      "responseMode": null
+      "responseMode": null,
+      "streamingMode": null,
+      "streamingInterval": 0
     },
     {
       "uuid": "fe5038e8-f3a5-43d2-ab12-3fc2c72b2c11",
@@ -72,7 +74,9 @@
           "callbacks": []
         }
       ],
-      "responseMode": null
+      "responseMode": null,
+      "streamingMode": null,
+      "streamingInterval": 0
     },
     {
       "uuid": "af641cc0-d99f-4dd2-b4f6-d1f6335bc774",
@@ -101,7 +105,9 @@
           "callbacks": []
         }
       ],
-      "responseMode": null
+      "responseMode": null,
+      "streamingMode": null,
+      "streamingInterval": 0
     },
     {
       "uuid": "7beddae4-23a1-43a6-9507-98627f39e170",
@@ -138,7 +144,9 @@
           "callbacks": []
         }
       ],
-      "responseMode": null
+      "responseMode": null,
+      "streamingMode": null,
+      "streamingInterval": 0
     },
     {
       "uuid": "698df016-9108-429d-b48a-da8b4e687b20",
@@ -167,7 +175,9 @@
           "callbacks": []
         }
       ],
-      "responseMode": null
+      "responseMode": null,
+      "streamingMode": null,
+      "streamingInterval": 0
     },
     {
       "uuid": "304b9dd4-ae2d-4bc2-be2f-42bf2bb89b21",
@@ -196,7 +206,9 @@
           "callbacks": []
         }
       ],
-      "responseMode": null
+      "responseMode": null,
+      "streamingMode": null,
+      "streamingInterval": 0
     },
     {
       "uuid": "42601386-dc87-4c1b-adee-7a4f16f6e31b",
@@ -314,7 +326,9 @@
           "callbacks": []
         }
       ],
-      "responseMode": null
+      "responseMode": null,
+      "streamingMode": null,
+      "streamingInterval": 0
     },
     {
       "uuid": "b81b26b1-62f6-473f-9815-bbb219c7667b",
@@ -343,7 +357,9 @@
           "callbacks": []
         }
       ],
-      "responseMode": null
+      "responseMode": null,
+      "streamingMode": null,
+      "streamingInterval": 0
     },
     {
       "uuid": "5f8025cd-7f9a-49cf-9660-b657f9b822ec",
@@ -372,7 +388,9 @@
           "callbacks": []
         }
       ],
-      "responseMode": null
+      "responseMode": null,
+      "streamingMode": null,
+      "streamingInterval": 0
     },
     {
       "uuid": "de92700b-4c9f-49c7-94e9-fa232a6b770a",
@@ -401,7 +419,9 @@
           "callbacks": []
         }
       ],
-      "responseMode": null
+      "responseMode": null,
+      "streamingMode": null,
+      "streamingInterval": 0
     },
     {
       "uuid": "52cc8a4f-d934-4056-a1dd-1fd970079d14",
@@ -412,7 +432,7 @@
       "responses": [
         {
           "uuid": "dc002f3b-6e85-446b-95cb-223ba39082f6",
-          "body": "{\n  \"help\": \"https://iatiregistry.org/api/3/action/help_show?name=organization_list\",\n  \"success\": true,\n  \"result\": [\n    {\n      \"description\": \"\",\n      \"id\": \"4f0f8498-20d2-4ca5-a20f-f441eedb1d4f\",\n      \"image_display_url\": \"\",\n      \"image_url\": \"\",\n      \"is_organization\": true,\n      \"license_id\": \"notspecified\",\n      \"name\": \"test_org_a\",\n      \"num_followers\": 0,\n      \"package_count\": 0,\n      \"publisher_agencies\": \"\",\n      \"publisher_constraints\": \"\",\n      \"publisher_contact\": \"s'Gravenhekje 1a\\r\\n1011TG Amsterdam\\r\\nThe Netherlands\",\n      \"publisher_contact_email\": \"please@update.email\",\n      \"publisher_country\": \"NL\",\n      \"publisher_data_quality\": \"\",\n      \"publisher_description\": \"\",\n      \"publisher_field_exclusions\": \"\",\n      \"publisher_frequency\": \"\",\n      \"publisher_frequency_select\": \"not_specified\",\n      \"publisher_iati_id\": \"TEST_ORG_A\",\n      \"publisher_implementation_schedule\": \"\",\n      \"publisher_organization_type\": \"60\",\n      \"publisher_record_exclusions\": \"\",\n      \"publisher_refs\": \"\",\n      \"publisher_segmentation\": \"\",\n      \"publisher_source_type\": \"primary_source\",\n      \"publisher_thresholds\": \"\",\n      \"publisher_timeliness\": \"\",\n      \"publisher_ui\": \"\",\n      \"publisher_units\": \"\",\n      \"publisher_url\": \"http://www.onepercentclub.com\",\n      \"state\": \"active\",\n      \"title\": \"Test Organisation A\",\n      \"type\": \"organization\",\n      \"users\": [\n        {\n          \"capacity\": \"admin\",\n          \"name\": \"onepercentclub\"\n        }\n      ],\n      \"tags\": [\n        \n      ],\n      \"groups\": [\n        \n      ]\n    },    \n    {\n      \"description\": \"\",\n      \"id\": \"31ffc713-cba9-4af9-a71e-9306d00c11e8\",\n      \"image_display_url\": \"\",\n      \"image_url\": \"\",\n      \"is_organization\": true,\n      \"license_id\": \"notspecified\",\n      \"name\": \"onepercentclub\",\n      \"num_followers\": 0,\n      \"package_count\": 0,\n      \"publisher_agencies\": \"\",\n      \"publisher_constraints\": \"\",\n      \"publisher_contact\": \"s'Gravenhekje 1a\\r\\n1011TG Amsterdam\\r\\nThe Netherlands\",\n      \"publisher_contact_email\": \"please@update.email\",\n      \"publisher_country\": \"NL\",\n      \"publisher_data_quality\": \"\",\n      \"publisher_description\": \"\",\n      \"publisher_field_exclusions\": \"\",\n      \"publisher_frequency\": \"\",\n      \"publisher_frequency_select\": \"not_specified\",\n      \"publisher_iati_id\": \"NL-KVK-3427895\",\n      \"publisher_implementation_schedule\": \"\",\n      \"publisher_organization_type\": \"60\",\n      \"publisher_record_exclusions\": \"\",\n      \"publisher_refs\": \"\",\n      \"publisher_segmentation\": \"\",\n      \"publisher_source_type\": \"primary_source\",\n      \"publisher_thresholds\": \"\",\n      \"publisher_timeliness\": \"\",\n      \"publisher_ui\": \"\",\n      \"publisher_units\": \"\",\n      \"publisher_url\": \"http://www.onepercentclub.com\",\n      \"state\": \"active\",\n      \"title\": \"1%Club\",\n      \"type\": \"organization\",\n      \"users\": [\n        {\n          \"capacity\": \"admin\",\n          \"name\": \"onepercentclub\"\n        }\n      ],\n      \"tags\": [\n        \n      ],\n      \"groups\": [\n        \n      ]\n    },\n    {\n      \"description\": \"\",\n      \"id\": \"1a3e3f42-6704-4adf-897a-9bdf5b854a00\",\n      \"image_display_url\": \"\",\n      \"image_url\": \"\",\n      \"is_organization\": true,\n      \"license_id\": \"notspecified\",\n      \"name\": \"3fi\",\n      \"num_followers\": 0,\n      \"package_count\": 1,\n      \"publisher_agencies\": \"\",\n      \"publisher_constraints\": \"\",\n      \"publisher_contact\": \"3F\\r\\nKampmannsgade 4\\r\\nDK-1790 Copenhagen V\\r\\nDenmark \",\n      \"publisher_contact_email\": \"jesper.nielsen@3f.dk\",\n      \"publisher_country\": \"DK\",\n      \"publisher_data_quality\": \"\",\n      \"publisher_description\": \"\",\n      \"publisher_field_exclusions\": \"\",\n      \"publisher_first_publish_date\": \"\",\n      \"publisher_frequency\": \"\",\n      \"publisher_frequency_select\": \"not_specified\",\n      \"publisher_iati_id\": \"DK-CVR-31378028\",\n      \"publisher_implementation_schedule\": \"\",\n      \"publisher_organization_type\": \"22\",\n      \"publisher_record_exclusions\": \"\",\n      \"publisher_refs\": \"\",\n      \"publisher_segmentation\": \"\",\n      \"publisher_source_type\": \"primary_source\",\n      \"publisher_thresholds\": \"\",\n      \"publisher_timeliness\": \"\",\n      \"publisher_ui\": \"\",\n      \"publisher_units\": \"\",\n      \"publisher_url\": \"https://tema.3f.dk/international \",\n      \"state\": \"active\",\n      \"title\": \"3F International\",\n      \"type\": \"organization\",\n      \"users\": [\n        {\n          \"capacity\": \"admin\",\n          \"name\": \"3-f_international\"\n        }\n      ],\n      \"tags\": [\n        \n      ],\n      \"groups\": [\n        \n      ]\n    },\n    {\n      \"description\": \"\",\n      \"id\": \"8c858655-cb84-4527-befa-b77d4de07e22\",\n      \"image_display_url\": \"\",\n      \"image_url\": \"\",\n      \"is_organization\": true,\n      \"license_id\": \"odc-pddl\",\n      \"name\": \"fifty_eight\",\n      \"num_followers\": 0,\n      \"package_count\": 1,\n      \"publisher_agencies\": \"\",\n      \"publisher_constraints\": \"\",\n      \"publisher_contact\": \"2030hub\\r\\n23 Argyle St\\r\\nLiverpool\\r\\nL1 5BL\",\n      \"publisher_contact_email\": \"keithshortley@50eight.com\",\n      \"publisher_country\": \"GB\",\n      \"publisher_data_quality\": \"\",\n      \"publisher_description\": \"Fifty Eight partners with companies, NGOs, public sector and others ​to address the challenges of modern slavery and improve working conditions in global supply chains. \",\n      \"publisher_field_exclusions\": \"\",\n      \"publisher_first_publish_date\": \"2020-02-17T00:00:00.000000\",\n      \"publisher_frequency\": \"\",\n      \"publisher_frequency_select\": \"quarterly\",\n      \"publisher_iati_id\": \"GB-COH-07291220\",\n      \"publisher_implementation_schedule\": \"\",\n      \"publisher_organization_type\": \"70\",\n      \"publisher_record_exclusions\": \"\",\n      \"publisher_refs\": \"\",\n      \"publisher_segmentation\": \"IATI data will be published at country level where possible and appropriate.\",\n      \"publisher_source_type\": \"primary_source\",\n      \"publisher_thresholds\": \"\",\n      \"publisher_timeliness\": \"Within 14 days of period end\",\n      \"publisher_ui\": \"\",\n      \"publisher_units\": \"UK Aid Connect EAPEC \",\n      \"publisher_url\": \"https://www.50eight.com/\",\n      \"state\": \"active\",\n      \"title\": \"50 Eight Limited\",\n      \"type\": \"organization\",\n      \"users\": [\n        {\n          \"capacity\": \"admin\",\n          \"name\": \"keithshortley\"\n        }\n      ],\n      \"tags\": [\n        \n      ],\n      \"groups\": [\n        \n      ]\n    }\n  ]\n}\n",
+          "body": "{\n  \"help\": \"https://iatiregistry.org/api/3/action/help_show?name=organization_list\",\n  \"success\": true,\n  \"result\": [\n    {\n      \"description\": \"\",\n      \"id\": \"ea055d99-f7e9-456f-9f99-963e95493c1b\",\n      \"image_display_url\": \"\",\n      \"image_url\": \"\",\n      \"is_organization\": true,\n      \"license_id\": \"notspecified\",\n      \"name\": \"test_foundation_a\",\n      \"num_followers\": 0,\n      \"package_count\": 0,\n      \"publisher_agencies\": \"\",\n      \"publisher_constraints\": \"\",\n      \"publisher_contact\": \"s'Gravenhekje 1a\\r\\n1011TG Amsterdam\\r\\nThe Netherlands\",\n      \"publisher_contact_email\": \"please@update.email\",\n      \"publisher_country\": \"NL\",\n      \"publisher_data_quality\": \"\",\n      \"publisher_description\": \"\",\n      \"publisher_field_exclusions\": \"\",\n      \"publisher_frequency\": \"\",\n      \"publisher_frequency_select\": \"not_specified\",\n      \"publisher_iati_id\": \"TEST_FOUNDATION_A\",\n      \"publisher_implementation_schedule\": \"\",\n      \"publisher_organization_type\": \"60\",\n      \"publisher_record_exclusions\": \"\",\n      \"publisher_refs\": \"\",\n      \"publisher_segmentation\": \"\",\n      \"publisher_source_type\": \"primary_source\",\n      \"publisher_thresholds\": \"\",\n      \"publisher_timeliness\": \"\",\n      \"publisher_ui\": \"\",\n      \"publisher_units\": \"\",\n      \"publisher_url\": \"http://www.onepercentclub.com\",\n      \"state\": \"active\",\n      \"title\": \"Test Foundation A\",\n      \"type\": \"organization\",\n      \"users\": [\n        {\n          \"capacity\": \"admin\",\n          \"name\": \"onepercentclub\"\n        }\n      ],\n      \"tags\": [\n        \n      ],\n      \"groups\": [\n        \n      ]\n    },    \n    {\n      \"description\": \"\",\n      \"id\": \"31ffc713-cba9-4af9-a71e-9306d00c11e8\",\n      \"image_display_url\": \"\",\n      \"image_url\": \"\",\n      \"is_organization\": true,\n      \"license_id\": \"notspecified\",\n      \"name\": \"onepercentclub\",\n      \"num_followers\": 0,\n      \"package_count\": 0,\n      \"publisher_agencies\": \"\",\n      \"publisher_constraints\": \"\",\n      \"publisher_contact\": \"s'Gravenhekje 1a\\r\\n1011TG Amsterdam\\r\\nThe Netherlands\",\n      \"publisher_contact_email\": \"please@update.email\",\n      \"publisher_country\": \"NL\",\n      \"publisher_data_quality\": \"\",\n      \"publisher_description\": \"\",\n      \"publisher_field_exclusions\": \"\",\n      \"publisher_frequency\": \"\",\n      \"publisher_frequency_select\": \"not_specified\",\n      \"publisher_iati_id\": \"NL-KVK-3427895\",\n      \"publisher_implementation_schedule\": \"\",\n      \"publisher_organization_type\": \"60\",\n      \"publisher_record_exclusions\": \"\",\n      \"publisher_refs\": \"\",\n      \"publisher_segmentation\": \"\",\n      \"publisher_source_type\": \"primary_source\",\n      \"publisher_thresholds\": \"\",\n      \"publisher_timeliness\": \"\",\n      \"publisher_ui\": \"\",\n      \"publisher_units\": \"\",\n      \"publisher_url\": \"http://www.onepercentclub.com\",\n      \"state\": \"active\",\n      \"title\": \"1%Club\",\n      \"type\": \"organization\",\n      \"users\": [\n        {\n          \"capacity\": \"admin\",\n          \"name\": \"onepercentclub\"\n        }\n      ],\n      \"tags\": [\n        \n      ],\n      \"groups\": [\n        \n      ]\n    },\n    {\n      \"description\": \"\",\n      \"id\": \"1a3e3f42-6704-4adf-897a-9bdf5b854a00\",\n      \"image_display_url\": \"\",\n      \"image_url\": \"\",\n      \"is_organization\": true,\n      \"license_id\": \"notspecified\",\n      \"name\": \"3fi\",\n      \"num_followers\": 0,\n      \"package_count\": 1,\n      \"publisher_agencies\": \"\",\n      \"publisher_constraints\": \"\",\n      \"publisher_contact\": \"3F\\r\\nKampmannsgade 4\\r\\nDK-1790 Copenhagen V\\r\\nDenmark \",\n      \"publisher_contact_email\": \"jesper.nielsen@3f.dk\",\n      \"publisher_country\": \"DK\",\n      \"publisher_data_quality\": \"\",\n      \"publisher_description\": \"\",\n      \"publisher_field_exclusions\": \"\",\n      \"publisher_first_publish_date\": \"\",\n      \"publisher_frequency\": \"\",\n      \"publisher_frequency_select\": \"not_specified\",\n      \"publisher_iati_id\": \"DK-CVR-31378028\",\n      \"publisher_implementation_schedule\": \"\",\n      \"publisher_organization_type\": \"22\",\n      \"publisher_record_exclusions\": \"\",\n      \"publisher_refs\": \"\",\n      \"publisher_segmentation\": \"\",\n      \"publisher_source_type\": \"primary_source\",\n      \"publisher_thresholds\": \"\",\n      \"publisher_timeliness\": \"\",\n      \"publisher_ui\": \"\",\n      \"publisher_units\": \"\",\n      \"publisher_url\": \"https://tema.3f.dk/international \",\n      \"state\": \"active\",\n      \"title\": \"3F International\",\n      \"type\": \"organization\",\n      \"users\": [\n        {\n          \"capacity\": \"admin\",\n          \"name\": \"3-f_international\"\n        }\n      ],\n      \"tags\": [\n        \n      ],\n      \"groups\": [\n        \n      ]\n    },\n    {\n      \"description\": \"\",\n      \"id\": \"8c858655-cb84-4527-befa-b77d4de07e22\",\n      \"image_display_url\": \"\",\n      \"image_url\": \"\",\n      \"is_organization\": true,\n      \"license_id\": \"odc-pddl\",\n      \"name\": \"fifty_eight\",\n      \"num_followers\": 0,\n      \"package_count\": 1,\n      \"publisher_agencies\": \"\",\n      \"publisher_constraints\": \"\",\n      \"publisher_contact\": \"2030hub\\r\\n23 Argyle St\\r\\nLiverpool\\r\\nL1 5BL\",\n      \"publisher_contact_email\": \"keithshortley@50eight.com\",\n      \"publisher_country\": \"GB\",\n      \"publisher_data_quality\": \"\",\n      \"publisher_description\": \"Fifty Eight partners with companies, NGOs, public sector and others ​to address the challenges of modern slavery and improve working conditions in global supply chains. \",\n      \"publisher_field_exclusions\": \"\",\n      \"publisher_first_publish_date\": \"2020-02-17T00:00:00.000000\",\n      \"publisher_frequency\": \"\",\n      \"publisher_frequency_select\": \"quarterly\",\n      \"publisher_iati_id\": \"GB-COH-07291220\",\n      \"publisher_implementation_schedule\": \"\",\n      \"publisher_organization_type\": \"70\",\n      \"publisher_record_exclusions\": \"\",\n      \"publisher_refs\": \"\",\n      \"publisher_segmentation\": \"IATI data will be published at country level where possible and appropriate.\",\n      \"publisher_source_type\": \"primary_source\",\n      \"publisher_thresholds\": \"\",\n      \"publisher_timeliness\": \"Within 14 days of period end\",\n      \"publisher_ui\": \"\",\n      \"publisher_units\": \"UK Aid Connect EAPEC \",\n      \"publisher_url\": \"https://www.50eight.com/\",\n      \"state\": \"active\",\n      \"title\": \"50 Eight Limited\",\n      \"type\": \"organization\",\n      \"users\": [\n        {\n          \"capacity\": \"admin\",\n          \"name\": \"keithshortley\"\n        }\n      ],\n      \"tags\": [\n        \n      ],\n      \"groups\": [\n        \n      ]\n    }\n  ]\n}\n",
           "latency": 0,
           "statusCode": 200,
           "label": "",
@@ -430,7 +450,102 @@
           "callbacks": []
         }
       ],
-      "responseMode": null
+      "responseMode": null,
+      "streamingMode": null,
+      "streamingInterval": 0
+    },
+    {
+      "uuid": "f527b98c-2c22-49ce-884f-cd29b23b64ed",
+      "type": "http",
+      "documentation": "",
+      "method": "get",
+      "endpoint": "registration/ckan-publishers-02",
+      "responses": [
+        {
+          "uuid": "03bdbe3d-e57f-46c6-b6c9-47d705ce138b",
+          "body": "{\n  \"help\": \"https://iatiregistry.org/api/3/action/help_show?name=organization_list\",\n  \"success\": true,\n  \"result\": [\n    {\n      \"description\": \"\",\n      \"id\": \"ea055d99-f7e9-456f-9f99-963e95493c1b\",\n      \"image_display_url\": \"\",\n      \"image_url\": \"\",\n      \"is_organization\": true,\n      \"license_id\": \"notspecified\",\n      \"name\": \"test_foundation_a_updated\",\n      \"num_followers\": 0,\n      \"package_count\": 0,\n      \"publisher_agencies\": \"\",\n      \"publisher_constraints\": \"\",\n      \"publisher_contact\": \"s'Gravenhekje 1a\\r\\n1011TG Amsterdam\\r\\nThe Netherlands\",\n      \"publisher_contact_email\": \"please@update.email\",\n      \"publisher_country\": \"NL\",\n      \"publisher_data_quality\": \"\",\n      \"publisher_description\": \"\",\n      \"publisher_field_exclusions\": \"\",\n      \"publisher_frequency\": \"\",\n      \"publisher_frequency_select\": \"not_specified\",\n      \"publisher_iati_id\": \"TEST_FOUNDATION_A_UPDATED\",\n      \"publisher_implementation_schedule\": \"\",\n      \"publisher_organization_type\": \"60\",\n      \"publisher_record_exclusions\": \"\",\n      \"publisher_refs\": \"\",\n      \"publisher_segmentation\": \"\",\n      \"publisher_source_type\": \"primary_source\",\n      \"publisher_thresholds\": \"\",\n      \"publisher_timeliness\": \"\",\n      \"publisher_ui\": \"\",\n      \"publisher_units\": \"\",\n      \"publisher_url\": \"http://www.onepercentclub.com\",\n      \"state\": \"active\",\n      \"title\": \"Test Foundation A Updated\",\n      \"type\": \"organization\",\n      \"users\": [\n        {\n          \"capacity\": \"admin\",\n          \"name\": \"onepercentclub\"\n        }\n      ],\n      \"tags\": [\n        \n      ],\n      \"groups\": [\n        \n      ]\n    },    \n    {\n      \"description\": \"\",\n      \"id\": \"31ffc713-cba9-4af9-a71e-9306d00c11e8\",\n      \"image_display_url\": \"\",\n      \"image_url\": \"\",\n      \"is_organization\": true,\n      \"license_id\": \"notspecified\",\n      \"name\": \"onepercentclub\",\n      \"num_followers\": 0,\n      \"package_count\": 0,\n      \"publisher_agencies\": \"\",\n      \"publisher_constraints\": \"\",\n      \"publisher_contact\": \"s'Gravenhekje 1a\\r\\n1011TG Amsterdam\\r\\nThe Netherlands\",\n      \"publisher_contact_email\": \"please@update.email\",\n      \"publisher_country\": \"NL\",\n      \"publisher_data_quality\": \"\",\n      \"publisher_description\": \"\",\n      \"publisher_field_exclusions\": \"\",\n      \"publisher_frequency\": \"\",\n      \"publisher_frequency_select\": \"not_specified\",\n      \"publisher_iati_id\": \"NL-KVK-3427895\",\n      \"publisher_implementation_schedule\": \"\",\n      \"publisher_organization_type\": \"60\",\n      \"publisher_record_exclusions\": \"\",\n      \"publisher_refs\": \"\",\n      \"publisher_segmentation\": \"\",\n      \"publisher_source_type\": \"primary_source\",\n      \"publisher_thresholds\": \"\",\n      \"publisher_timeliness\": \"\",\n      \"publisher_ui\": \"\",\n      \"publisher_units\": \"\",\n      \"publisher_url\": \"http://www.onepercentclub.com\",\n      \"state\": \"active\",\n      \"title\": \"1%Club\",\n      \"type\": \"organization\",\n      \"users\": [\n        {\n          \"capacity\": \"admin\",\n          \"name\": \"onepercentclub\"\n        }\n      ],\n      \"tags\": [\n        \n      ],\n      \"groups\": [\n        \n      ]\n    },\n    {\n      \"description\": \"\",\n      \"id\": \"1a3e3f42-6704-4adf-897a-9bdf5b854a00\",\n      \"image_display_url\": \"\",\n      \"image_url\": \"\",\n      \"is_organization\": true,\n      \"license_id\": \"notspecified\",\n      \"name\": \"3fi\",\n      \"num_followers\": 0,\n      \"package_count\": 1,\n      \"publisher_agencies\": \"\",\n      \"publisher_constraints\": \"\",\n      \"publisher_contact\": \"3F\\r\\nKampmannsgade 4\\r\\nDK-1790 Copenhagen V\\r\\nDenmark \",\n      \"publisher_contact_email\": \"jesper.nielsen@3f.dk\",\n      \"publisher_country\": \"DK\",\n      \"publisher_data_quality\": \"\",\n      \"publisher_description\": \"\",\n      \"publisher_field_exclusions\": \"\",\n      \"publisher_first_publish_date\": \"\",\n      \"publisher_frequency\": \"\",\n      \"publisher_frequency_select\": \"not_specified\",\n      \"publisher_iati_id\": \"DK-CVR-31378028\",\n      \"publisher_implementation_schedule\": \"\",\n      \"publisher_organization_type\": \"22\",\n      \"publisher_record_exclusions\": \"\",\n      \"publisher_refs\": \"\",\n      \"publisher_segmentation\": \"\",\n      \"publisher_source_type\": \"primary_source\",\n      \"publisher_thresholds\": \"\",\n      \"publisher_timeliness\": \"\",\n      \"publisher_ui\": \"\",\n      \"publisher_units\": \"\",\n      \"publisher_url\": \"https://tema.3f.dk/international \",\n      \"state\": \"active\",\n      \"title\": \"3F International\",\n      \"type\": \"organization\",\n      \"users\": [\n        {\n          \"capacity\": \"admin\",\n          \"name\": \"3-f_international\"\n        }\n      ],\n      \"tags\": [\n        \n      ],\n      \"groups\": [\n        \n      ]\n    },\n    {\n      \"description\": \"\",\n      \"id\": \"8c858655-cb84-4527-befa-b77d4de07e22\",\n      \"image_display_url\": \"\",\n      \"image_url\": \"\",\n      \"is_organization\": true,\n      \"license_id\": \"odc-pddl\",\n      \"name\": \"fifty_eight\",\n      \"num_followers\": 0,\n      \"package_count\": 1,\n      \"publisher_agencies\": \"\",\n      \"publisher_constraints\": \"\",\n      \"publisher_contact\": \"2030hub\\r\\n23 Argyle St\\r\\nLiverpool\\r\\nL1 5BL\",\n      \"publisher_contact_email\": \"keithshortley@50eight.com\",\n      \"publisher_country\": \"GB\",\n      \"publisher_data_quality\": \"\",\n      \"publisher_description\": \"Fifty Eight partners with companies, NGOs, public sector and others ​to address the challenges of modern slavery and improve working conditions in global supply chains. \",\n      \"publisher_field_exclusions\": \"\",\n      \"publisher_first_publish_date\": \"2020-02-17T00:00:00.000000\",\n      \"publisher_frequency\": \"\",\n      \"publisher_frequency_select\": \"quarterly\",\n      \"publisher_iati_id\": \"GB-COH-07291220\",\n      \"publisher_implementation_schedule\": \"\",\n      \"publisher_organization_type\": \"70\",\n      \"publisher_record_exclusions\": \"\",\n      \"publisher_refs\": \"\",\n      \"publisher_segmentation\": \"IATI data will be published at country level where possible and appropriate.\",\n      \"publisher_source_type\": \"primary_source\",\n      \"publisher_thresholds\": \"\",\n      \"publisher_timeliness\": \"Within 14 days of period end\",\n      \"publisher_ui\": \"\",\n      \"publisher_units\": \"UK Aid Connect EAPEC \",\n      \"publisher_url\": \"https://www.50eight.com/\",\n      \"state\": \"active\",\n      \"title\": \"50 Eight Limited\",\n      \"type\": \"organization\",\n      \"users\": [\n        {\n          \"capacity\": \"admin\",\n          \"name\": \"keithshortley\"\n        }\n      ],\n      \"tags\": [\n        \n      ],\n      \"groups\": [\n        \n      ]\n    }\n  ]\n}\n",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true,
+          "crudKey": "id",
+          "callbacks": []
+        }
+      ],
+      "responseMode": null,
+      "streamingMode": null,
+      "streamingInterval": 0
+    },
+    {
+      "uuid": "8befa91d-1dab-4156-9a72-38c8b014a92f",
+      "type": "http",
+      "documentation": "",
+      "method": "get",
+      "endpoint": "registration/ckan-publishers-03",
+      "responses": [
+        {
+          "uuid": "98991fc7-0d0f-4921-b6a2-564771590274",
+          "body": "{\n  \"help\": \"https://iatiregistry.org/api/3/action/help_show?name=organization_list\",\n  \"success\": true,\n  \"result\": [\n    {\n      \"description\": \"\",\n      \"id\": \"31ffc713-cba9-4af9-a71e-9306d00c11e8\",\n      \"image_display_url\": \"\",\n      \"image_url\": \"\",\n      \"is_organization\": true,\n      \"license_id\": \"notspecified\",\n      \"name\": \"onepercentclub\",\n      \"num_followers\": 0,\n      \"package_count\": 0,\n      \"publisher_agencies\": \"\",\n      \"publisher_constraints\": \"\",\n      \"publisher_contact\": \"s'Gravenhekje 1a\\r\\n1011TG Amsterdam\\r\\nThe Netherlands\",\n      \"publisher_contact_email\": \"please@update.email\",\n      \"publisher_country\": \"NL\",\n      \"publisher_data_quality\": \"\",\n      \"publisher_description\": \"\",\n      \"publisher_field_exclusions\": \"\",\n      \"publisher_frequency\": \"\",\n      \"publisher_frequency_select\": \"not_specified\",\n      \"publisher_iati_id\": \"NL-KVK-3427895\",\n      \"publisher_implementation_schedule\": \"\",\n      \"publisher_organization_type\": \"60\",\n      \"publisher_record_exclusions\": \"\",\n      \"publisher_refs\": \"\",\n      \"publisher_segmentation\": \"\",\n      \"publisher_source_type\": \"primary_source\",\n      \"publisher_thresholds\": \"\",\n      \"publisher_timeliness\": \"\",\n      \"publisher_ui\": \"\",\n      \"publisher_units\": \"\",\n      \"publisher_url\": \"http://www.onepercentclub.com\",\n      \"state\": \"active\",\n      \"title\": \"1%Club\",\n      \"type\": \"organization\",\n      \"users\": [\n        {\n          \"capacity\": \"admin\",\n          \"name\": \"onepercentclub\"\n        }\n      ],\n      \"tags\": [\n        \n      ],\n      \"groups\": [\n        \n      ]\n    },\n    {\n      \"description\": \"\",\n      \"id\": \"1a3e3f42-6704-4adf-897a-9bdf5b854a00\",\n      \"image_display_url\": \"\",\n      \"image_url\": \"\",\n      \"is_organization\": true,\n      \"license_id\": \"notspecified\",\n      \"name\": \"3fi\",\n      \"num_followers\": 0,\n      \"package_count\": 1,\n      \"publisher_agencies\": \"\",\n      \"publisher_constraints\": \"\",\n      \"publisher_contact\": \"3F\\r\\nKampmannsgade 4\\r\\nDK-1790 Copenhagen V\\r\\nDenmark \",\n      \"publisher_contact_email\": \"jesper.nielsen@3f.dk\",\n      \"publisher_country\": \"DK\",\n      \"publisher_data_quality\": \"\",\n      \"publisher_description\": \"\",\n      \"publisher_field_exclusions\": \"\",\n      \"publisher_first_publish_date\": \"\",\n      \"publisher_frequency\": \"\",\n      \"publisher_frequency_select\": \"not_specified\",\n      \"publisher_iati_id\": \"DK-CVR-31378028\",\n      \"publisher_implementation_schedule\": \"\",\n      \"publisher_organization_type\": \"22\",\n      \"publisher_record_exclusions\": \"\",\n      \"publisher_refs\": \"\",\n      \"publisher_segmentation\": \"\",\n      \"publisher_source_type\": \"primary_source\",\n      \"publisher_thresholds\": \"\",\n      \"publisher_timeliness\": \"\",\n      \"publisher_ui\": \"\",\n      \"publisher_units\": \"\",\n      \"publisher_url\": \"https://tema.3f.dk/international \",\n      \"state\": \"active\",\n      \"title\": \"3F International\",\n      \"type\": \"organization\",\n      \"users\": [\n        {\n          \"capacity\": \"admin\",\n          \"name\": \"3-f_international\"\n        }\n      ],\n      \"tags\": [\n        \n      ],\n      \"groups\": [\n        \n      ]\n    },\n    {\n      \"description\": \"\",\n      \"id\": \"8c858655-cb84-4527-befa-b77d4de07e22\",\n      \"image_display_url\": \"\",\n      \"image_url\": \"\",\n      \"is_organization\": true,\n      \"license_id\": \"odc-pddl\",\n      \"name\": \"fifty_eight\",\n      \"num_followers\": 0,\n      \"package_count\": 1,\n      \"publisher_agencies\": \"\",\n      \"publisher_constraints\": \"\",\n      \"publisher_contact\": \"2030hub\\r\\n23 Argyle St\\r\\nLiverpool\\r\\nL1 5BL\",\n      \"publisher_contact_email\": \"keithshortley@50eight.com\",\n      \"publisher_country\": \"GB\",\n      \"publisher_data_quality\": \"\",\n      \"publisher_description\": \"Fifty Eight partners with companies, NGOs, public sector and others ​to address the challenges of modern slavery and improve working conditions in global supply chains. \",\n      \"publisher_field_exclusions\": \"\",\n      \"publisher_first_publish_date\": \"2020-02-17T00:00:00.000000\",\n      \"publisher_frequency\": \"\",\n      \"publisher_frequency_select\": \"quarterly\",\n      \"publisher_iati_id\": \"GB-COH-07291220\",\n      \"publisher_implementation_schedule\": \"\",\n      \"publisher_organization_type\": \"70\",\n      \"publisher_record_exclusions\": \"\",\n      \"publisher_refs\": \"\",\n      \"publisher_segmentation\": \"IATI data will be published at country level where possible and appropriate.\",\n      \"publisher_source_type\": \"primary_source\",\n      \"publisher_thresholds\": \"\",\n      \"publisher_timeliness\": \"Within 14 days of period end\",\n      \"publisher_ui\": \"\",\n      \"publisher_units\": \"UK Aid Connect EAPEC \",\n      \"publisher_url\": \"https://www.50eight.com/\",\n      \"state\": \"active\",\n      \"title\": \"50 Eight Limited\",\n      \"type\": \"organization\",\n      \"users\": [\n        {\n          \"capacity\": \"admin\",\n          \"name\": \"keithshortley\"\n        }\n      ],\n      \"tags\": [\n        \n      ],\n      \"groups\": [\n        \n      ]\n    }\n  ]\n}\n",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true,
+          "crudKey": "id",
+          "callbacks": []
+        }
+      ],
+      "responseMode": null,
+      "streamingMode": null,
+      "streamingInterval": 0
+    },
+    {
+      "uuid": "e39fc8aa-8a06-4ab7-95a3-4f7ea1403ef3",
+      "type": "http",
+      "documentation": "",
+      "method": "get",
+      "endpoint": "registration/datasets-06",
+      "responses": [
+        {
+          "uuid": "392ff786-2242-472f-874f-8a6ceaf47dbf",
+          "body": "{}",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "",
+          "headers": [],
+          "bodyType": "FILE",
+          "filePath": "tests/artifacts/ckan-registry-datasets-06-1-dataset-unknown-org.json",
+          "databucketID": "",
+          "sendFileAsBody": true,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true,
+          "crudKey": "id",
+          "callbacks": []
+        }
+      ],
+      "responseMode": null,
+      "streamingMode": null,
+      "streamingInterval": 0
     }
   ],
   "rootChildren": [
@@ -460,7 +575,19 @@
     },
     {
       "type": "route",
+      "uuid": "e39fc8aa-8a06-4ab7-95a3-4f7ea1403ef3"
+    },
+    {
+      "type": "route",
       "uuid": "52cc8a4f-d934-4056-a1dd-1fd970079d14"
+    },
+    {
+      "type": "route",
+      "uuid": "f527b98c-2c22-49ce-884f-cd29b23b64ed"
+    },
+    {
+      "type": "route",
+      "uuid": "8befa91d-1dab-4156-9a72-38c8b014a92f"
     },
     {
       "type": "route",

@@ -1,4 +1,7 @@
 import os
+from pathlib import Path
+
+import toml
 
 _config_variables = [
     "DATA_REGISTRATION",
@@ -29,4 +32,16 @@ def get_config() -> dict[str, str]:
 
     config["WEB_BASE_URL"] = config["WEB_BASE_URL"].strip("/")
 
+    config["BULK_DATA_SERVICE_VERSION"] = get_app_version()
+
     return config
+
+
+def get_app_version() -> str:
+    app_version = "Unknown Version"
+    pyproject_file = Path(__file__).parent.parent.parent / "pyproject.toml"
+    if pyproject_file.exists():
+        pyproject_data = toml.load(pyproject_file)
+        if "project" in pyproject_data and "version" in pyproject_data["project"]:
+            app_version = pyproject_data["project"]["version"]
+    return app_version

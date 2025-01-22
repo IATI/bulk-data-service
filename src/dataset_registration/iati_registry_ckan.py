@@ -1,20 +1,45 @@
 import json
 import random
 import uuid
-from datetime import datetime, timedelta
 from logging import Logger
 from typing import Any
 
 import requests
 
 from utilities.http import http_get_json
-from utilities.misc import get_timestamp
-
-PUBLISHER_METADATA: dict[str, Any] = {}
-PUBLISHER_METADATA_LAST_UPDATE: datetime = get_timestamp() - timedelta(hours=25)
+from utilities.misc import is_str_valid_uuid
 
 
-def fetch_datasets_metadata(context: dict, session: requests.Session) -> dict[uuid.UUID, dict]:
+def fetch_reporting_orgs_metadata(context: dict) -> dict[uuid.UUID, dict]:
+    session = requests.Session()
+
+    url = context["DATA_REGISTRY_PUBLISHER_METADATA_URL"]
+
+    reporting_org_metadata = {}
+
+    reporting_orgs_metadata = http_get_json(session, url, 120, True)
+
+    reporting_orgs_w_valid_ids = [org for org in reporting_orgs_metadata["result"] if is_str_valid_uuid(org["id"])]
+
+    reporting_org_metadata = {
+        uuid.UUID(org["id"]): convert_ckan_reporting_org_metadata(org) for org in reporting_orgs_w_valid_ids
+    }
+
+    return reporting_org_metadata
+
+
+def convert_ckan_reporting_org_metadata(reporting_org: dict):
+    return {
+        "id": reporting_org["id"],
+        "short_name": reporting_org["name"],
+        "iati_identifier": reporting_org["publisher_iati_id"],
+        "human_readable_name": reporting_org["title"],
+        "registration_service_reporting_org_metadata": json.dumps(reporting_org),
+    }
+
+
+def fetch_datasets_metadata(context: dict, reporting_orgs: dict) -> dict[uuid.UUID, dict]:
+    session = requests.Session()
 
     datasets_list_from_registry = fetch_datasets_metadata_from_iati_registry(context, session)
 
@@ -22,7 +47,7 @@ def fetch_datasets_metadata(context: dict, session: requests.Session) -> dict[uu
 
     cleaned_datasets_metadata = clean_datasets_metadata(context["logger"], datasets_list_from_registry)
 
-    add_publisher_metadata(context, session, cleaned_datasets_metadata)
+    add_publisher_metadata(cleaned_datasets_metadata, reporting_orgs)
 
     datasets_metadata = convert_datasets_metadata(cleaned_datasets_metadata)
 
@@ -55,50 +80,20 @@ def fetch_datasets_metadata_from_iati_registry(context: dict, session: requests.
     return datasets_metadata
 
 
-def add_publisher_metadata(context: dict, session: requests.Session, datasets_from_registry: list[dict[str, Any]]):
+def add_publisher_metadata(datasets_from_registry: list[dict[str, Any]], reporting_orgs: dict[uuid.UUID, dict]):
     for registry_dataset in datasets_from_registry:
         publisher_metadata = ""
-        if "organization" in registry_dataset and "name" in registry_dataset["organization"]:
-            publisher_metadata = get_publisher_metadata_as_str(
-                context, session, registry_dataset["organization"]["name"]
-            )
+        if "organization" in registry_dataset and "id" in registry_dataset["organization"]:
+            publisher_metadata = get_publisher_metadata_as_str(reporting_orgs, registry_dataset["organization"]["id"])
         registry_dataset["registration_service_publisher_metadata"] = publisher_metadata
 
 
-def get_publisher_metadata_as_str(context: dict, session: requests.Session, publisher_name: str) -> str:
-    global PUBLISHER_METADATA, PUBLISHER_METADATA_LAST_UPDATE
-
-    if PUBLISHER_METADATA_LAST_UPDATE < get_timestamp() - timedelta(
-        hours=int(context["DATA_REGISTRY_PUBLISHER_METADATA_REFRESH_AFTER_HOURS"])
-    ):
-        context["logger"].info(
-            "Refreshing publisher metadata from IATI Registry (CKAN) "
-            "after {} hours...".format(context["DATA_REGISTRY_PUBLISHER_METADATA_REFRESH_AFTER_HOURS"])
-        )
-        update_publisher_metadata_cache(context, session)
-        PUBLISHER_METADATA_LAST_UPDATE = get_timestamp()
-
-    return PUBLISHER_METADATA[publisher_name] if publisher_name in PUBLISHER_METADATA else "{}"
-
-
-def update_publisher_metadata_cache(context: dict, session: requests.Session):
-    global PUBLISHER_METADATA, PUBLISHER_METADATA_LAST_UPDATE
-
-    url = context["DATA_REGISTRY_PUBLISHER_METADATA_URL"]
-
-    PUBLISHER_METADATA = {}
-
-    try:
-        publishers_metadata = http_get_json(session, url, 60, True)
-
-        PUBLISHER_METADATA = {publisher["name"]: json.dumps(publisher) for publisher in publishers_metadata["result"]}
-
-    except RuntimeError as e:
-        context["logger"].error("HTTP error when fetching publisher metadata from IATI Registry (CKAN): {}".format(e))
-    except Exception as e:
-        context["logger"].error(
-            "Unexpected error when fetching publisher metadata from IATI Registry (CKAN): {}".format(e)
-        )
+def get_publisher_metadata_as_str(reporting_orgs: dict[uuid.UUID, dict], publisher_id: str) -> str:
+    return (
+        reporting_orgs[uuid.UUID(publisher_id)]["registration_service_reporting_org_metadata"]
+        if uuid.UUID(publisher_id) in reporting_orgs
+        else "{}"
+    )
 
 
 def clean_datasets_metadata(logger: Logger, datasets_from_registry: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -169,9 +164,9 @@ def convert_datasets_metadata(datasets_from_registry: list[dict]) -> dict[uuid.U
     registered_datasets = {
         uuid.UUID(dataset["id"]): {
             "id": uuid.UUID(dataset["id"]),
-            "name": dataset["name"],
-            "publisher_id": uuid.UUID(dataset["organization"]["id"]),
-            "publisher_name": dataset["organization"]["name"],
+            "short_name": dataset["name"],
+            "reporting_org_id": uuid.UUID(dataset["organization"]["id"]),
+            "reporting_org_short_name": dataset["organization"]["name"],
             "source_url": get_source_url(dataset),
             "type": list(filter(lambda x: x["key"] == "filetype", dataset["extras"]))[0]["value"],
             "registration_service_dataset_metadata": json.dumps(

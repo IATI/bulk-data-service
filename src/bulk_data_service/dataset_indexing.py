@@ -8,17 +8,23 @@ from utilities.azure import azure_upload_to_blob, get_azure_blob_public_url
 from utilities.misc import get_timestamp
 
 
-def create_and_upload_indices(context: dict, datasets_in_bds: dict[uuid.UUID, dict]):
+def create_and_upload_indices(
+    context: dict, datasets_in_bds: dict[uuid.UUID, dict], reporting_orgs_in_bds: dict[uuid.UUID, dict]
+):
 
     context["logger"].info("Creating indices")
 
-    minimal_index = create_index_json(context, datasets_in_bds, "minimal")
+    dataset_index_minimal = create_dataset_index_json(context, datasets_in_bds, reporting_orgs_in_bds, "minimal")
 
-    full_index = create_index_json(context, datasets_in_bds, "full")
+    dataset_index_full = create_dataset_index_json(context, datasets_in_bds, reporting_orgs_in_bds, "full")
 
-    upload_index_json_to_azure(context, get_index_name(context, "minimal"), minimal_index)
+    reporting_org_index_full = create_reporting_org_index_json(context, datasets_in_bds, reporting_orgs_in_bds)
 
-    upload_index_json_to_azure(context, get_index_name(context, "full"), full_index)
+    upload_index_json_to_azure(context, get_dataset_index_name(context, "minimal"), dataset_index_minimal)
+
+    upload_index_json_to_azure(context, get_dataset_index_name(context, "full"), dataset_index_full)
+
+    upload_index_json_to_azure(context, get_reporting_org_index_name(context), reporting_org_index_full)
 
     context["logger"].info("Creation of indices finished")
 
@@ -38,17 +44,52 @@ def upload_index_json_to_azure(context: dict, index_name: str, index_json: str):
     az_blob_service.close()
 
 
-def create_index_json(context: dict, datasets_in_bds: dict[uuid.UUID, dict], index_type: str) -> str:
+def create_dataset_index_json(
+    context: dict,
+    datasets_in_bds: dict[uuid.UUID, dict],
+    reporting_orgs_in_bds: dict[uuid.UUID, dict],
+    index_type: str,
+) -> str:
 
-    index = {"index_created": get_timestamp(), "datasets": {}}
+    index = {"index_created": get_timestamp(), "datasets": []}
 
     index["datasets"] = get_dataset_index(context, datasets_in_bds, index_type)
 
     return json.dumps(index, default=str, sort_keys=True, indent=True)
 
 
-def get_dataset_index(context: dict, datasets_in_bds: dict[uuid.UUID, dict], index_type: str) -> dict:
-    return {v["name"]: get_index_entry(context, v, index_type) for _, v in datasets_in_bds.items()}
+def create_reporting_org_index_json(
+    context: dict, datasets_in_bds: dict[uuid.UUID, dict], reporting_orgs_in_bds: dict[uuid.UUID, dict]
+) -> str:
+
+    index = {"index_created": get_timestamp(), "reporting_orgs": []}
+
+    index["reporting_orgs"] = get_reporting_orgs_for_datasets(context, datasets_in_bds, reporting_orgs_in_bds)
+
+    return json.dumps(index, default=str, sort_keys=True, indent=True)
+
+
+def get_reporting_orgs_for_datasets(
+    context: dict, datasets_in_bds: dict[uuid.UUID, dict], reporting_orgs_in_bds: dict[uuid.UUID, dict]
+) -> list:
+    reporting_org_names_w_datasets = set([dataset["reporting_org_short_name"] for dataset in datasets_in_bds.values()])
+
+    orgs_w_datasets = [
+        {
+            "id": org["id"],
+            "short_name": org["short_name"],
+            "human_readable_name": org["human_readable_name"],
+            "iati_identifier": org["iati_identifier"],
+        }
+        for org in reporting_orgs_in_bds.values()
+        if org["short_name"] in reporting_org_names_w_datasets
+    ]
+
+    return orgs_w_datasets
+
+
+def get_dataset_index(context: dict, datasets_in_bds: dict[uuid.UUID, dict], index_type: str) -> list:
+    return [get_index_entry(context, dataset, index_type) for _, dataset in datasets_in_bds.items()]
 
 
 def get_index_entry(context: dict, dataset: dict, index_type: str) -> dict[str, Any]:
@@ -68,19 +109,23 @@ def get_index_entry(context: dict, dataset: dict, index_type: str) -> dict[str, 
     return dataset_index_entry
 
 
-def get_index_name(context: dict, index_type: str) -> str:
+def get_dataset_index_name(context: dict, index_type: str) -> str:
     if index_type not in ["minimal", "full"]:
         raise ValueError("Unknown type for dataset index")
 
-    return "dataset-index-{}.json".format(index_type)
+    return "datasets-{}".format(index_type)
+
+
+def get_reporting_org_index_name(context: dict) -> str:
+    return "reporting-orgs"
 
 
 def get_minimal_index_entry_from_dataset(context: dict, dataset: dict) -> dict:
-    return {k: v for k, v in dataset.items() if k in get_minimal_index_fields(context)}
+    return {k: v for k, v in dataset.items() if k in get_minimal_index_dataset_fields(context)}
 
 
 def get_full_index_entry_from_dataset(context: dict, dataset: dict) -> dict:
-    full_index_entry = {k: v for k, v in dataset.items() if k in get_full_index_source_fields(context)}
+    full_index_entry = {k: v for k, v in dataset.items() if k in get_full_index_dataset_source_fields(context)}
 
     field_from_json_str_to_object(full_index_entry, "download_error_message", "download_error_details")
 
@@ -96,11 +141,12 @@ def field_from_json_str_to_object(entry: dict, source_field: str, dest_field: st
     del entry[source_field]
 
 
-def get_full_index_source_fields(context: dict) -> list[str]:
+def get_full_index_dataset_source_fields(context: dict) -> list[str]:
     return [
         "id",
-        "name",
-        "publisher_name",
+        "short_name",
+        "reporting_org_id",
+        "reporting_org_short_name",
         "type",
         "source_url",
         "hash",
@@ -121,12 +167,12 @@ def get_full_index_source_fields(context: dict) -> list[str]:
     ]
 
 
-def get_minimal_index_fields(context: dict) -> list[str]:
+def get_minimal_index_dataset_fields(context: dict) -> list[str]:
     return [
         "id",
-        "name",
-        "publisher_id",
-        "publisher_name",
+        "short_name",
+        "reporting_org_id",
+        "reporting_org_short_name",
         "source_url",
         "hash",
         "hash_excluding_generated_timestamp",
