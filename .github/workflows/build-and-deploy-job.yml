@@ -31,15 +31,13 @@ jobs:
           echo "TARGET_ENVIRONMENT_UPPER=${TARGET_ENVIRONMENT^^}" >> ${GITHUB_ENV}
           echo "CONTAINER_INSTANCE_BASE_NAME=aci-${APP_NAME}" >> ${GITHUB_ENV}
           echo "RESOURCE_GROUP_BASE_NAME=rg-${APP_NAME}" >> ${GITHUB_ENV}
-          echo "APP_NAME_NO_HYPHENS=${APP_NAME//-/}" >> ${GITHUB_ENV}
-          echo "STORAGE_ACCOUNT_NAME=sa${APP_NAME_NO_HYPHENS}$TARGET_ENVIRONMENT" >> ${GITHUB_ENV}
+          echo "STORAGE_ACCOUNT_NAME=sa${APP_NAME//-/}$TARGET_ENVIRONMENT" >> ${GITHUB_ENV}
 
       - name: 'Print calculated environment variables'
         run: |
           echo $TARGET_ENVIRONMENT_UPPER
           echo $CONTAINER_INSTANCE_BASE_NAME
           echo $RESOURCE_GROUP_BASE_NAME
-          echo $APP_NAME_NO_HYPHENS
           echo $STORAGE_ACCOUNT_NAME
 
       - name: 'Checkout GitHub Action'
