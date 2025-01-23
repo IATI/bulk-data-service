@@ -1,5 +1,6 @@
 import json
 import uuid
+from datetime import datetime
 from typing import Any
 
 from azure.storage.blob import BlobServiceClient
@@ -11,14 +12,17 @@ from utilities.misc import get_timestamp
 def create_and_upload_indices(
     context: dict, datasets_in_bds: dict[uuid.UUID, dict], reporting_orgs_in_bds: dict[uuid.UUID, dict]
 ):
+    index_creation_time = get_timestamp()
 
     context["logger"].info("Creating indices")
 
-    dataset_index_minimal = create_dataset_index_json(context, datasets_in_bds, reporting_orgs_in_bds, "minimal")
+    dataset_index_minimal = create_dataset_index_json(context, index_creation_time, datasets_in_bds, "minimal")
 
-    dataset_index_full = create_dataset_index_json(context, datasets_in_bds, reporting_orgs_in_bds, "full")
+    dataset_index_full = create_dataset_index_json(context, index_creation_time, datasets_in_bds, "full")
 
-    reporting_org_index_full = create_reporting_org_index_json(context, datasets_in_bds, reporting_orgs_in_bds)
+    reporting_org_index_full = create_reporting_org_index_json(
+        context, index_creation_time, datasets_in_bds, reporting_orgs_in_bds
+    )
 
     upload_index_json_to_azure(context, get_dataset_index_name(context, "minimal"), dataset_index_minimal)
 
@@ -46,12 +50,12 @@ def upload_index_json_to_azure(context: dict, index_name: str, index_json: str):
 
 def create_dataset_index_json(
     context: dict,
+    created_time: datetime,
     datasets_in_bds: dict[uuid.UUID, dict],
-    reporting_orgs_in_bds: dict[uuid.UUID, dict],
     index_type: str,
 ) -> str:
 
-    index = {"index_created": get_timestamp(), "datasets": []}
+    index = create_index_time_entries(created_time)
 
     index["datasets"] = get_dataset_index(context, datasets_in_bds, index_type)
 
@@ -59,14 +63,21 @@ def create_dataset_index_json(
 
 
 def create_reporting_org_index_json(
-    context: dict, datasets_in_bds: dict[uuid.UUID, dict], reporting_orgs_in_bds: dict[uuid.UUID, dict]
+    context: dict,
+    created_time: datetime,
+    datasets_in_bds: dict[uuid.UUID, dict],
+    reporting_orgs_in_bds: dict[uuid.UUID, dict],
 ) -> str:
 
-    index = {"index_created": get_timestamp(), "reporting_orgs": []}
+    index = create_index_time_entries(created_time)
 
     index["reporting_orgs"] = get_reporting_orgs_for_datasets(context, datasets_in_bds, reporting_orgs_in_bds)
 
     return json.dumps(index, default=str, sort_keys=True, indent=True)
+
+
+def create_index_time_entries(created_time: datetime) -> dict[str, Any]:
+    return {"index_created": created_time, "index_created_epoch": int(created_time.timestamp())}
 
 
 def get_reporting_orgs_for_datasets(
