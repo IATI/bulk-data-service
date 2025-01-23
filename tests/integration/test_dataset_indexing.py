@@ -75,6 +75,103 @@ def test_creation_of_dataset_entry_in_minimal_index_when_download_success(get_an
     blob_service_client.close()
 
 
+def test_index_created_field_is_generated_dataset_indices(get_and_clear_up_context):  # noqa: F811
+    context = get_and_clear_up_context
+
+    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/registration/datasets-01"
+    datasets_in_bds = {}
+    checker_run(context, datasets_in_bds)
+
+    blob_service_client = BlobServiceClient.from_connection_string(context["AZURE_STORAGE_CONNECTION_STRING"])
+
+    zip_container_name = get_azure_container_name(context, "zip")
+
+    minimal_index_name = get_dataset_index_name(context, "minimal")
+    minimal_index_blob = blob_service_client.get_blob_client(zip_container_name, minimal_index_name)
+    minimal_index = json.loads(minimal_index_blob.download_blob().readall())
+
+    assert minimal_index["index_created"] is not None
+    assert minimal_index["index_created_epoch"] is not None
+
+    full_index_name = get_dataset_index_name(context, "full")
+    full_index_blob = blob_service_client.get_blob_client(zip_container_name, full_index_name)
+    full_index = json.loads(full_index_blob.download_blob().readall())
+
+    assert full_index["index_created"] is not None
+    assert full_index["index_created_epoch"] is not None
+
+    blob_service_client.close()
+
+
+def test_index_created_field_is_generated_reporting_org_index(get_and_clear_up_context):  # noqa: F811
+    context = get_and_clear_up_context
+
+    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/registration/datasets-01"
+    datasets_in_bds = {}
+    checker_run(context, datasets_in_bds)
+
+    blob_service_client = BlobServiceClient.from_connection_string(context["AZURE_STORAGE_CONNECTION_STRING"])
+
+    zip_container_name = get_azure_container_name(context, "zip")
+
+    reporting_org_index_name = get_reporting_org_index_name(context)
+    reporting_org_index_blob = blob_service_client.get_blob_client(zip_container_name, reporting_org_index_name)
+    reporting_org_index = json.loads(reporting_org_index_blob.download_blob().readall())
+
+    assert reporting_org_index["index_created"] is not None
+    assert reporting_org_index["index_created_epoch"] is not None
+
+    blob_service_client.close()
+
+
+def test_index_created_fields_in_dataset_indices_have_same_value(get_and_clear_up_context):  # noqa: F811
+    context = get_and_clear_up_context
+
+    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/registration/datasets-01"
+    datasets_in_bds = {}
+    checker_run(context, datasets_in_bds)
+
+    blob_service_client = BlobServiceClient.from_connection_string(context["AZURE_STORAGE_CONNECTION_STRING"])
+
+    zip_container_name = get_azure_container_name(context, "zip")
+
+    minimal_index_name = get_dataset_index_name(context, "minimal")
+    minimal_index_blob = blob_service_client.get_blob_client(zip_container_name, minimal_index_name)
+    minimal_index = json.loads(minimal_index_blob.download_blob().readall())
+
+    full_index_name = get_dataset_index_name(context, "full")
+    full_index_blob = blob_service_client.get_blob_client(zip_container_name, full_index_name)
+    full_index = json.loads(full_index_blob.download_blob().readall())
+
+    assert minimal_index["index_created_epoch"] == full_index["index_created_epoch"]
+
+    blob_service_client.close()
+
+
+def test_index_created_fields_in_dataset_reporting_org_indices_have_same_value(get_and_clear_up_context):  # noqa: F811
+    context = get_and_clear_up_context
+
+    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/registration/datasets-01"
+    datasets_in_bds = {}
+    checker_run(context, datasets_in_bds)
+
+    blob_service_client = BlobServiceClient.from_connection_string(context["AZURE_STORAGE_CONNECTION_STRING"])
+
+    zip_container_name = get_azure_container_name(context, "zip")
+
+    minimal_index_name = get_dataset_index_name(context, "minimal")
+    minimal_index_blob = blob_service_client.get_blob_client(zip_container_name, minimal_index_name)
+    minimal_index = json.loads(minimal_index_blob.download_blob().readall())
+
+    reporting_org_index_name = get_reporting_org_index_name(context)
+    reporting_org_index_blob = blob_service_client.get_blob_client(zip_container_name, reporting_org_index_name)
+    reporting_org_index = json.loads(reporting_org_index_blob.download_blob().readall())
+
+    assert minimal_index["index_created_epoch"] == reporting_org_index["index_created_epoch"]
+
+    blob_service_client.close()
+
+
 def test_create_reporting_org_entry_in_minimal_index_for_download_success(get_and_clear_up_context):  # noqa: F811
     context = get_and_clear_up_context
 
