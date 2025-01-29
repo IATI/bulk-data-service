@@ -77,7 +77,7 @@ def create_reporting_org_index_json(
 
 
 def create_index_time_entries(created_time: datetime) -> dict[str, Any]:
-    return {"index_created": created_time, "index_created_epoch": int(created_time.timestamp())}
+    return {"index_created": created_time, "index_created_unix_timestamp": int(created_time.timestamp())}
 
 
 def get_reporting_orgs_for_datasets(
