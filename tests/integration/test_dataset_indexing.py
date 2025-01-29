@@ -91,14 +91,14 @@ def test_index_created_field_is_generated_dataset_indices(get_and_clear_up_conte
     minimal_index = json.loads(minimal_index_blob.download_blob().readall())
 
     assert minimal_index["index_created"] is not None
-    assert minimal_index["index_created_epoch"] is not None
+    assert minimal_index["index_created_unix_timestamp"] is not None
 
     full_index_name = get_dataset_index_name(context, "full")
     full_index_blob = blob_service_client.get_blob_client(zip_container_name, full_index_name)
     full_index = json.loads(full_index_blob.download_blob().readall())
 
     assert full_index["index_created"] is not None
-    assert full_index["index_created_epoch"] is not None
+    assert full_index["index_created_unix_timestamp"] is not None
 
     blob_service_client.close()
 
@@ -119,7 +119,7 @@ def test_index_created_field_is_generated_reporting_org_index(get_and_clear_up_c
     reporting_org_index = json.loads(reporting_org_index_blob.download_blob().readall())
 
     assert reporting_org_index["index_created"] is not None
-    assert reporting_org_index["index_created_epoch"] is not None
+    assert reporting_org_index["index_created_unix_timestamp"] is not None
 
     blob_service_client.close()
 
@@ -143,7 +143,7 @@ def test_index_created_fields_in_dataset_indices_have_same_value(get_and_clear_u
     full_index_blob = blob_service_client.get_blob_client(zip_container_name, full_index_name)
     full_index = json.loads(full_index_blob.download_blob().readall())
 
-    assert minimal_index["index_created_epoch"] == full_index["index_created_epoch"]
+    assert minimal_index["index_created_unix_timestamp"] == full_index["index_created_unix_timestamp"]
 
     blob_service_client.close()
 
@@ -167,7 +167,7 @@ def test_index_created_fields_in_dataset_reporting_org_indices_have_same_value(g
     reporting_org_index_blob = blob_service_client.get_blob_client(zip_container_name, reporting_org_index_name)
     reporting_org_index = json.loads(reporting_org_index_blob.download_blob().readall())
 
-    assert minimal_index["index_created_epoch"] == reporting_org_index["index_created_epoch"]
+    assert minimal_index["index_created_unix_timestamp"] == reporting_org_index["index_created_unix_timestamp"]
 
     blob_service_client.close()
 
