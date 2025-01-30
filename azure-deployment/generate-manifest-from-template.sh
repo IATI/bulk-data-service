@@ -43,7 +43,9 @@ sed -i ''s^#DB_CONNECTION_TIMEOUT#^$DB_CONNECTION_TIMEOUT^g'' ./azure-deployment
 
 sed -i ''s^#DATA_REGISTRATION#^$DATA_REGISTRATION^g'' ./azure-deployment/azure-resource-manager-deployment-manifest.yml
 sed -i ''s^#DATA_REGISTRY_BASE_URL#^$DATA_REGISTRY_BASE_URL^g'' ./azure-deployment/azure-resource-manager-deployment-manifest.yml
+sed -i ''s^#DATA_REGISTRY_PUBLISHER_PLAIN_LIST_URL#^$DATA_REGISTRY_PUBLISHER_PLAIN_LIST_URL^g'' ./azure-deployment/azure-resource-manager-deployment-manifest.yml
 sed -i ''s^#DATA_REGISTRY_PUBLISHER_METADATA_URL#^$DATA_REGISTRY_PUBLISHER_METADATA_URL^g'' ./azure-deployment/azure-resource-manager-deployment-manifest.yml
+sed -i ''s^#DATA_REGISTRY_PUBLISHER_METADATA_BATCH_SIZE#^$DATA_REGISTRY_PUBLISHER_METADATA_BATCH_SIZE^g'' ./azure-deployment/azure-resource-manager-deployment-manifest.yml
 sed -i ''s^#DATA_REGISTRY_PUBLISHER_METADATA_REFRESH_AFTER_HOURS#^$DATA_REGISTRY_PUBLISHER_METADATA_REFRESH_AFTER_HOURS^g'' ./azure-deployment/azure-resource-manager-deployment-manifest.yml
 sed -i ''s^#NUMBER_DOWNLOADER_THREADS#^$NUMBER_DOWNLOADER_THREADS^g'' ./azure-deployment/azure-resource-manager-deployment-manifest.yml
 sed -i ''s^#FORCE_REDOWNLOAD_AFTER_HOURS#^$FORCE_REDOWNLOAD_AFTER_HOURS^g'' ./azure-deployment/azure-resource-manager-deployment-manifest.yml
