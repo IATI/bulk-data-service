@@ -2,7 +2,7 @@ import datetime
 
 import pytest
 
-from utilities.http import parse_last_modified_header
+from utilities.http import add_qs_params_to_url, parse_last_modified_header
 
 
 @pytest.mark.parametrize("input,expected", [
@@ -13,3 +13,13 @@ from utilities.http import parse_last_modified_header
 ])
 def test_parse_http_last_modified_header(input, expected):
     assert parse_last_modified_header(input) == expected
+
+
+@pytest.mark.parametrize("input,params,expected", [
+    ("http://www.a.com", {}, "http://www.a.com"),
+    ("http://www.a.com", {"one": 1}, "http://www.a.com?one=1"),
+    ("http://www.a.com", {"one": 1, "two": 2}, "http://www.a.com?one=1&two=2"),
+    ("http://www.a.com?one=1", {"one": "updated"}, "http://www.a.com?one=updated"),
+])
+def test_add_qs_params_to_url(input, params, expected):
+    assert add_qs_params_to_url(input, params) == expected

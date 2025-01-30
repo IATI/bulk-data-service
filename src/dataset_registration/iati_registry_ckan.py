@@ -6,26 +6,57 @@ from typing import Any
 
 import requests
 
-from utilities.http import http_get_json
+from utilities.http import add_qs_params_to_url, http_get_json
 from utilities.misc import is_str_valid_uuid
 
 
 def fetch_reporting_orgs_metadata(context: dict) -> dict[uuid.UUID, dict]:
-    session = requests.Session()
-
-    url = context["DATA_REGISTRY_PUBLISHER_METADATA_URL"]
 
     reporting_org_metadata = {}
 
-    reporting_orgs_metadata = http_get_json(session, url, 120, True)
+    reporting_orgs_metadata = fetch_reporting_orgs_from_iati_registry(context)
 
-    reporting_orgs_w_valid_ids = [org for org in reporting_orgs_metadata["result"] if is_str_valid_uuid(org["id"])]
+    reporting_orgs_w_valid_ids = [org for org in reporting_orgs_metadata if is_str_valid_uuid(org["id"])]
 
     reporting_org_metadata = {
         uuid.UUID(org["id"]): convert_ckan_reporting_org_metadata(org) for org in reporting_orgs_w_valid_ids
     }
 
     return reporting_org_metadata
+
+
+def fetch_reporting_orgs_from_iati_registry(context: dict) -> list[dict]:
+
+    session = requests.Session()
+
+    reporting_orgs_plain_list_url = context["DATA_REGISTRY_PUBLISHER_PLAIN_LIST_URL"]
+
+    number_of_reporting_orgs = len(http_get_json(session, reporting_orgs_plain_list_url)["result"])
+
+    reporting_orgs_base_url = context["DATA_REGISTRY_PUBLISHER_METADATA_URL"]
+
+    reporting_orgs_batch_size = int(context["DATA_REGISTRY_PUBLISHER_METADATA_BATCH_SIZE"])
+
+    batch_size = number_of_reporting_orgs if number_of_reporting_orgs < reporting_orgs_batch_size else reporting_orgs_batch_size
+
+    reporting_orgs_metadata_downloaded = 0
+    reporting_orgs_metadata = []
+
+    while reporting_orgs_metadata_downloaded < number_of_reporting_orgs:
+        reporting_orgs_url = add_qs_params_to_url(
+            reporting_orgs_base_url, {"limit": batch_size, "offset": reporting_orgs_metadata_downloaded}
+        )
+        context["logger"].info("Fetching reporting orgs from URL: {}".format(reporting_orgs_url))
+
+        response = http_get_json(session, reporting_orgs_url)
+
+        reporting_orgs_metadata.extend(response["result"])
+
+        reporting_orgs_metadata_downloaded += len(response["result"])
+
+    context["logger"].info("Fetched metadata for {} reporting orgs".format(len(reporting_orgs_metadata)))
+
+    return reporting_orgs_metadata
 
 
 def convert_ckan_reporting_org_metadata(reporting_org: dict):

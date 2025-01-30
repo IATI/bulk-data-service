@@ -1,9 +1,17 @@
 import datetime
 from typing import Any, Optional
+from urllib.parse import parse_qs, urlencode, urlsplit, urlunsplit
 
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util import Retry
+
+
+def add_qs_params_to_url(url: str, qs_params: dict) -> str:
+    scheme, netloc, path, qs, fragment = urlsplit(url)
+    new_qs_as_dict = parse_qs(qs) | qs_params
+    new_qs_as_str = urlencode(new_qs_as_dict, doseq=True)
+    return urlunsplit([scheme, netloc, path, new_qs_as_str, fragment])
 
 
 def parse_last_modified_header(last_modified_header: str) -> Optional[datetime.datetime]:
