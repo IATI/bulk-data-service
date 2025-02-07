@@ -3,48 +3,44 @@ from prometheus_client import Gauge, start_http_server
 from utilities.db import execute_scalar_db_query_with_conn, get_db_connection
 
 
-def get_metrics_definitions(context: dict) -> list:
+def get_metrics_definitions() -> list[tuple[str, str, str | None]]:
     metrics_defs = [
-        ("total_number_of_datasets", "The total number of datasets"),
-        ("datasets_with_download", "The number of datasets with a last good download"),
-        ("datasets_added", "The number of datasets removed during last update"),
-        ("datasets_unregistered", "The number of datasets unregistered and so removed during last run"),
-        ("datasets_expired", "The number of datasets that expired in last run"),
+        ("total_number_of_datasets", "The total number of datasets", None),
+        (
+            "datasets_with_download",
+            "The number of datasets with a last good download",
+            "SELECT COUNT(id) FROM iati_datasets WHERE last_successful_download IS NOT NULL",
+        ),
+        ("datasets_added", "The number of datasets removed during last update", None),
+        ("datasets_unregistered", "The number of datasets unregistered and so removed during last run", None),
+        ("datasets_expired", "The number of datasets that expired in last run", None),
         (
             "datasets_head_request_non_200",
             "The number of HEAD requests that returned non-200 status in the last run",
+            "SELECT COUNT(id) FROM iati_datasets WHERE last_head_http_status != 200",
         ),
         (
             "datasets_downloads_non_200",
             "The number of download attempts that returned non-200 status in the last run",
+            "SELECT COUNT(id) FROM iati_datasets WHERE last_download_http_status != 200",
         ),
-        (
-            "checker_run_duration",
-            "The time taken by the last run of the checker (seconds)",
-        ),
-        (
-            "zipper_run_duration",
-            "The time taken by the last run of the zipper (seconds)",
-        ),
-        (
-            "number_crashes",
-            "The number of crashes since app restart",
-        ),
+        ("checker_run_duration", "The time taken by the last run of the checker (seconds)", None),
+        ("zipper_run_duration", "The time taken by the last run of the zipper (seconds)", None),
+        ("number_crashes", "The number of crashes since app restart", None),
     ]
 
     return metrics_defs
 
 
+def get_metric_definition(metric_name: str) -> tuple[str, str, str | None]:
+    return list(filter(lambda m: m[0] == metric_name, get_metrics_definitions()))[0]
+
+
 def initialise_prometheus_client(context: dict) -> dict:
 
-    metrics = {}
+    context["prom_metrics"] = {}
 
-    for metric in get_metrics_definitions(context):
-        metrics[metric[0]] = Gauge(metric[0], metric[1])
-
-    metrics["number_crashes"].set(0)
-
-    context["prom_metrics"] = metrics
+    update_prom_metric(context, "number_crashes", 0)
 
     start_http_server(9090)
 
@@ -52,27 +48,28 @@ def initialise_prometheus_client(context: dict) -> dict:
 
 
 def update_metrics_from_db(context: dict) -> dict:
-    metrics_and_their_sql = [
-        (
-            "datasets_with_download",
-            ("SELECT COUNT(id) FROM iati_datasets WHERE " "last_successful_download IS NOT NULL"),
-        ),
-        (
-            "datasets_head_request_non_200",
-            ("SELECT COUNT(id) FROM iati_datasets WHERE " "last_head_http_status != 200"),
-        ),
-        (
-            "datasets_downloads_non_200",
-            ("SELECT COUNT(id) FROM iati_datasets WHERE " "last_download_http_status != 200"),
-        ),
-    ]
+    metrics_with_sql = list(filter(lambda m: m[2] is not None, get_metrics_definitions()))
 
     db_conn = get_db_connection(context)
 
-    for metric_from_db in metrics_and_their_sql:
-        metric = execute_scalar_db_query_with_conn(db_conn, metric_from_db[1])
-        context["prom_metrics"][metric_from_db[0]].set(metric)
+    for metric_with_sql in metrics_with_sql:
+        metric_value = execute_scalar_db_query_with_conn(db_conn, metric_with_sql[2])  # type: ignore
+        update_prom_metric(context, metric_with_sql[0], metric_value)
 
     db_conn.close()
 
     return context
+
+
+def get_prom_metric(context: dict, metric_name: str):
+
+    if metric_name not in context["prom_metrics"]:
+        metric_def = get_metric_definition(metric_name)
+        context["prom_metrics"][metric_name] = Gauge(metric_name, metric_def[1])
+
+    return context["prom_metrics"][metric_name]
+
+
+def update_prom_metric(context: dict, metric_name: str, metric_value: int):
+
+    get_prom_metric(context, metric_name).set(metric_value)
