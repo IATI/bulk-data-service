@@ -10,7 +10,7 @@ from bulk_data_service.reporting_org_sync import add_or_update_reporting_orgs, r
 from bulk_data_service.zipper import zipper_run
 from dataset_registration.iati_registry_ckan import fetch_datasets_metadata, fetch_reporting_orgs_metadata
 from utilities.db import get_datasets_in_bds, get_reporting_orgs_in_bds
-from utilities.prometheus import update_metrics_from_db
+from utilities.prometheus import get_prom_metric, update_metrics_from_db, update_prom_metric
 
 
 def checker(context: dict):
@@ -42,7 +42,7 @@ def checker_service_loop(context: dict):
             )
             context["logger"].error("Full traceback: " "{}".format(traceback.format_exc()))
 
-            context["prom_metrics"]["number_crashes"].inc()
+            get_prom_metric(context, "number_crashes").inc()
 
             time.sleep(60 * 10)
 
@@ -74,7 +74,7 @@ def checker_run(context: dict, datasets_in_bds: dict[uuid.UUID, dict]):
 
     run_end = datetime.datetime.now(datetime.UTC)
 
-    context["prom_metrics"]["checker_run_duration"].set((run_end - run_start).seconds)
+    update_prom_metric(context, "checker_run_duration", (run_end - run_start).seconds)
 
     context["logger"].info(
         "Checker finished in {}. Datasets processed: {}. Seconds per dataset: {}".format(

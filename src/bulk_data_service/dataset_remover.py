@@ -8,6 +8,7 @@ from azure.storage.blob import BlobServiceClient
 from utilities.azure import delete_azure_iati_blob
 from utilities.db import get_db_connection, insert_or_update_dataset, remove_dataset_from_db
 from utilities.misc import get_timestamp
+from utilities.prometheus import update_prom_metric
 
 
 def remove_deleted_datasets_from_bds(
@@ -20,7 +21,7 @@ def remove_deleted_datasets_from_bds(
 
     ids_to_delete = [k for k in datasets_in_bds.keys() if k not in registered_datasets]
 
-    context["prom_metrics"]["datasets_unregistered"].set(len(ids_to_delete))
+    update_prom_metric(context, "datasets_unregistered", len(ids_to_delete))
 
     for id in ids_to_delete:
 
@@ -55,7 +56,7 @@ def remove_expired_downloads(context: dict[str, Any], datasets_in_bds: dict[uuid
             remove_download_for_expired_dataset(context, db_conn, az_blob_service, dataset)
             expired_datasets += 1
 
-    context["prom_metrics"]["datasets_expired"].set(expired_datasets)
+    update_prom_metric(context, "datasets_expired", expired_datasets)
 
     az_blob_service.close()
 
