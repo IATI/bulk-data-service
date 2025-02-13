@@ -37,7 +37,9 @@ def fetch_reporting_orgs_from_iati_registry(context: dict) -> list[dict]:
 
     reporting_orgs_batch_size = int(context["DATA_REGISTRY_PUBLISHER_METADATA_BATCH_SIZE"])
 
-    batch_size = number_of_reporting_orgs if number_of_reporting_orgs < reporting_orgs_batch_size else reporting_orgs_batch_size
+    batch_size = (
+        number_of_reporting_orgs if number_of_reporting_orgs < reporting_orgs_batch_size else reporting_orgs_batch_size
+    )
 
     reporting_orgs_metadata_downloaded = 0
     reporting_orgs_metadata = []

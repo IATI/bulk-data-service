@@ -10,15 +10,12 @@ from typing import Any
 
 def get_hash(content: str) -> str:
     hasher = hashlib.sha1()
-    hasher = hashlib.sha1()
     hasher.update(content.encode("utf-8"))
     return hasher.hexdigest()
 
 
 def get_hash_excluding_generated_timestamp(content: str) -> str:
-    hasher = hashlib.sha1()
     content_to_hash = re.sub(r'generated-datetime="[^"]+"', "", content)
-
     hasher = hashlib.sha1()
     hasher.update(content_to_hash.encode("utf-8"))
     return hasher.hexdigest()
