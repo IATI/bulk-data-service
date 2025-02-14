@@ -31,7 +31,7 @@ def get_level2_field_blanker(key1, key2):
 @pytest.mark.parametrize("attribute_value", [None, "None", ""])
 def test_incomplete_necessary_data_from_ckan(field_blanker, attribute_value):
 
-    with open("tests/artifacts/ckan-registry-datasets-01-1-dataset.json", "r") as f:
+    with open("tests/artifacts/ckan-registry-responses/datasets-01-1-dataset.json", "r") as f:
         registry_result_str = f.read()
     ckan_datasets = json.loads(registry_result_str)["result"]["results"]
     field_blanker(ckan_datasets[0], attribute_value)
@@ -45,7 +45,7 @@ def test_incomplete_necessary_data_from_ckan(field_blanker, attribute_value):
 @pytest.mark.parametrize("resources_value", [None, [], {"url": None}])
 def test_missing_url_from_ckan(resources_value):
 
-    with open("tests/artifacts/ckan-registry-datasets-01-1-dataset.json", "r") as f:
+    with open("tests/artifacts/ckan-registry-responses/datasets-01-1-dataset.json", "r") as f:
         registry_result_str = f.read()
     ckan_datasets = json.loads(registry_result_str)["result"]["results"]
     ckan_datasets[0]["resources"] = resources_value

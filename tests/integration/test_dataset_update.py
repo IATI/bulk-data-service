@@ -220,7 +220,7 @@ def test_update_dataset_publisher_details(get_and_clear_up_context,  # noqa: F81
 
     dataset_id = uuid.UUID("c8a40aa5-9f31-4bcf-a36f-51c1fc2cc159")
 
-    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/registration/datasets-01"
+    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-01-1-dataset"
     datasets_in_bds = {}
     checker_run(context, datasets_in_bds)
 
@@ -228,7 +228,7 @@ def test_update_dataset_publisher_details(get_and_clear_up_context,  # noqa: F81
     assert datasets_in_bds[dataset_id][field] == original
 
     # this is same dataset as above, with a different url
-    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/registration/datasets-05"
+    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-05-1-dataset-updated"
     checker_run(context, datasets_in_bds)
 
     assert len(datasets_in_bds) == 1
@@ -242,7 +242,7 @@ def test_get_request_download_error_cleared(get_and_clear_up_context):  # noqa: 
     dataset_id = uuid.UUID("c8a40aa5-9f31-4bcf-a36f-51c1fc2cc159")
 
     # dataset c8a40aa5-9f31-... with 404
-    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/registration/datasets-03"
+    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-03-1-dataset-404"
     datasets_in_bds = {}
     checker_run(context, datasets_in_bds)
 
@@ -250,7 +250,7 @@ def test_get_request_download_error_cleared(get_and_clear_up_context):  # noqa: 
     assert datasets_in_bds[dataset_id]["download_error_message"] is not None
 
     # dataset c8a40aa5-9f31-... with good URL
-    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/registration/datasets-01"
+    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-01-1-dataset"
     checker_run(context, datasets_in_bds)
 
     assert datasets_in_bds[dataset_id]["last_download_http_status"] == 200

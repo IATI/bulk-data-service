@@ -121,7 +121,7 @@ def test_add_new_undownloadable_dataset(get_and_clear_up_context, field, expecte
     dataset_id = uuid.UUID("c8a40aa5-9f31-4bcf-a36f-51c1fc2cc159")
 
     # dataset c8a40aa5-9f31-... with 404
-    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/registration/datasets-03"
+    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-03-1-dataset-404"
 
     datasets_in_bds = {}
     checker_run(context, datasets_in_bds)
@@ -138,8 +138,8 @@ def test_add_new_undownloadable_dataset(get_and_clear_up_context, field, expecte
     ("reporting_org_short_name", "test_foundation_a"),
     ("source_url", "http://localhost:3000/data/test_foundation_a-dataset-001.xml"),
     ("type", "activity"),
-    ("hash", "7703103493edafde0dbce66e507abb642fc7bd52"),
-    ("hash_excluding_generated_timestamp", "ef0eead52dfc3bd86311c84327282f607402dfff"),
+    ("hash", "11c2d75d6d853d1c1ae75529475a317738b96f03"),
+    ("hash_excluding_generated_timestamp", "a60131cee0d78c972f9c28b6428e47e06c1ce892"),
     ("registration_service_name", "ckan-registry"),
     ("registration_service_dataset_metadata", json.dumps(
            {
@@ -248,7 +248,7 @@ def test_add_new_downloadable_dataset(get_and_clear_up_context, field, expected)
     dataset_id = uuid.UUID("c8a40aa5-9f31-4bcf-a36f-51c1fc2cc159")
 
     # dataset c8a40aa5-9f31-... with 404
-    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/registration/datasets-01"
+    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-01-1-dataset"
     datasets_in_bds = {}
     checker_run(context, datasets_in_bds)
 

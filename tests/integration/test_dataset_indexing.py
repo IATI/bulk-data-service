@@ -20,7 +20,7 @@ def test_index_uploaded_to_blob_storage(get_and_clear_up_context):  # noqa: F811
 
     context = get_and_clear_up_context
 
-    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/registration/datasets-01"
+    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-01-1-dataset"
     checker_run(context, {})
 
     blob_service_client = BlobServiceClient.from_connection_string(context["AZURE_STORAGE_CONNECTION_STRING"])
@@ -46,7 +46,7 @@ def test_index_uploaded_to_blob_storage(get_and_clear_up_context):  # noqa: F811
 def test_creation_of_dataset_entry_in_minimal_index_when_download_success(get_and_clear_up_context):  # noqa: F811
     context = get_and_clear_up_context
 
-    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/registration/datasets-01"
+    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-01-1-dataset"
     datasets_in_bds = {}
     checker_run(context, datasets_in_bds)
 
@@ -78,7 +78,7 @@ def test_creation_of_dataset_entry_in_minimal_index_when_download_success(get_an
 def test_index_created_field_is_generated_dataset_indices(get_and_clear_up_context):  # noqa: F811
     context = get_and_clear_up_context
 
-    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/registration/datasets-01"
+    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-01-1-dataset"
     datasets_in_bds = {}
     checker_run(context, datasets_in_bds)
 
@@ -106,7 +106,7 @@ def test_index_created_field_is_generated_dataset_indices(get_and_clear_up_conte
 def test_index_created_field_is_generated_reporting_org_index(get_and_clear_up_context):  # noqa: F811
     context = get_and_clear_up_context
 
-    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/registration/datasets-01"
+    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-01-1-dataset"
     datasets_in_bds = {}
     checker_run(context, datasets_in_bds)
 
@@ -127,7 +127,7 @@ def test_index_created_field_is_generated_reporting_org_index(get_and_clear_up_c
 def test_index_created_fields_in_dataset_indices_have_same_value(get_and_clear_up_context):  # noqa: F811
     context = get_and_clear_up_context
 
-    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/registration/datasets-01"
+    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-01-1-dataset"
     datasets_in_bds = {}
     checker_run(context, datasets_in_bds)
 
@@ -151,7 +151,7 @@ def test_index_created_fields_in_dataset_indices_have_same_value(get_and_clear_u
 def test_index_created_fields_in_dataset_reporting_org_indices_have_same_value(get_and_clear_up_context):  # noqa: F811
     context = get_and_clear_up_context
 
-    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/registration/datasets-01"
+    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-01-1-dataset"
     datasets_in_bds = {}
     checker_run(context, datasets_in_bds)
 
@@ -175,7 +175,7 @@ def test_index_created_fields_in_dataset_reporting_org_indices_have_same_value(g
 def test_create_reporting_org_entry_in_minimal_index_for_download_success(get_and_clear_up_context):  # noqa: F811
     context = get_and_clear_up_context
 
-    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/registration/datasets-01"
+    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-01-1-dataset"
     datasets_in_bds = {}
     checker_run(context, datasets_in_bds)
 
@@ -206,7 +206,7 @@ def test_create_reporting_org_entry_in_minimal_index_for_download_success(get_an
 def test_minimal_index_creation_for_download_failure(get_and_clear_up_context):  # noqa: F811
     context = get_and_clear_up_context
 
-    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/registration/datasets-03"
+    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-03-1-dataset-404"
     datasets_in_bds = {}
     checker_run(context, datasets_in_bds)
 
@@ -244,7 +244,7 @@ def test_minimal_index_creation_for_download_failure(get_and_clear_up_context): 
 def test_full_index_creation_for_download_success(get_and_clear_up_context):  # noqa: F811
     context = get_and_clear_up_context
 
-    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/registration/datasets-01"
+    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-01-1-dataset"
     datasets_in_bds = {}
     checker_run(context, datasets_in_bds)
 
@@ -281,7 +281,7 @@ def test_full_index_creation_for_download_success(get_and_clear_up_context):  # 
 def test_full_index_creation_for_download_failure(get_and_clear_up_context):  # noqa: F811
     context = get_and_clear_up_context
 
-    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/registration/datasets-03"
+    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-03-1-dataset-404"
     datasets_in_bds = {}
     checker_run(context, datasets_in_bds)
 
@@ -321,7 +321,7 @@ def test_full_index_creation_for_download_failure(get_and_clear_up_context):  # 
 def test_creation_of_reporting_org_entry_in_minimal_index_when_download_failure(get_and_clear_up_context):  # noqa: F811
     context = get_and_clear_up_context
 
-    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/registration/datasets-03"
+    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-03-1-dataset-404"
     datasets_in_bds = {}
     checker_run(context, datasets_in_bds)
 

@@ -10,7 +10,7 @@ def test_metrics_after_simple_add(get_and_clear_up_context):  # noqa: F811
 
     context = get_and_clear_up_context
 
-    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/registration/datasets-01"
+    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-01-1-dataset"
     checker_run(context, {})
 
     expected_results = [
@@ -31,11 +31,11 @@ def test_metrics_after_new_registration(get_and_clear_up_context):  # noqa: F811
 
     context = get_and_clear_up_context
 
-    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/registration/datasets-01"
+    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-01-1-dataset"
     bds_datasets = {}
     checker_run(context, bds_datasets)
 
-    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/registration/datasets-02"
+    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-02-2-datasets"
     checker_run(context, bds_datasets)
 
     expected_results = [
@@ -56,11 +56,11 @@ def test_metrics_after_unregistration(get_and_clear_up_context):  # noqa: F811
 
     context = get_and_clear_up_context
 
-    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/registration/datasets-02"
+    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-02-2-datasets"
     bds_datasets = {}
     checker_run(context, bds_datasets)
 
-    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/registration/datasets-01"
+    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-01-1-dataset"
     checker_run(context, bds_datasets)
 
     expected_results = [
@@ -81,11 +81,11 @@ def test_metrics_with_success_then_immediate_404(get_and_clear_up_context):  # n
 
     context = get_and_clear_up_context
 
-    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/registration/datasets-01"
+    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-01-1-dataset"
     bds_datasets = {}
     checker_run(context, bds_datasets)
 
-    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/registration/datasets-01-dataset-403"
+    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-03-1-dataset-404"
     checker_run(context, bds_datasets)
 
     expected_results = [
@@ -109,7 +109,7 @@ def test_metrics_with_success_then_delay_404(get_and_clear_up_context):  # noqa:
 
     context = get_and_clear_up_context
 
-    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/registration/datasets-01"
+    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-01-1-dataset"
     datasets = {}
     checker_run(context, datasets)
 
@@ -117,7 +117,7 @@ def test_metrics_with_success_then_delay_404(get_and_clear_up_context):  # noqa:
 
     datasets[dataset_id]["last_successful_download"] = get_timestamp() - timedelta(hours=7)
 
-    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/registration/datasets-01-dataset-403"
+    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-03-1-dataset-404"
     checker_run(context, datasets)
 
     expected_results = [
@@ -141,7 +141,7 @@ def test_metrics_with_only_404(get_and_clear_up_context):  # noqa: F811
 
     context = get_and_clear_up_context
 
-    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/registration/datasets-01-dataset-403"
+    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-03-1-dataset-404"
     checker_run(context, {})
 
     expected_results = [
