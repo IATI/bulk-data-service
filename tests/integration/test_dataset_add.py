@@ -138,8 +138,8 @@ def test_add_new_undownloadable_dataset(get_and_clear_up_context, field, expecte
     ("reporting_org_short_name", "test_foundation_a"),
     ("source_url", "http://localhost:3000/data/test_foundation_a-dataset-001.xml"),
     ("type", "activity"),
-    ("hash", "11c2d75d6d853d1c1ae75529475a317738b96f03"),
-    ("hash_excluding_generated_timestamp", "a60131cee0d78c972f9c28b6428e47e06c1ce892"),
+    ("hash", "d8776c9e0cf913057c688e140e78cbb10799c158"),
+    ("hash_excluding_generated_timestamp", "5bc6f66bef15d6a61c549379c12d8e0d06a2e31c"),
     ("registration_service_name", "ckan-registry"),
     ("registration_service_dataset_metadata", json.dumps(
            {
