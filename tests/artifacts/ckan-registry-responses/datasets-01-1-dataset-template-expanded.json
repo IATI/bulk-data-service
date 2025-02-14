@@ -93,13 +93,7 @@
                         "resource_type": null,
                         "size": 399382,
                         "state": "active",
-                        "url": 
-                                {{#if (urlParam 'source_url')}}
-                                    "{{urlParam 'source_url'}}"
-                                {{else}}
-                                    "http://localhost:3000/data/test_foundation_a-dataset-001.xml"
-                                {{/if}}
-                        ,
+                        "url": "http://localhost:3000/data/test_foundation_a-dataset-001.xml",
                         "url_type": null
                     }
                 ],

@@ -13,7 +13,7 @@
       "type": "http",
       "documentation": "",
       "method": "get",
-      "endpoint": "ckan-registration/:filename",
+      "endpoint": "ckan-registration/:filename/:source_url?",
       "responses": [
         {
           "uuid": "41f6e285-5568-4bc3-ac99-04fe53e03491",
