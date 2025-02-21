@@ -20,14 +20,15 @@ from utilities.misc import (
     set_timestamp_tz_utc,
     zip_data_as_single_file,
 )
+from utilities.prometheus import update_prom_metric
 
 
 def add_or_update_datasets(
     context: dict, datasets_in_bds: dict[uuid.UUID, dict], registered_datasets: dict[uuid.UUID, dict]
 ):
 
-    context["prom_metrics"]["total_number_of_datasets"].set(len(registered_datasets))
-    context["prom_metrics"]["datasets_added"].set(len(registered_datasets) - len(datasets_in_bds))
+    update_prom_metric(context, "total_number_of_datasets", len(registered_datasets))
+    update_prom_metric(context, "datasets_added", len(registered_datasets) - len(datasets_in_bds))
 
     threads = []
 
@@ -243,6 +244,9 @@ def download_and_save_dataset(
     last_download_attempt = get_timestamp()
 
     download_response = http_download_dataset(session, bds_dataset["source_url"])
+
+    if download_response.encoding is None:
+        download_response.encoding = "utf-8"
 
     hash = get_hash(download_response.text)
     hash_excluding_generated = get_hash_excluding_generated_timestamp(download_response.text)

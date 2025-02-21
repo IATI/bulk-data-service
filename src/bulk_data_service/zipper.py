@@ -10,6 +10,7 @@ from azure.storage.blob import BlobServiceClient
 from bulk_data_service.zippers import CodeforIATILegacyZipper, IATIBulkDataServiceZipper
 from utilities.azure import azure_download_blob, get_azure_blob_name, get_azure_container_name
 from utilities.db import get_datasets_in_bds, get_reporting_orgs_in_bds
+from utilities.prometheus import update_prom_metric
 
 
 def zipper(context: dict):
@@ -80,7 +81,7 @@ def zipper_run(
 
     run_end = datetime.datetime.now(datetime.UTC)
     context["logger"].info("Zipper run finished in {}.".format(run_end - run_start))
-    context["prom_metrics"]["zipper_run_duration"].set((run_end - run_start).seconds)
+    update_prom_metric(context, "zipper_run_duration", (run_end - run_start).seconds)
 
 
 def setup_working_dir_with_downloaded_datasets(

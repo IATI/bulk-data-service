@@ -38,7 +38,7 @@ def get_and_clear_up_context():
 
     context["BULK_DATA_SERVICE_VERSION"] = get_app_version()
 
-    for metric in get_metrics_definitions(context):
+    for metric in get_metrics_definitions():
         context["prom_metrics"][metric[0]] = mock.Mock()
 
     create_azure_blob_containers(context)
