@@ -1,13 +1,16 @@
 import glob
+import json
 import os
 import shutil
+from typing import Any
 from unittest import mock
 
 import pytest
+from azure.storage.blob import BlobServiceClient
 from dotenv import dotenv_values
 
 from config.config import get_app_version
-from utilities.azure import create_azure_blob_containers, delete_azure_blob_containers
+from utilities.azure import create_azure_blob_containers, delete_azure_blob_containers, get_azure_container_name
 from utilities.db import apply_db_migrations, get_db_connection
 from utilities.prometheus import get_metrics_definitions
 
@@ -24,6 +27,15 @@ def truncate_db_table(context: dict):
     cursor.execute("""TRUNCATE table iati_datasets""")
     cursor.close()
     connection.commit()
+
+
+def download_index_from_azure(context: dict, index_name: str) -> Any:
+    blob_service_client = BlobServiceClient.from_connection_string(context["AZURE_STORAGE_CONNECTION_STRING"])
+    zip_container_name = get_azure_container_name(context, "zip")
+    index_blob = blob_service_client.get_blob_client(zip_container_name, index_name)
+    blob_as_str = index_blob.download_blob().readall()
+    blob_service_client.close()
+    return json.loads(blob_as_str)
 
 
 @pytest.fixture
