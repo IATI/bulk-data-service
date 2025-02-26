@@ -4,7 +4,7 @@ import uuid
 import pytest
 
 from bulk_data_service.checker import checker_run
-from helpers.helpers import get_and_clear_up_context  # noqa: F401
+from helpers.helpers import check_values_for_download_success, get_and_clear_up_context  # noqa: F401
 
 
 @pytest.mark.parametrize("field,expected", [
@@ -130,6 +130,7 @@ def test_add_new_undownloadable_dataset(get_and_clear_up_context, field, expecte
     assert datasets_in_bds[dataset_id]["download_error_message"] is not None
     assert datasets_in_bds[dataset_id]["last_successful_download"] is None
     assert datasets_in_bds[dataset_id]["last_download_http_status"] != 200
+    assert datasets_in_bds[dataset_id]["last_download_content_length"] is None
 
 
 @pytest.mark.parametrize("field,expected", [
@@ -241,7 +242,7 @@ def test_add_new_undownloadable_dataset(get_and_clear_up_context, field, expecte
             }
     ))
 ])
-def test_add_new_downloadable_dataset(get_and_clear_up_context, field, expected):  # noqa: F811
+def test_add_downloadable_dataset_xml_utf_8(get_and_clear_up_context, field, expected):  # noqa: F811
 
     context = get_and_clear_up_context
 
@@ -253,6 +254,116 @@ def test_add_new_downloadable_dataset(get_and_clear_up_context, field, expected)
     checker_run(context, datasets_in_bds)
 
     assert datasets_in_bds[dataset_id][field] == expected
-    assert datasets_in_bds[dataset_id]["download_error_message"] is None
+    check_values_for_download_success(datasets_in_bds[dataset_id])
+
+
+@pytest.mark.parametrize("field,expected", [
+    ("short_name", "test_foundation_a-dataset-001"),
+    ("reporting_org_id", uuid.UUID("ea055d99-f7e9-456f-9f99-963e95493c1b")),
+    ("reporting_org_short_name", "test_foundation_a"),
+    ("source_url", "http://localhost:3000/data/test_foundation_a-dataset-001-utf-16-be"),
+    ("type", "activity"),
+    ("hash", "0eab5bd008e2f5151c2578b84fda46c054a90c25"),
+    ("hash_excluding_generated_timestamp", "d4efc8c57b52463f4b7c181fdd0e778cbe994e84"),
+    ("registration_service_name", "ckan-registry")
+])
+def test_add_downloadable_dataset_xml_utf_16_be(get_and_clear_up_context, field, expected):  # noqa: F811
+
+    context = get_and_clear_up_context
+
+    dataset_id = uuid.UUID("c8a40aa5-9f31-4bcf-a36f-51c1fc2cc159")
+
+    context["DATA_REGISTRY_BASE_URL"] = ("http://localhost:3000/ckan-registration/datasets-01-1-dataset/"
+                                         "http%3A%2F%2Flocalhost%3A3000%2Fdata%2Ftest_foundation_a-dataset-001-utf-16-be")
+    datasets_in_bds = {}
+    checker_run(context, datasets_in_bds)
+
+    assert datasets_in_bds[dataset_id][field] == expected
+    check_values_for_download_success(datasets_in_bds[dataset_id])
+
+
+@pytest.mark.parametrize("field,expected", [
+    ("short_name", "test_foundation_a-dataset-001"),
+    ("reporting_org_id", uuid.UUID("ea055d99-f7e9-456f-9f99-963e95493c1b")),
+    ("reporting_org_short_name", "test_foundation_a"),
+    ("source_url", "http://localhost:3000/data/test_foundation_a-dataset-001-utf-16-le"),
+    ("type", "activity"),
+    ("hash", "8209b4c54a3c67a143626a176ccddfb9991d2708"),
+    ("hash_excluding_generated_timestamp", "d4efc8c57b52463f4b7c181fdd0e778cbe994e84"),
+    ("registration_service_name", "ckan-registry")
+])
+def test_add_downloadable_dataset_xml_utf_16_le(get_and_clear_up_context, field, expected):  # noqa: F811
+
+    context = get_and_clear_up_context
+
+    dataset_id = uuid.UUID("c8a40aa5-9f31-4bcf-a36f-51c1fc2cc159")
+
+    context["DATA_REGISTRY_BASE_URL"] = ("http://localhost:3000/ckan-registration/datasets-01-1-dataset/"
+                                         "http%3A%2F%2Flocalhost%3A3000%2Fdata%2Ftest_foundation_a-dataset-001-utf-16-le")
+    datasets_in_bds = {}
+    checker_run(context, datasets_in_bds)
+
+    assert datasets_in_bds[dataset_id][field] == expected
+    check_values_for_download_success(datasets_in_bds[dataset_id])
+
+
+@pytest.mark.parametrize("field,expected", [
+    ("short_name", "test_foundation_a-dataset-001"),
+    ("reporting_org_id", uuid.UUID("ea055d99-f7e9-456f-9f99-963e95493c1b")),
+    ("reporting_org_short_name", "test_foundation_a"),
+    ("source_url", "http://localhost:3000/data/test_foundation_a-dataset-empty.xml"),
+    ("type", "activity"),
+    ("hash", None),
+    ("hash_excluding_generated_timestamp", None),
+    ("registration_service_name", "ckan-registry")
+])
+def test_add_downloadable_dataset_empty(get_and_clear_up_context, field, expected):  # noqa: F811
+
+    context = get_and_clear_up_context
+
+    dataset_id = uuid.UUID("c8a40aa5-9f31-4bcf-a36f-51c1fc2cc159")
+
+    context["DATA_REGISTRY_BASE_URL"] = ("http://localhost:3000/ckan-registration/datasets-01-1-dataset/"
+                                         "http%3A%2F%2Flocalhost%3A3000%2Fdata%2Ftest_foundation_a-dataset-empty.xml")
+    datasets_in_bds = {}
+    checker_run(context, datasets_in_bds)
+
+    assert datasets_in_bds[dataset_id][field] == expected
     assert datasets_in_bds[dataset_id]["last_successful_download"] is not None
     assert datasets_in_bds[dataset_id]["last_download_http_status"] == 200
+    assert datasets_in_bds[dataset_id]["last_download_content_length"] == 0
+    assert datasets_in_bds[dataset_id]["last_download_initial_dataset_contents"] is None
+
+    error_details = json.loads(datasets_in_bds[dataset_id]["download_error_message"])
+    assert error_details["bds_message"] == "File does not appear to be IATI XML"
+
+
+@pytest.mark.parametrize("field,expected", [
+    ("short_name", "test_foundation_a-dataset-001"),
+    ("reporting_org_id", uuid.UUID("ea055d99-f7e9-456f-9f99-963e95493c1b")),
+    ("reporting_org_short_name", "test_foundation_a"),
+    ("source_url", "http://localhost:3000/data/test_foundation_a-dataset.pdf"),
+    ("type", "activity"),
+    ("hash", None),
+    ("hash_excluding_generated_timestamp", None),
+    ("registration_service_name", "ckan-registry")
+])
+def test_add_downloadable_dataset_pdf(get_and_clear_up_context, field, expected):  # noqa: F811
+
+    context = get_and_clear_up_context
+
+    dataset_id = uuid.UUID("c8a40aa5-9f31-4bcf-a36f-51c1fc2cc159")
+
+    context["DATA_REGISTRY_BASE_URL"] = ("http://localhost:3000/ckan-registration/datasets-01-1-dataset/"
+                                         "http%3A%2F%2Flocalhost%3A3000%2Fdata%2Ftest_foundation_a-dataset.pdf")
+    datasets_in_bds = {}
+    checker_run(context, datasets_in_bds)
+
+    assert datasets_in_bds[dataset_id][field] == expected
+    assert datasets_in_bds[dataset_id]["last_successful_download"] is not None
+    assert datasets_in_bds[dataset_id]["last_download_http_status"] == 200
+    assert datasets_in_bds[dataset_id]["last_download_content_length"] > 0
+    assert datasets_in_bds[dataset_id]["last_download_initial_dataset_contents"] is None
+
+    error_details = json.loads(datasets_in_bds[dataset_id]["download_error_message"])
+    assert error_details["bds_message"] == "File does not appear to be IATI XML"

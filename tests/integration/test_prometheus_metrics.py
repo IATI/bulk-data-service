@@ -94,8 +94,8 @@ def test_metrics_with_success_then_immediate_404(get_and_clear_up_context):  # n
         ("datasets_added", 0),
         ("datasets_unregistered", 0),
         ("datasets_expired", 0),
-        ("datasets_head_request_non_200", 1),
-        ("datasets_downloads_non_200", 0)  # 0 b/c downloads only retried after 6 hour window
+        ("datasets_head_request_non_200", 0),
+        ("datasets_downloads_non_200", 1)
     ]
 
     for expected in expected_results:
@@ -126,7 +126,7 @@ def test_metrics_with_success_then_delay_404(get_and_clear_up_context):  # noqa:
         ("datasets_added", 0),
         ("datasets_unregistered", 0),
         ("datasets_expired", 0),
-        ("datasets_head_request_non_200", 1),
+        ("datasets_head_request_non_200", 0),
         ("datasets_downloads_non_200", 1)
     ]
 
