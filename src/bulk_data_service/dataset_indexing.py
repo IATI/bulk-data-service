@@ -6,7 +6,7 @@ from typing import Any
 from azure.storage.blob import BlobServiceClient
 
 from utilities.azure import azure_upload_to_blob, get_azure_blob_public_url
-from utilities.misc import get_timestamp
+from utilities.misc import dataset_has_iati_xml_download, get_timestamp
 
 
 def create_and_upload_indices(
@@ -113,7 +113,7 @@ def get_index_entry(context: dict, dataset: dict, index_type: str) -> dict[str, 
     dataset_index_entry["url_xml"] = None
     dataset_index_entry["url_zip"] = None
 
-    if dataset_index_entry["last_successful_download"] is not None:
+    if dataset_has_iati_xml_download(dataset):
         dataset_index_entry["url_xml"] = get_azure_blob_public_url(context, dataset, "xml")
         dataset_index_entry["url_zip"] = get_azure_blob_public_url(context, dataset, "zip")
 
@@ -170,6 +170,8 @@ def get_full_index_dataset_source_fields(context: dict) -> list[str]:
         "last_download_http_status",
         "last_successful_download",
         "last_verified_on_server",
+        "download_content_length",
+        "download_initial_contents",
         "download_error_message",
         "content_modified",
         "content_modified_excluding_generated_timestamp",
