@@ -21,7 +21,12 @@ def azure_download_blob(az_blob_service: BlobServiceClient, container_name: str,
 
 
 def azure_upload_to_blob(
-    az_blob_service: BlobServiceClient, container_name: str, blob_name: str, content: Any, content_type: str
+    az_blob_service: BlobServiceClient,
+    container_name: str,
+    blob_name: str,
+    content: Any,
+    content_type: str,
+    encoding: None | str = None,
 ) -> dict[str, Any]:
 
     blob_client = az_blob_service.get_blob_client(container_name, blob_name)
@@ -29,7 +34,7 @@ def azure_upload_to_blob(
     content_settings = ContentSettings(content_type=content_type)
 
     if content_type == "application/xml":
-        content_settings.content_encoding = "UTF-8"
+        content_settings.content_encoding = encoding
 
     return blob_client.upload_blob(content, overwrite=True, content_settings=content_settings)
 

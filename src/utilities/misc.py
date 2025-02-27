@@ -7,17 +7,43 @@ import uuid
 import zipfile
 from typing import Any
 
+import requests
 
-def get_hash(content: str) -> str:
+
+def content_has_iati_opening_element(content: str | None) -> bool:
+    start_of_iati_xml_regex = re.compile(r"(<?xml[^>]*>)?\s*<iati-(activities|organisations).*", re.IGNORECASE)
+    return start_of_iati_xml_regex.search(content if content is not None else "") is not None
+
+
+def get_initial_chars_if_text(download_response: requests.Response, encoding: str | None) -> str | None:
+    if encoding is None:
+        return None
+
+    download_response.encoding = encoding
+
+    return download_response.text[:250].replace("\n", "")[:150]
+
+
+def dataset_has_iati_xml_download(dataset: dict) -> bool:
+    return dataset["last_successful_download"] is not None
+
+
+def get_hash_of_bytes(content: bytes) -> str:
     hasher = hashlib.sha1()
-    hasher.update(content.encode("utf-8"))
+    hasher.update(content)
     return hasher.hexdigest()
 
 
-def get_hash_excluding_generated_timestamp(content: str) -> str:
+def get_hash(content: str, encoding: str) -> str:
+    hasher = hashlib.sha1()
+    hasher.update(content.encode(encoding))
+    return hasher.hexdigest()
+
+
+def get_hash_excluding_generated_timestamp(content: str, encoding: str) -> str:
     content_to_hash = re.sub(r'generated-datetime="[^"]+"', "", content)
     hasher = hashlib.sha1()
-    hasher.update(content_to_hash.encode("utf-8"))
+    hasher.update(content_to_hash.encode(encoding))
     return hasher.hexdigest()
 
 
@@ -57,7 +83,7 @@ def set_timestamp_tz_utc(date: datetime.datetime) -> datetime.datetime:
     return date.replace(tzinfo=datetime.timezone.utc)
 
 
-def zip_data_as_single_file(filename: str, data: str) -> bytes:
+def zip_data_as_single_file(filename: str, data: bytes) -> bytes:
 
     zip_buffer = io.BytesIO()
 
