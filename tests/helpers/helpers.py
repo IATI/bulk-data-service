@@ -34,8 +34,8 @@ def check_values_for_download_success(dataset: dict):
     assert dataset["download_error_message"] is None
     assert dataset["last_successful_download"] is not None
     assert dataset["last_download_http_status"] == 200
-    assert dataset["last_download_content_length"] > 0
-    assert dataset["last_download_initial_dataset_contents"] is not None
+    assert dataset["download_content_length"] > 0
+    assert dataset["download_initial_contents"] is not None
 
 
 def get_number_xml_files_in_working_dir(context):

@@ -130,7 +130,7 @@ def test_add_new_undownloadable_dataset(get_and_clear_up_context, field, expecte
     assert datasets_in_bds[dataset_id]["download_error_message"] is not None
     assert datasets_in_bds[dataset_id]["last_successful_download"] is None
     assert datasets_in_bds[dataset_id]["last_download_http_status"] != 200
-    assert datasets_in_bds[dataset_id]["last_download_content_length"] is None
+    assert datasets_in_bds[dataset_id]["download_content_length"] is None
 
 
 @pytest.mark.parametrize("field,expected", [
@@ -329,10 +329,10 @@ def test_add_downloadable_dataset_empty(get_and_clear_up_context, field, expecte
     checker_run(context, datasets_in_bds)
 
     assert datasets_in_bds[dataset_id][field] == expected
-    assert datasets_in_bds[dataset_id]["last_successful_download"] is not None
+    assert datasets_in_bds[dataset_id]["last_successful_download"] is None
     assert datasets_in_bds[dataset_id]["last_download_http_status"] == 200
-    assert datasets_in_bds[dataset_id]["last_download_content_length"] == 0
-    assert datasets_in_bds[dataset_id]["last_download_initial_dataset_contents"] is None
+    assert datasets_in_bds[dataset_id]["download_content_length"] == 0
+    assert datasets_in_bds[dataset_id]["download_initial_contents"] is None
 
     error_details = json.loads(datasets_in_bds[dataset_id]["download_error_message"])
     assert error_details["bds_message"] == "File does not appear to be IATI XML"
@@ -360,10 +360,10 @@ def test_add_downloadable_dataset_pdf(get_and_clear_up_context, field, expected)
     checker_run(context, datasets_in_bds)
 
     assert datasets_in_bds[dataset_id][field] == expected
-    assert datasets_in_bds[dataset_id]["last_successful_download"] is not None
+    assert datasets_in_bds[dataset_id]["last_successful_download"] is None
     assert datasets_in_bds[dataset_id]["last_download_http_status"] == 200
-    assert datasets_in_bds[dataset_id]["last_download_content_length"] > 0
-    assert datasets_in_bds[dataset_id]["last_download_initial_dataset_contents"] is None
+    assert datasets_in_bds[dataset_id]["download_content_length"] > 0
+    assert datasets_in_bds[dataset_id]["download_initial_contents"] is None
 
     error_details = json.loads(datasets_in_bds[dataset_id]["download_error_message"])
     assert error_details["bds_message"] == "File does not appear to be IATI XML"
