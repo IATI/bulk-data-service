@@ -29,7 +29,7 @@ def test_get_hash():
 </iati-activities>
 """
 
-    hash = get_hash(yiplActivitiesXmlFile)
+    hash = get_hash(yiplActivitiesXmlFile, "utf-8")
 
     assert(hash == "3486d4cee556d2584020bed2c86305465b8b3880")
 
@@ -55,7 +55,7 @@ def test_get_hash_excluding_generated_timestamp():
 </iati-activities>
 """
 
-    hash = get_hash_excluding_generated_timestamp(yiplActivitiesXmlFile)
+    hash = get_hash_excluding_generated_timestamp(yiplActivitiesXmlFile, "utf-8")
 
     assert(hash == "759eaa39276381f3fc146232cefd2111a2abc199")
 

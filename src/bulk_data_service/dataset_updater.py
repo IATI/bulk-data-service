@@ -12,10 +12,19 @@ from azure.storage.blob import BlobServiceClient
 
 from utilities.azure import azure_blob_exists, azure_upload_to_blob
 from utilities.db import get_db_connection, insert_or_update_dataset
-from utilities.http import get_requests_session, http_download_dataset, http_head_dataset, parse_last_modified_header
+from utilities.http import (
+    determine_response_encoding,
+    get_last_modified_header_if_exists,
+    get_requests_session,
+    http_download_dataset,
+    http_head_dataset,
+)
 from utilities.misc import (
-    get_hash,
+    content_has_iati_opening_element,
+    dataset_has_iati_xml_download,
     get_hash_excluding_generated_timestamp,
+    get_hash_of_bytes,
+    get_initial_chars_if_text,
     get_timestamp,
     set_timestamp_tz_utc,
     zip_data_as_single_file,
@@ -85,19 +94,21 @@ def add_or_update_registered_dataset(
 ):
 
     if registered_dataset_id not in datasets_in_bds:
+        old_source_url = ""
         bds_dataset = create_bds_dataset(registered_datasets[registered_dataset_id])
         datasets_in_bds[registered_dataset_id] = bds_dataset
     else:
         bds_dataset = datasets_in_bds[registered_dataset_id]
+        old_source_url = bds_dataset["source_url"]
         update_bds_dataset_registration_info(bds_dataset, registered_datasets[registered_dataset_id])
-
-    attempt_download = True
 
     bds_dataset["last_update_check"] = get_timestamp()
 
+    attempt_download = True
+
     download_within_hours = get_randomised_download_within_hours(context)
 
-    if dataset_downloaded_within(bds_dataset, download_within_hours):
+    if bds_dataset["source_url"] == old_source_url and dataset_downloaded_within(bds_dataset, download_within_hours):
 
         attempt_download = check_dataset_etag_last_mod_header(
             context, db_conn, session, bds_dataset, download_within_hours
@@ -148,7 +159,7 @@ def get_randomised_download_within_hours(context: dict) -> int:
 
 def dataset_downloaded_within(bds_dataset: dict, hours: int) -> bool:
     hours_ago = get_timestamp() - timedelta(hours=hours)
-    return bds_dataset["last_successful_download"] is not None and bds_dataset["last_successful_download"] > hours_ago
+    return dataset_has_iati_xml_download(bds_dataset) and bds_dataset["last_successful_download"] > hours_ago
 
 
 def check_dataset_etag_last_mod_header(
@@ -245,11 +256,40 @@ def download_and_save_dataset(
 
     download_response = http_download_dataset(session, bds_dataset["source_url"])
 
-    if download_response.encoding is None:
-        download_response.encoding = "utf-8"
+    last_modified_header = get_last_modified_header_if_exists(download_response)
 
-    hash = get_hash(download_response.text)
-    hash_excluding_generated = get_hash_excluding_generated_timestamp(download_response.text)
+    encoding = determine_response_encoding(download_response)
+
+    inital_chars = get_initial_chars_if_text(download_response, encoding)
+
+    bds_dataset["download_content_length"] = len(download_response.content)
+    bds_dataset["download_initial_contents"] = inital_chars
+
+    download_has_opening_iati_element = content_has_iati_opening_element(inital_chars)
+
+    if not download_has_opening_iati_element:
+        bds_dataset.update(
+            {
+                "last_download_attempt": last_download_attempt,
+                "last_download_http_status": download_response.status_code,
+                "last_verified_on_server": last_download_attempt,
+                "download_error_message": json.dumps(
+                    {
+                        "bds_message": "File does not appear to be IATI XML",
+                        "http_headers": dict(download_response.headers),
+                    }
+                ),
+                "server_header_last_modified": last_modified_header,
+                "server_header_etag": download_response.headers.get("ETag", None),
+            }
+        )
+        return
+
+    hash = get_hash_of_bytes(download_response.content)
+    hash_excluding_generated = get_hash_excluding_generated_timestamp(download_response.text, encoding)  # type: ignore
+
+    if hash_excluding_generated != bds_dataset["hash_excluding_generated_timestamp"]:
+        bds_dataset["content_modified_excluding_generated_timestamp"] = last_download_attempt
 
     if hash == bds_dataset["hash"]:
         context["logger"].info(
@@ -257,14 +297,17 @@ def download_and_save_dataset(
             "previous value, so not re-zipping and re-uploading to Azure".format(bds_dataset["id"])
         )
     else:
-        iati_xml_zipped = zip_data_as_single_file(bds_dataset["short_name"] + ".xml", download_response.text)
+        bds_dataset["content_modified"] = last_download_attempt
+
+        iati_xml_zipped = zip_data_as_single_file(bds_dataset["short_name"] + ".xml", download_response.content)
 
         response_xml = azure_upload_to_blob(
             az_blob_service,
             context["AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_XML"],
             "{}/{}.xml".format(bds_dataset["reporting_org_short_name"], bds_dataset["short_name"]),
-            download_response.text,
+            download_response.content,
             "application/xml",
+            encoding=encoding,
         )
 
         context["logger"].debug(
@@ -289,10 +332,6 @@ def download_and_save_dataset(
                 "dataset id: {} - Azure ZIP upload response: {}".format(bds_dataset["id"], response_xml)
             )
 
-    last_modified_header = None
-    if download_response.headers.get("Last-Modified", None) is not None:
-        last_modified_header = parse_last_modified_header(download_response.headers.get("Last-Modified", ""))
-
     bds_dataset.update(
         {
             "hash": hash,
@@ -303,8 +342,6 @@ def download_and_save_dataset(
             "last_successful_download": last_download_attempt,
             "last_verified_on_server": last_download_attempt,
             "download_error_message": None,
-            "content_modified": None,
-            "content_modified_excluding_generated_timestamp": None,
             "server_header_last_modified": last_modified_header,
             "server_header_etag": download_response.headers.get("ETag", None),
         }
@@ -342,6 +379,8 @@ def create_bds_dataset(registered_dataset: dict) -> dict:
         "server_header_etag": None,
         "registration_service_dataset_metadata": registered_dataset["registration_service_dataset_metadata"],
         "registration_service_name": registered_dataset["registration_service_name"],
+        "download_content_length": None,
+        "download_initial_contents": None,
     }
 
 

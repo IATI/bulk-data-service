@@ -2,6 +2,7 @@ import datetime
 from typing import Any, Optional
 from urllib.parse import parse_qs, urlencode, urlsplit, urlunsplit
 
+import chardet
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util import Retry
@@ -12,6 +13,18 @@ def add_qs_params_to_url(url: str, qs_params: dict) -> str:
     new_qs_as_dict = parse_qs(qs) | qs_params
     new_qs_as_str = urlencode(new_qs_as_dict, doseq=True)
     return urlunsplit([scheme, netloc, path, new_qs_as_str, fragment])
+
+
+def determine_response_encoding(download_response: requests.Response) -> str | None:
+    detection_result = chardet.detect(download_response.content)
+    return detection_result["encoding"]
+
+
+def get_last_modified_header_if_exists(download_response: requests.Response) -> Optional[datetime.datetime]:
+    last_modified_header = None
+    if download_response.headers.get("Last-Modified", None) is not None:
+        last_modified_header = parse_last_modified_header(download_response.headers.get("Last-Modified", ""))
+    return last_modified_header
 
 
 def parse_last_modified_header(last_modified_header: str) -> Optional[datetime.datetime]:

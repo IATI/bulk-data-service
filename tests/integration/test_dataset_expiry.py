@@ -19,7 +19,7 @@ def test_dataset_expiry_after_72_hours_failed_downloads(get_and_clear_up_context
     datasets_in_bds = get_datasets_in_bds(context)
     datasets_in_zip = {}
 
-    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/registration/datasets-01"
+    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-01-1-dataset"
     checker_run(context, datasets_in_bds)
     zipper_run(context, datasets_in_zip, datasets_in_bds, get_reporting_orgs_in_bds(context))
 
@@ -29,7 +29,7 @@ def test_dataset_expiry_after_72_hours_failed_downloads(get_and_clear_up_context
     dataset["last_successful_download"] = (dataset["last_successful_download"]
                                            - timedelta(hours=max_hours + 2))
 
-    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/registration/datasets-03"
+    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-03-1-dataset-404"
     checker_run(context, datasets_in_bds)
     zipper_run(context, datasets_in_zip, datasets_in_bds, get_reporting_orgs_in_bds(context))
 

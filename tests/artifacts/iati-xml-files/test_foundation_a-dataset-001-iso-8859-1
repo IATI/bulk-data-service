@@ -1,5 +1,5 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<iati-activities version="2.03">
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<iati-activities version="2.03" generated-datetime="2024-05-03T08:47:49+00:00">
   <iati-activity>
     <iati-identifier>AA-AAA-123456789-ABC123</iati-identifier>
     <reporting-org ref="" type="">

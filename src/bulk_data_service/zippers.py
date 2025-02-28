@@ -8,7 +8,12 @@ from azure.storage.blob import BlobServiceClient
 
 from bulk_data_service.dataset_indexing import get_dataset_index_name, get_reporting_org_index_name
 from utilities.azure import azure_download_blob, get_azure_container_name, upload_zip_to_azure
-from utilities.misc import filter_dict_by_structure, get_number_xml_files_in_dir, get_timestamp_as_str_z
+from utilities.misc import (
+    dataset_has_iati_xml_download,
+    filter_dict_by_structure,
+    get_number_xml_files_in_dir,
+    get_timestamp_as_str_z,
+)
 
 
 class IATIDataZipper(ABC):
@@ -149,7 +154,7 @@ class CodeforIATILegacyZipper(IATIDataZipper):
             dataset = self.datasets_in_bds[dataset_in_bds_db]
             dataset_pathname = self.get_dataset_data_pathname(self.datasets_in_bds[dataset_in_bds_db])
             dataset_filename = self.get_dataset_data_filename(self.datasets_in_bds[dataset_in_bds_db])
-            if dataset["last_successful_download"] is None:
+            if not dataset_has_iati_xml_download(dataset):
                 if not os.path.exists(dataset_pathname):
                     os.makedirs(dataset_pathname, exist_ok=True)
             if not os.path.exists(dataset_filename):

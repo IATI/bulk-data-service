@@ -13,7 +13,7 @@
       "type": "http",
       "documentation": "",
       "method": "get",
-      "endpoint": "registration/datasets-01",
+      "endpoint": "ckan-registration/:filename/:source_url?",
       "responses": [
         {
           "uuid": "41f6e285-5568-4bc3-ac99-04fe53e03491",
@@ -23,77 +23,7 @@
           "label": "",
           "headers": [],
           "bodyType": "FILE",
-          "filePath": "tests/artifacts/ckan-registry-datasets-01-1-dataset.json",
-          "databucketID": "",
-          "sendFileAsBody": true,
-          "rules": [],
-          "rulesOperator": "OR",
-          "disableTemplating": false,
-          "fallbackTo404": false,
-          "default": true,
-          "crudKey": "id",
-          "callbacks": []
-        }
-      ],
-      "responseMode": null,
-      "streamingMode": null,
-      "streamingInterval": 0
-    },
-    {
-      "uuid": "fe5038e8-f3a5-43d2-ab12-3fc2c72b2c11",
-      "type": "http",
-      "documentation": "",
-      "method": "get",
-      "endpoint": "data/test_foundation_a-dataset-001.xml",
-      "responses": [
-        {
-          "uuid": "cf576bd8-d758-49dc-a8c2-c3399bf816d7",
-          "body": "{}",
-          "latency": 0,
-          "statusCode": 200,
-          "label": "",
-          "headers": [],
-          "bodyType": "FILE",
-          "filePath": "tests/artifacts/iati-xml-files/test_foundation_a-dataset-001.xml",
-          "databucketID": "",
-          "sendFileAsBody": true,
-          "rules": [
-            {
-              "target": "body",
-              "modifier": "",
-              "value": "",
-              "invert": false,
-              "operator": "equals"
-            }
-          ],
-          "rulesOperator": "OR",
-          "disableTemplating": false,
-          "fallbackTo404": false,
-          "default": true,
-          "crudKey": "id",
-          "callbacks": []
-        }
-      ],
-      "responseMode": null,
-      "streamingMode": null,
-      "streamingInterval": 0
-    },
-    {
-      "uuid": "af641cc0-d99f-4dd2-b4f6-d1f6335bc774",
-      "type": "http",
-      "documentation": "",
-      "method": "get",
-      "endpoint": "registration/datasets-02",
-      "responses": [
-        {
-          "uuid": "68bdad9f-7236-47d9-bb4c-f49ee2ca97f8",
-          "body": "{}",
-          "latency": 0,
-          "statusCode": 200,
-          "label": "",
-          "headers": [],
-          "bodyType": "FILE",
-          "filePath": "tests/artifacts/ckan-registry-datasets-02-2-datasets.json",
+          "filePath": "tests/artifacts/ckan-registry-responses/{{urlParam 'filename'}}.json",
           "databucketID": "",
           "sendFileAsBody": true,
           "rules": [],
@@ -114,94 +44,43 @@
       "type": "http",
       "documentation": "",
       "method": "get",
-      "endpoint": "data/test_foundation_b-dataset-001.xml",
+      "endpoint": "data/:filename",
       "responses": [
         {
           "uuid": "81e7de85-adae-45c8-a338-5294d2701aef",
-          "body": "{}",
+          "body": "404 - Not Found",
           "latency": 0,
           "statusCode": 200,
           "label": "",
           "headers": [],
           "bodyType": "FILE",
-          "filePath": "tests/artifacts/iati-xml-files/test_foundation_b-dataset-001.xml",
-          "databucketID": "",
-          "sendFileAsBody": true,
-          "rules": [
-            {
-              "target": "body",
-              "modifier": "",
-              "value": "",
-              "invert": false,
-              "operator": "equals"
-            }
-          ],
-          "rulesOperator": "OR",
-          "disableTemplating": false,
-          "fallbackTo404": false,
-          "default": true,
-          "crudKey": "id",
-          "callbacks": []
-        }
-      ],
-      "responseMode": null,
-      "streamingMode": null,
-      "streamingInterval": 0
-    },
-    {
-      "uuid": "698df016-9108-429d-b48a-da8b4e687b20",
-      "type": "http",
-      "documentation": "",
-      "method": "get",
-      "endpoint": "registration/datasets-03",
-      "responses": [
-        {
-          "uuid": "6b34ed1d-c059-4ac2-be98-2f09629433f4",
-          "body": "{}",
-          "latency": 0,
-          "statusCode": 200,
-          "label": "",
-          "headers": [],
-          "bodyType": "FILE",
-          "filePath": "tests/artifacts/ckan-registry-datasets-03-1-dataset-404.json",
+          "filePath": "tests/artifacts/iati-xml-files/{{urlParam 'filename'}}",
           "databucketID": "",
           "sendFileAsBody": true,
           "rules": [],
           "rulesOperator": "OR",
           "disableTemplating": false,
-          "fallbackTo404": false,
+          "fallbackTo404": true,
           "default": true,
           "crudKey": "id",
           "callbacks": []
-        }
-      ],
-      "responseMode": null,
-      "streamingMode": null,
-      "streamingInterval": 0
-    },
-    {
-      "uuid": "304b9dd4-ae2d-4bc2-be2f-42bf2bb89b21",
-      "type": "http",
-      "documentation": "",
-      "method": "get",
-      "endpoint": "registration/datasets-04",
-      "responses": [
+        },
         {
-          "uuid": "4ba14f3d-3161-4ef6-a745-30e0e90187d9",
-          "body": "{}",
+          "uuid": "3ec6eb00-0c76-4570-88f7-e10b7cb95835",
+          "body": "404 - Not Found",
           "latency": 0,
-          "statusCode": 200,
+          "statusCode": 404,
           "label": "",
           "headers": [],
-          "bodyType": "FILE",
-          "filePath": "tests/artifacts/ckan-registry-datasets-04-2-datasets-1-404.json",
+          "bodyType": "INLINE",
+          "filePath": "",
           "databucketID": "",
-          "sendFileAsBody": true,
+          "sendFileAsBody": false,
           "rules": [],
           "rulesOperator": "OR",
           "disableTemplating": false,
           "fallbackTo404": false,
-          "default": true,
+          "default": false,
           "crudKey": "id",
           "callbacks": []
         }
@@ -331,46 +210,15 @@
       "streamingInterval": 0
     },
     {
-      "uuid": "b81b26b1-62f6-473f-9815-bbb219c7667b",
-      "type": "http",
-      "documentation": "",
-      "method": "get",
-      "endpoint": "registration/datasets-05",
-      "responses": [
-        {
-          "uuid": "940422a8-6e56-462c-8601-e62316b419a4",
-          "body": "{}",
-          "latency": 0,
-          "statusCode": 200,
-          "label": "",
-          "headers": [],
-          "bodyType": "FILE",
-          "filePath": "tests/artifacts/ckan-registry-datasets-05-1-dataset-updated.json",
-          "databucketID": "",
-          "sendFileAsBody": true,
-          "rules": [],
-          "rulesOperator": "OR",
-          "disableTemplating": false,
-          "fallbackTo404": false,
-          "default": true,
-          "crudKey": "id",
-          "callbacks": []
-        }
-      ],
-      "responseMode": null,
-      "streamingMode": null,
-      "streamingInterval": 0
-    },
-    {
       "uuid": "5f8025cd-7f9a-49cf-9660-b657f9b822ec",
       "type": "http",
-      "documentation": "",
+      "documentation": "URL paths ending in -403 or -500 will yield an HTTP response with the respective status code.",
       "method": "get",
-      "endpoint": "data/test_foundation_a-dataset-001-403.xml",
+      "endpoint": "data/:filename---:status_code.xml",
       "responses": [
         {
           "uuid": "008d654b-9b35-46b5-b12a-a81dac62b4d9",
-          "body": "{}",
+          "body": "",
           "latency": 0,
           "statusCode": 403,
           "label": "",
@@ -379,11 +227,46 @@
           "filePath": "",
           "databucketID": "",
           "sendFileAsBody": false,
-          "rules": [],
+          "rules": [
+            {
+              "target": "params",
+              "modifier": "status_code",
+              "value": "403",
+              "invert": false,
+              "operator": "equals"
+            }
+          ],
           "rulesOperator": "OR",
           "disableTemplating": false,
           "fallbackTo404": false,
           "default": true,
+          "crudKey": "id",
+          "callbacks": []
+        },
+        {
+          "uuid": "3df509c0-4476-4c8f-b948-5a842c632d43",
+          "body": "{\n  \"message\": \"server error\",\n  \"status_code\": 500\n}\n",
+          "latency": 0,
+          "statusCode": 500,
+          "label": "",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [
+            {
+              "target": "params",
+              "modifier": "status_code",
+              "value": "500",
+              "invert": false,
+              "operator": "equals"
+            }
+          ],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": false,
           "crudKey": "id",
           "callbacks": []
         }
@@ -397,20 +280,28 @@
       "type": "http",
       "documentation": "",
       "method": "get",
-      "endpoint": "registration/datasets-01-dataset-403",
+      "endpoint": "ckan-registration/:filename---:status_code",
       "responses": [
         {
           "uuid": "f9d7daec-2b82-43d4-b618-ecb7d6578213",
-          "body": "{}",
+          "body": "{\n  \"status_code\": 403\n}\n",
           "latency": 0,
-          "statusCode": 200,
+          "statusCode": 403,
           "label": "",
           "headers": [],
-          "bodyType": "FILE",
+          "bodyType": "INLINE",
           "filePath": "tests/artifacts/ckan-registry-datasets-01-1-dataset-403.json",
           "databucketID": "",
           "sendFileAsBody": true,
-          "rules": [],
+          "rules": [
+            {
+              "target": "params",
+              "modifier": "status_code",
+              "value": "403",
+              "invert": false,
+              "operator": "equals"
+            }
+          ],
           "rulesOperator": "OR",
           "disableTemplating": false,
           "fallbackTo404": false,
@@ -517,37 +408,6 @@
       "streamingInterval": 0
     },
     {
-      "uuid": "e39fc8aa-8a06-4ab7-95a3-4f7ea1403ef3",
-      "type": "http",
-      "documentation": "",
-      "method": "get",
-      "endpoint": "registration/datasets-06",
-      "responses": [
-        {
-          "uuid": "392ff786-2242-472f-874f-8a6ceaf47dbf",
-          "body": "{}",
-          "latency": 0,
-          "statusCode": 200,
-          "label": "",
-          "headers": [],
-          "bodyType": "FILE",
-          "filePath": "tests/artifacts/ckan-registry-datasets-06-1-dataset-unknown-org.json",
-          "databucketID": "",
-          "sendFileAsBody": true,
-          "rules": [],
-          "rulesOperator": "OR",
-          "disableTemplating": false,
-          "fallbackTo404": false,
-          "default": true,
-          "crudKey": "id",
-          "callbacks": []
-        }
-      ],
-      "responseMode": null,
-      "streamingMode": null,
-      "streamingInterval": 0
-    },
-    {
       "uuid": "19643653-d0ce-41d6-9d00-b6116bb6ca6c",
       "type": "http",
       "documentation": "",
@@ -582,31 +442,11 @@
   "rootChildren": [
     {
       "type": "route",
-      "uuid": "4313b3fa-170d-41bc-bc73-1331b6fe54e9"
-    },
-    {
-      "type": "route",
       "uuid": "de92700b-4c9f-49c7-94e9-fa232a6b770a"
     },
     {
       "type": "route",
-      "uuid": "af641cc0-d99f-4dd2-b4f6-d1f6335bc774"
-    },
-    {
-      "type": "route",
-      "uuid": "698df016-9108-429d-b48a-da8b4e687b20"
-    },
-    {
-      "type": "route",
-      "uuid": "304b9dd4-ae2d-4bc2-be2f-42bf2bb89b21"
-    },
-    {
-      "type": "route",
-      "uuid": "b81b26b1-62f6-473f-9815-bbb219c7667b"
-    },
-    {
-      "type": "route",
-      "uuid": "e39fc8aa-8a06-4ab7-95a3-4f7ea1403ef3"
+      "uuid": "4313b3fa-170d-41bc-bc73-1331b6fe54e9"
     },
     {
       "type": "route",
@@ -623,10 +463,6 @@
     {
       "type": "route",
       "uuid": "8befa91d-1dab-4156-9a72-38c8b014a92f"
-    },
-    {
-      "type": "route",
-      "uuid": "fe5038e8-f3a5-43d2-ab12-3fc2c72b2c11"
     },
     {
       "type": "route",

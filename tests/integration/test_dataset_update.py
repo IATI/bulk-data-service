@@ -4,7 +4,7 @@ import uuid
 import pytest
 
 from bulk_data_service.checker import checker_run
-from helpers.helpers import get_and_clear_up_context  # noqa: F401
+from helpers.helpers import check_values_for_download_success, get_and_clear_up_context  # noqa: F401
 
 
 @pytest.mark.parametrize("field,original,expected", [
@@ -220,7 +220,7 @@ def test_update_dataset_publisher_details(get_and_clear_up_context,  # noqa: F81
 
     dataset_id = uuid.UUID("c8a40aa5-9f31-4bcf-a36f-51c1fc2cc159")
 
-    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/registration/datasets-01"
+    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-01-1-dataset"
     datasets_in_bds = {}
     checker_run(context, datasets_in_bds)
 
@@ -228,30 +228,114 @@ def test_update_dataset_publisher_details(get_and_clear_up_context,  # noqa: F81
     assert datasets_in_bds[dataset_id][field] == original
 
     # this is same dataset as above, with a different url
-    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/registration/datasets-05"
+    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-05-1-dataset-updated"
     checker_run(context, datasets_in_bds)
 
     assert len(datasets_in_bds) == 1
     assert datasets_in_bds[dataset_id][field] == expected
 
 
-def test_get_request_download_error_cleared(get_and_clear_up_context):  # noqa: F811
+def test_dataset_download_404s_then_successful(get_and_clear_up_context):  # noqa: F811
 
     context = get_and_clear_up_context
 
     dataset_id = uuid.UUID("c8a40aa5-9f31-4bcf-a36f-51c1fc2cc159")
 
     # dataset c8a40aa5-9f31-... with 404
-    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/registration/datasets-03"
+    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-03-1-dataset-404"
     datasets_in_bds = {}
     checker_run(context, datasets_in_bds)
 
     assert datasets_in_bds[dataset_id]["last_download_http_status"] == 404
     assert datasets_in_bds[dataset_id]["download_error_message"] is not None
+    assert datasets_in_bds[dataset_id]["download_content_length"] is None
+    assert datasets_in_bds[dataset_id]["download_initial_contents"] is None
 
     # dataset c8a40aa5-9f31-... with good URL
-    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/registration/datasets-01"
+    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-01-1-dataset"
+    checker_run(context, datasets_in_bds)
+
+    check_values_for_download_success(datasets_in_bds[dataset_id])
+
+
+def test_dataset_successful_xml_download_then_pdf(get_and_clear_up_context):  # noqa: F811
+
+    context = get_and_clear_up_context
+
+    dataset_id = uuid.UUID("c8a40aa5-9f31-4bcf-a36f-51c1fc2cc159")
+
+    # dataset c8a40aa5-9f31-... with XML
+    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-01-1-dataset"
+    datasets_in_bds = {}
+    checker_run(context, datasets_in_bds)
+
+    check_values_for_download_success(datasets_in_bds[dataset_id])
+    # extra check, for the actual value of start of XML
+    assert (datasets_in_bds[dataset_id]["download_initial_contents"] ==
+            ('<?xml version="1.0" encoding="UTF-8"?><iati-activities version="2.03" '
+            'generated-datetime="2024-05-03T08:47:49+00:00">  <iati-activity>    <iati-identi'))
+
+    # dataset c8a40aa5-9f31-... with source url pointing to PDF
+    context["DATA_REGISTRY_BASE_URL"] = ("http://localhost:3000/ckan-registration/datasets-01-1-dataset/"
+                                         "http%3A%2F%2Flocalhost%3A3000%2Fdata%2Ftest_foundation_a-dataset.pdf")
     checker_run(context, datasets_in_bds)
 
     assert datasets_in_bds[dataset_id]["last_download_http_status"] == 200
-    assert datasets_in_bds[dataset_id]["download_error_message"] is None
+    assert datasets_in_bds[dataset_id]["download_error_message"] is not None
+    assert datasets_in_bds[dataset_id]["download_content_length"] > 0
+    assert datasets_in_bds[dataset_id]["download_initial_contents"] is None
+
+
+def test_dataset_pdf_download_then_successful_xml(get_and_clear_up_context):  # noqa: F811
+
+    context = get_and_clear_up_context
+
+    dataset_id = uuid.UUID("c8a40aa5-9f31-4bcf-a36f-51c1fc2cc159")
+
+    # dataset c8a40aa5-9f31-... with source url pointing to PDF
+    context["DATA_REGISTRY_BASE_URL"] = ("http://localhost:3000/ckan-registration/datasets-01-1-dataset/"
+                                         "http%3A%2F%2Flocalhost%3A3000%2Fdata%2Ftest_foundation_a-dataset.pdf")
+    datasets_in_bds = {}
+    checker_run(context, datasets_in_bds)
+
+    assert datasets_in_bds[dataset_id]["last_download_http_status"] == 200
+    assert datasets_in_bds[dataset_id]["download_error_message"] is not None
+    assert datasets_in_bds[dataset_id]["download_content_length"] > 0
+    assert datasets_in_bds[dataset_id]["download_initial_contents"] is None
+
+    # dataset c8a40aa5-9f31-... with XML
+    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-01-1-dataset"
+    checker_run(context, datasets_in_bds)
+
+    check_values_for_download_success(datasets_in_bds[dataset_id])
+    # extra check, for the actual value of start of XML
+    assert (datasets_in_bds[dataset_id]["download_initial_contents"] ==
+            ('<?xml version="1.0" encoding="UTF-8"?><iati-activities version="2.03" '
+            'generated-datetime="2024-05-03T08:47:49+00:00">  <iati-activity>    <iati-identi'))
+
+
+def test_dataset_successful_xml_download_then_empty(get_and_clear_up_context):  # noqa: F811
+
+    context = get_and_clear_up_context
+
+    dataset_id = uuid.UUID("c8a40aa5-9f31-4bcf-a36f-51c1fc2cc159")
+
+    # dataset c8a40aa5-9f31-... with XML
+    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-01-1-dataset"
+    datasets_in_bds = {}
+    checker_run(context, datasets_in_bds)
+
+    check_values_for_download_success(datasets_in_bds[dataset_id])
+    assert (datasets_in_bds[dataset_id]["download_initial_contents"] ==
+            ('<?xml version="1.0" encoding="UTF-8"?><iati-activities version="2.03" '
+            'generated-datetime="2024-05-03T08:47:49+00:00">  <iati-activity>    <iati-identi'))
+
+    # dataset c8a40aa5-9f31-... with source url pointing to empty file
+    context["DATA_REGISTRY_BASE_URL"] = ("http://localhost:3000/ckan-registration/datasets-01-1-dataset/"
+                                         "http%3A%2F%2Flocalhost%3A3000%2Fdata%2Ftest_foundation_a-dataset-empty.xml")
+    checker_run(context, datasets_in_bds)
+
+    assert datasets_in_bds[dataset_id]["last_download_http_status"] == 200
+    assert datasets_in_bds[dataset_id]["download_error_message"] is not None
+    assert datasets_in_bds[dataset_id]["download_content_length"] == 0
+    assert datasets_in_bds[dataset_id]["download_initial_contents"] is None
