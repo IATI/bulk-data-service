@@ -9,10 +9,13 @@ from typing import Any
 
 import requests
 
+START_OF_IATI_XML_REGEX = re.compile(
+    r"^(<\?xml[^>]*>)?\s*(<!--[^>]*-->)?\s*<iati-(activities|organisations)", re.IGNORECASE
+)
+
 
 def content_has_iati_opening_element(content: str | None) -> bool:
-    start_of_iati_xml_regex = re.compile(r"(<?xml[^>]*>)?\s*<iati-(activities|organisations).*", re.IGNORECASE)
-    return start_of_iati_xml_regex.search(content if content is not None else "") is not None
+    return START_OF_IATI_XML_REGEX.search(content if content is not None else "") is not None
 
 
 def get_initial_chars_if_text(download_response: requests.Response, encoding: str | None) -> str | None:
@@ -21,7 +24,7 @@ def get_initial_chars_if_text(download_response: requests.Response, encoding: st
 
     download_response.encoding = encoding
 
-    return download_response.text[:250].replace("\n", "")[:150]
+    return download_response.text[:250].replace("\n", "").replace("\r", "")[:150]
 
 
 def dataset_has_iati_xml_download(dataset: dict) -> bool:

@@ -1,6 +1,7 @@
 import pytest
 
 from utilities.misc import (
+    content_has_iati_opening_element,
     filter_dict_by_structure,
     get_hash,
     get_hash_excluding_generated_timestamp,
@@ -169,3 +170,56 @@ def test_filter_dict_with_list_no_dict_items(input, structure, expected):
 def test_filter_dict_with_list_with_dict_items(input, structure, expected):
 
     assert filter_dict_by_structure(input, structure) == expected
+
+
+@pytest.mark.parametrize("input,expected",
+                         [
+                             ("", False),
+                             ("String without an opening element", False),
+                             ("Contents with something before correct element <iati-activities>", False),
+                             ("Contents with something before correct element <iati-organisations>", False),
+                             ('<?xml version="1.0"?>String without an opening element', False),
+                             ('<?xml version="1.0"?>String without an opening element<iati-activities>', False),
+                             ("iati-activities more here", False),
+                             ("iati-activities> and more content", False),
+                             ("<iati activities", False),
+                             ("<iati activities something here", False),
+                             ("iati-organisations more here", False),
+                             ("iati-organisations> and more content", False),
+                             ("<iati organisations", False),
+                             ("<iati organisations something here", False),
+                             ("<iati organisations something here", False),
+                             ("<iati organisations something here", False),
+                          ])
+def test_content_has_iati_opening_element_negatives(input, expected):
+    assert content_has_iati_opening_element(input) == expected
+
+
+@pytest.mark.parametrize("input,expected",
+                         [
+                             ("<iati-activities", True),
+                             ("<iati-activities and more content here", True),
+                             ("<iati-organisations", True),
+                             ("<iati-organisations and more content", True),
+                             ("   <iati-activities", True),
+                             ("	<iati-activities", True),  # tab
+                             ("   <iati-activities and more content here", True),
+                             ("   <iati-organisations", True),
+                             ("   <iati-organisations and more content", True),
+                             ("""
+                              <iati-activities and more content""", True),
+                             ("""<!-- comment --><iati-activities and more content""", True),
+                             ("""    <!-- comment --><iati-activities and more content""", True),
+                             ("""<!--  --><iati-activities and more content""", True),
+                             ("""<?xml version="1.0"?><!-- comment --><iati-activities and more content""", True),
+                             ("""<?xml version="1.0"?>  <!-- comment --><iati-activities and more content""", True),
+                             ("""<?xml version="1.0"?><!-- comment -->  <iati-activities and more content""", True),
+                             ("""<?xml version="1.0"?><!-- -->  <iati-activities and more content""", True),
+                             ("""<?xml version="1.0"?><!---->  <iati-activities and more content""", True),
+                             ("""<?xml version="1.0"?><!--
+                              comment here
+                              -->  <iati-activities and more content""", True),
+                          ])
+
+def test_content_has_iati_opening_element_positives(input, expected):
+    assert content_has_iati_opening_element(input) == expected
