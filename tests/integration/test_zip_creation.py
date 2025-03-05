@@ -55,7 +55,7 @@ def test_publisher_metadata_saved_for_successful_metadata_dl(get_and_clear_up_co
 
     context = get_and_clear_up_context
 
-    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/registration/datasets-05"
+    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-05-1-dataset-updated"
     datasets_in_bds = {}
     checker_run(context, datasets_in_bds)
 
@@ -69,7 +69,7 @@ def test_publisher_metadata_content_for_failed_metadata_dl(get_and_clear_up_cont
 
     context = get_and_clear_up_context
 
-    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/registration/datasets-06"
+    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-06-1-dataset-unknown-org"
     datasets_in_bds = {}
     checker_run(context, datasets_in_bds)
 
@@ -84,7 +84,7 @@ def test_publisher_metadata_content_for_successful_metadata_dl(get_and_clear_up_
 
     context = get_and_clear_up_context
 
-    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/registration/datasets-05"
+    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-05-1-dataset-updated"
     datasets_in_bds = {}
     checker_run(context, datasets_in_bds)
 
@@ -234,7 +234,7 @@ def test_codeforiati_zip_content_for_download_fail_no_cached(get_and_clear_up_co
 
 
 def run_checker_then_zipper_download_ok(context):
-    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/registration/datasets-01"
+    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-01-1-dataset"
     datasets_in_bds = {}
     checker_run(context, datasets_in_bds)
 
@@ -243,7 +243,7 @@ def run_checker_then_zipper_download_ok(context):
 
 
 def run_checker_then_zipper_download_fail(context):
-    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/registration/datasets-03"
+    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-03-1-dataset-404"
     datasets_in_bds = {}
     checker_run(context, datasets_in_bds)
 
@@ -252,12 +252,12 @@ def run_checker_then_zipper_download_fail(context):
 
 
 def run_checker_then_zipper_download_fail_but_cached(context):
-    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/registration/datasets-01"
+    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-01-1-dataset"
     datasets_in_bds = {}
     checker_run(context, datasets_in_bds)
 
     # this is same dataset as above, only with a 404 URL
-    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/registration/datasets-03"
+    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-03-1-dataset-404"
     checker_run(context, datasets_in_bds)
 
     datasets_in_zip = {}

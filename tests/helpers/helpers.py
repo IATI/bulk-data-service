@@ -1,15 +1,41 @@
 import glob
+import io
+import json
 import os
 import shutil
+import zipfile
+from typing import Any
 from unittest import mock
 
 import pytest
+from azure.storage.blob import BlobServiceClient
 from dotenv import dotenv_values
 
 from config.config import get_app_version
-from utilities.azure import create_azure_blob_containers, delete_azure_blob_containers
+from utilities.azure import (
+    create_azure_blob_containers,
+    delete_azure_blob_containers,
+    get_azure_blob_name,
+    get_azure_container_name,
+)
 from utilities.db import apply_db_migrations, get_db_connection
 from utilities.prometheus import get_metrics_definitions
+
+
+def unzip_from_buffer(filename: str, buffer: bytes) -> bytes:
+    content = None
+    io_buffer = io.BytesIO(buffer)
+    with zipfile.ZipFile(io_buffer, "r") as handle:
+        content = handle.read(filename)
+    return content
+
+
+def check_values_for_download_success(dataset: dict):
+    assert dataset["download_error_message"] is None
+    assert dataset["last_successful_download"] is not None
+    assert dataset["last_download_http_status"] == 200
+    assert dataset["download_content_length"] > 0
+    assert dataset["download_initial_contents"] is not None
 
 
 def get_number_xml_files_in_working_dir(context):
@@ -24,6 +50,30 @@ def truncate_db_table(context: dict):
     cursor.execute("""TRUNCATE table iati_datasets""")
     cursor.close()
     connection.commit()
+
+
+def get_file_contents(filename: str) -> bytes:
+    with open("{}".format(filename), 'rb') as f:
+        return f.read()
+
+
+def download_dataset_from_azure(context: dict, dataset: dict, type: str) -> bytes:
+    blob_service_client = BlobServiceClient.from_connection_string(context["AZURE_STORAGE_CONNECTION_STRING"])
+    container_name = get_azure_container_name(context, "zip")
+    blob_name = get_azure_blob_name(dataset, type)
+    dataset_blob_client = blob_service_client.get_blob_client(container_name, blob_name)
+    blob_as_bytes = dataset_blob_client.download_blob().readall()
+    blob_service_client.close()
+    return blob_as_bytes
+
+
+def download_index_from_azure(context: dict, index_name: str) -> Any:
+    blob_service_client = BlobServiceClient.from_connection_string(context["AZURE_STORAGE_CONNECTION_STRING"])
+    zip_container_name = get_azure_container_name(context, "zip")
+    index_blob = blob_service_client.get_blob_client(zip_container_name, index_name)
+    blob_as_str = index_blob.download_blob().readall()
+    blob_service_client.close()
+    return json.loads(blob_as_str)
 
 
 @pytest.fixture

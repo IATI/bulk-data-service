@@ -7,7 +7,7 @@ from azure.storage.blob import BlobServiceClient
 
 from utilities.azure import delete_azure_iati_blob
 from utilities.db import get_db_connection, insert_or_update_dataset, remove_dataset_from_db
-from utilities.misc import get_timestamp
+from utilities.misc import dataset_has_iati_xml_download, get_timestamp
 from utilities.prometheus import update_prom_metric
 
 
@@ -52,7 +52,7 @@ def remove_expired_downloads(context: dict[str, Any], datasets_in_bds: dict[uuid
     expired_datasets = 0
 
     for dataset in datasets_in_bds.values():
-        if dataset_has_expired(context, dataset):
+        if dataset_has_download_and_is_expired(context, dataset):
             remove_download_for_expired_dataset(context, db_conn, az_blob_service, dataset)
             expired_datasets += 1
 
@@ -88,10 +88,10 @@ def remove_download_for_expired_dataset(
     return bds_dataset
 
 
-def dataset_has_expired(context: dict[str, Any], bds_dataset: dict) -> bool:
+def dataset_has_download_and_is_expired(context: dict[str, Any], bds_dataset: dict) -> bool:
 
     max_hours = int(context["REMOVE_LAST_GOOD_DOWNLOAD_AFTER_FAILING_HOURS"])
 
-    return bds_dataset["last_successful_download"] is not None and bds_dataset["last_successful_download"] < (
+    return dataset_has_iati_xml_download(bds_dataset) and bds_dataset["last_successful_download"] < (
         get_timestamp() - timedelta(hours=max_hours)
     )

@@ -10,6 +10,7 @@ from azure.storage.blob import BlobServiceClient
 from bulk_data_service.zippers import CodeforIATILegacyZipper, IATIBulkDataServiceZipper
 from utilities.azure import azure_download_blob, get_azure_blob_name, get_azure_container_name
 from utilities.db import get_datasets_in_bds, get_reporting_orgs_in_bds
+from utilities.misc import dataset_has_iati_xml_download
 from utilities.prometheus import update_prom_metric
 
 
@@ -90,7 +91,7 @@ def setup_working_dir_with_downloaded_datasets(
 
     clean_working_dir(context, datasets_in_working_dir)
 
-    datasets_with_downloads = {k: v for k, v in datasets_in_bds.items() if v["last_successful_download"] is not None}
+    datasets_with_downloads = {k: v for k, v in datasets_in_bds.items() if dataset_has_iati_xml_download(v)}
 
     remove_datasets_without_dls_from_working_dir(context, datasets_in_working_dir, datasets_with_downloads)
 

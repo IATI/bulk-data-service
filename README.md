@@ -189,6 +189,14 @@ You can use the Mockoon GUI application to edit the mockoon server configuration
 
 The automated tests are safe to run alongside the `docker compose` setup for development.
 
+### Automatically running the automated tests
+
+When you are developing you may want to have the tests run whenever you make changes. `pytest-watcher` is installed for this purpose and you can run it with the following command:
+
+```bash
+pytest-watcher .
+```
+
 ## Provisioning and Deployment
 
 ### Initial Provisioning
