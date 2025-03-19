@@ -9,7 +9,7 @@ def get_metrics_definitions() -> list[tuple[str, str, str | None]]:
         (
             "datasets_with_download",
             "The number of datasets with a last good download",
-            "SELECT COUNT(id) FROM iati_datasets WHERE last_successful_download IS NOT NULL",
+            "SELECT COUNT(id) FROM iati_datasets WHERE last_known_good_dataset_downloaded IS NOT NULL",
         ),
         ("datasets_added", "The number of datasets removed during last update", None),
         ("datasets_unregistered", "The number of datasets unregistered and so removed during last run", None),

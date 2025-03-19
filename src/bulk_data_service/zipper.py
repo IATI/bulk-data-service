@@ -98,7 +98,7 @@ def setup_working_dir_with_downloaded_datasets(
     new_or_updated_datasets = {
         k: v
         for k, v in datasets_with_downloads.items()
-        if k not in datasets_in_working_dir or datasets_in_working_dir[k]["hash"] != datasets_with_downloads[k]["hash"]
+        if k not in datasets_in_working_dir or datasets_in_working_dir[k]["last_known_good_dataset_hash"] != datasets_with_downloads[k]["last_known_good_dataset_hash"]
     }
 
     context["logger"].info(

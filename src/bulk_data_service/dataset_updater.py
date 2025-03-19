@@ -159,7 +159,7 @@ def get_randomised_download_within_hours(context: dict) -> int:
 
 def dataset_downloaded_within(bds_dataset: dict, hours: int) -> bool:
     hours_ago = get_timestamp() - timedelta(hours=hours)
-    return dataset_has_iati_xml_download(bds_dataset) and bds_dataset["last_successful_download"] > hours_ago
+    return dataset_has_iati_xml_download(bds_dataset) and bds_dataset["last_known_good_dataset_downloaded"] > hours_ago
 
 
 def check_dataset_etag_last_mod_header(
@@ -175,7 +175,7 @@ def check_dataset_etag_last_mod_header(
     try:
         head_response = http_head_dataset(session, bds_dataset["source_url"])
 
-        if "ETag" in head_response.headers and head_response.headers["ETag"] != bds_dataset["server_header_etag"]:
+        if "ETag" in head_response.headers and head_response.headers["ETag"] != bds_dataset["last_known_good_dataset_server_header_etag"]:
 
             context["logger"].info(
                 "dataset id: {} - Last successful download within {} hours, "
@@ -186,7 +186,7 @@ def check_dataset_etag_last_mod_header(
 
         elif "Last-Modified" in head_response.headers and set_timestamp_tz_utc(
             datetime.strptime(head_response.headers["Last-Modified"], "%a, %d %b %Y %H:%M:%S GMT")
-        ) != set_timestamp_tz_utc(bds_dataset["server_header_last_modified"]):
+        ) != set_timestamp_tz_utc(bds_dataset["last_known_good_dataset_server_header_last_modified"]):
 
             context["logger"].info(
                 "dataset id: {} - Last successful download within {} hours, "
@@ -203,7 +203,7 @@ def check_dataset_etag_last_mod_header(
 
             update_dataset_head_request_fields(bds_dataset, head_response.status_code)
 
-            bds_dataset["last_verified_on_server"] = bds_dataset["most_recent_head_attempt_datetime"]
+            bds_dataset["last_known_good_dataset_verified_on_server"] = bds_dataset["most_recent_head_attempt_datetime"]
 
             insert_or_update_dataset(db_conn, bds_dataset)
 
@@ -262,8 +262,8 @@ def download_and_save_dataset(
 
     inital_chars = get_initial_chars_if_text(download_response, encoding)
 
-    bds_dataset["download_content_length"] = len(download_response.content)
-    bds_dataset["download_initial_contents"] = inital_chars
+    bds_dataset["last_known_good_dataset_content_length"] = len(download_response.content)
+    bds_dataset["last_known_good_dataset_initial_contents"] = inital_chars
 
     download_has_opening_iati_element = content_has_iati_opening_element(inital_chars)
 
@@ -272,15 +272,15 @@ def download_and_save_dataset(
             {
                 "most_recent_get_attempt_datetime": most_recent_get_attempt_datetime,
                 "most_recent_get_attempt_http_status": download_response.status_code,
-                "last_verified_on_server": most_recent_get_attempt_datetime,
+                "last_known_good_dataset_verified_on_server": most_recent_get_attempt_datetime,
                 "most_recent_get_attempt_error_details": json.dumps(
                     {
                         "bds_message": "File does not appear to be IATI XML",
                         "http_headers": dict(download_response.headers),
                     }
                 ),
-                "server_header_last_modified": last_modified_header,
-                "server_header_etag": download_response.headers.get("ETag", None),
+                "last_known_good_dataset_server_header_last_modified": last_modified_header,
+                "last_known_good_dataset_server_header_etag": download_response.headers.get("ETag", None),
             }
         )
         return
@@ -288,7 +288,7 @@ def download_and_save_dataset(
     hash = get_hash_of_bytes(download_response.content)
     hash_excluding_generated = get_hash_excluding_generated_timestamp(download_response.text, encoding)  # type: ignore
 
-    if hash == bds_dataset["hash"]:
+    if hash == bds_dataset["last_known_good_dataset_hash"]:
         context["logger"].info(
             "dataset id: {} - Hash of download is identical to "
             "previous value, so not re-zipping and re-uploading to Azure".format(bds_dataset["id"])
@@ -329,16 +329,16 @@ def download_and_save_dataset(
 
     bds_dataset.update(
         {
-            "hash": hash,
-            "hash_excluding_generated_timestamp": hash_excluding_generated,
+            "last_known_good_dataset_hash": hash,
+            "last_known_good_dataset_hash_excluding_generated_timestamp": hash_excluding_generated,
             "last_update_check": most_recent_get_attempt_datetime,
             "most_recent_get_attempt_datetime": most_recent_get_attempt_datetime,
             "most_recent_get_attempt_http_status": download_response.status_code,
-            "last_successful_download": most_recent_get_attempt_datetime,
-            "last_verified_on_server": most_recent_get_attempt_datetime,
+            "last_known_good_dataset_downloaded": most_recent_get_attempt_datetime,
+            "last_known_good_dataset_verified_on_server": most_recent_get_attempt_datetime,
             "most_recent_get_attempt_error_details": None,
-            "server_header_last_modified": last_modified_header,
-            "server_header_etag": download_response.headers.get("ETag", None),
+            "last_known_good_dataset_server_header_last_modified": last_modified_header,
+            "last_known_good_dataset_server_header_etag": download_response.headers.get("ETag", None),
         }
     )
 
@@ -362,14 +362,14 @@ def create_bds_dataset(registered_dataset: dict) -> dict:
 
         "last_update_check": None,
 
-        "hash": None,
-        "hash_excluding_generated_timestamp": None,
-        "last_verified_on_server": None,
-        "last_successful_download": None,
-        "server_header_last_modified": None,
-        "server_header_etag": None,
-        "download_content_length": None,
-        "download_initial_contents": None,
+        "last_known_good_dataset_hash": None,
+        "last_known_good_dataset_hash_excluding_generated_timestamp": None,
+        "last_known_good_dataset_verified_on_server": None,
+        "last_known_good_dataset_downloaded": None,
+        "last_known_good_dataset_server_header_last_modified": None,
+        "last_known_good_dataset_server_header_etag": None,
+        "last_known_good_dataset_content_length": None,
+        "last_known_good_dataset_initial_contents": None,
 
         "most_recent_head_attempt_datetime": None,
         "most_recent_head_attempt_http_status": None,

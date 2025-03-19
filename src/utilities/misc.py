@@ -28,7 +28,7 @@ def get_initial_chars_if_text(download_response: requests.Response, encoding: st
 
 
 def dataset_has_iati_xml_download(dataset: dict) -> bool:
-    return dataset["last_successful_download"] is not None
+    return dataset["last_known_good_dataset_downloaded"] is not None
 
 
 def get_hash_of_bytes(content: bytes) -> str:
