@@ -129,7 +129,9 @@ def add_or_update_registered_dataset(
                 {"bds_message": "Download of IATI XML failed with non-200 HTTP status"} | e.args[0]
             )
             context["logger"].warning(
-                "dataset id: {} - {}".format(registered_dataset_id, bds_dataset["most_recent_get_attempt_error_details"])
+                "dataset id: {} - {}".format(
+                    registered_dataset_id, bds_dataset["most_recent_get_attempt_error_details"]
+                )
             )
             bds_dataset["most_recent_get_attempt_datetime"] = get_timestamp()
             bds_dataset["most_recent_get_attempt_http_status"] = e.args[0]["http_status_code"]
@@ -143,7 +145,9 @@ def add_or_update_registered_dataset(
                 }
             )
             context["logger"].warning(
-                "dataset id: {} - {}".format(registered_dataset_id, bds_dataset["most_recent_get_attempt_error_details"])
+                "dataset id: {} - {}".format(
+                    registered_dataset_id, bds_dataset["most_recent_get_attempt_error_details"]
+                )
             )
             insert_or_update_dataset(db_conn, bds_dataset)
 
@@ -175,7 +179,10 @@ def check_dataset_etag_last_mod_header(
     try:
         head_response = http_head_dataset(session, bds_dataset["source_url"])
 
-        if "ETag" in head_response.headers and head_response.headers["ETag"] != bds_dataset["last_known_good_dataset_server_header_etag"]:
+        if (
+            "ETag" in head_response.headers
+            and head_response.headers["ETag"] != bds_dataset["last_known_good_dataset_server_header_etag"]
+        ):
 
             context["logger"].info(
                 "dataset id: {} - Last successful download within {} hours, "
@@ -203,7 +210,9 @@ def check_dataset_etag_last_mod_header(
 
             update_dataset_head_request_fields(bds_dataset, head_response.status_code)
 
-            bds_dataset["last_known_good_dataset_verified_on_server"] = bds_dataset["most_recent_head_attempt_datetime"]
+            bds_dataset["last_known_good_dataset_verified_on_server"] = bds_dataset[
+                "most_recent_head_attempt_datetime"
+            ]
 
             insert_or_update_dataset(db_conn, bds_dataset)
 
@@ -230,7 +239,9 @@ def check_dataset_etag_last_mod_header(
             | e.args[0]
         )
 
-        context["logger"].warning("dataset id: {} - {}".format(bds_dataset["id"], bds_dataset["most_recent_head_attempt_error_details"]))
+        context["logger"].warning(
+            "dataset id: {} - {}".format(bds_dataset["id"], bds_dataset["most_recent_head_attempt_error_details"])
+        )
 
         update_dataset_head_request_fields(
             bds_dataset, e.args[0]["http_status_code"], bds_dataset["most_recent_head_attempt_error_details"]
@@ -359,9 +370,7 @@ def create_bds_dataset(registered_dataset: dict) -> dict:
         "license_id": registered_dataset["license_id"],
         "registration_service_dataset_metadata": registered_dataset["registration_service_dataset_metadata"],
         "registration_service_name": registered_dataset["registration_service_name"],
-
         "last_update_check": None,
-
         "last_known_good_dataset_hash": None,
         "last_known_good_dataset_hash_excluding_generated_timestamp": None,
         "last_known_good_dataset_verified_on_server": None,
@@ -370,12 +379,10 @@ def create_bds_dataset(registered_dataset: dict) -> dict:
         "last_known_good_dataset_server_header_etag": None,
         "last_known_good_dataset_content_length": None,
         "last_known_good_dataset_initial_contents": None,
-
         "most_recent_head_attempt_datetime": None,
         "most_recent_head_attempt_http_status": None,
         "most_recent_head_attempt_error_details": None,
         "most_recent_head_attempt_server_headers": None,
-
         "most_recent_get_attempt_datetime": None,
         "most_recent_get_attempt_http_status": None,
         "most_recent_get_attempt_error_details": None,
