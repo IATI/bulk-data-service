@@ -356,6 +356,7 @@ def create_bds_dataset(registered_dataset: dict) -> dict:
         "reporting_org_id": registered_dataset["reporting_org_id"],
         "reporting_org_short_name": registered_dataset["reporting_org_short_name"],
         "source_url": registered_dataset["source_url"],
+        "license_id": registered_dataset["license_id"],
         "registration_service_dataset_metadata": registered_dataset["registration_service_dataset_metadata"],
         "registration_service_name": registered_dataset["registration_service_name"],
 
@@ -387,6 +388,7 @@ def update_bds_dataset_registration_info(bds_dataset: dict, registered_dataset: 
         "reporting_org_id",
         "reporting_org_short_name",
         "source_url",
+        "license_id",
         "registration_service_dataset_metadata",
         "registration_service_name",
     ]:

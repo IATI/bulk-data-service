@@ -201,6 +201,7 @@ def convert_datasets_metadata(datasets_from_registry: list[dict]) -> dict[uuid.U
             "reporting_org_id": uuid.UUID(dataset["organization"]["id"]),
             "reporting_org_short_name": dataset["organization"]["name"],
             "source_url": get_source_url(dataset),
+            "license_id": dataset["license_id"],
             "registration_service_dataset_metadata": json.dumps(
                 {k: dataset[k] for k in dataset if k != "registration_service_publisher_metadata"}
             ),
