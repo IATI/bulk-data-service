@@ -32,10 +32,10 @@ def unzip_from_buffer(filename: str, buffer: bytes) -> bytes:
 
 def check_values_for_download_success(dataset: dict):
     assert dataset["most_recent_get_attempt_error_details"] is None
-    assert dataset["last_successful_download"] is not None
+    assert dataset["last_known_good_dataset_downloaded"] is not None
     assert dataset["most_recent_get_attempt_http_status"] == 200
-    assert dataset["download_content_length"] > 0
-    assert dataset["download_initial_contents"] is not None
+    assert dataset["last_known_good_dataset_content_length"] > 0
+    assert dataset["last_known_good_dataset_initial_contents"] is not None
 
 
 def get_number_xml_files_in_working_dir(context):

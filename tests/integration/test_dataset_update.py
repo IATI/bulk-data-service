@@ -248,8 +248,8 @@ def test_dataset_download_404s_then_successful(get_and_clear_up_context):  # noq
 
     assert datasets_in_bds[dataset_id]["most_recent_get_attempt_http_status"] == 404
     assert datasets_in_bds[dataset_id]["most_recent_get_attempt_error_details"] is not None
-    assert datasets_in_bds[dataset_id]["download_content_length"] is None
-    assert datasets_in_bds[dataset_id]["download_initial_contents"] is None
+    assert datasets_in_bds[dataset_id]["last_known_good_dataset_content_length"] is None
+    assert datasets_in_bds[dataset_id]["last_known_good_dataset_initial_contents"] is None
 
     # dataset c8a40aa5-9f31-... with good URL
     context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-01-1-dataset"
@@ -271,7 +271,7 @@ def test_dataset_successful_xml_download_then_pdf(get_and_clear_up_context):  # 
 
     check_values_for_download_success(datasets_in_bds[dataset_id])
     # extra check, for the actual value of start of XML
-    assert (datasets_in_bds[dataset_id]["download_initial_contents"] ==
+    assert (datasets_in_bds[dataset_id]["last_known_good_dataset_initial_contents"] ==
             ('<?xml version="1.0" encoding="UTF-8"?><iati-activities version="2.03" '
             'generated-datetime="2024-05-03T08:47:49+00:00">  <iati-activity>    <iati-identi'))
 
@@ -282,8 +282,8 @@ def test_dataset_successful_xml_download_then_pdf(get_and_clear_up_context):  # 
 
     assert datasets_in_bds[dataset_id]["most_recent_get_attempt_http_status"] == 200
     assert datasets_in_bds[dataset_id]["most_recent_get_attempt_error_details"] is not None
-    assert datasets_in_bds[dataset_id]["download_content_length"] > 0
-    assert datasets_in_bds[dataset_id]["download_initial_contents"] is None
+    assert datasets_in_bds[dataset_id]["last_known_good_dataset_content_length"] > 0
+    assert datasets_in_bds[dataset_id]["last_known_good_dataset_initial_contents"] is None
 
 
 def test_dataset_pdf_download_then_successful_xml(get_and_clear_up_context):  # noqa: F811
@@ -300,8 +300,8 @@ def test_dataset_pdf_download_then_successful_xml(get_and_clear_up_context):  # 
 
     assert datasets_in_bds[dataset_id]["most_recent_get_attempt_http_status"] == 200
     assert datasets_in_bds[dataset_id]["most_recent_get_attempt_error_details"] is not None
-    assert datasets_in_bds[dataset_id]["download_content_length"] > 0
-    assert datasets_in_bds[dataset_id]["download_initial_contents"] is None
+    assert datasets_in_bds[dataset_id]["last_known_good_dataset_content_length"] > 0
+    assert datasets_in_bds[dataset_id]["last_known_good_dataset_initial_contents"] is None
 
     # dataset c8a40aa5-9f31-... with XML
     context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-01-1-dataset"
@@ -309,7 +309,7 @@ def test_dataset_pdf_download_then_successful_xml(get_and_clear_up_context):  # 
 
     check_values_for_download_success(datasets_in_bds[dataset_id])
     # extra check, for the actual value of start of XML
-    assert (datasets_in_bds[dataset_id]["download_initial_contents"] ==
+    assert (datasets_in_bds[dataset_id]["last_known_good_dataset_initial_contents"] ==
             ('<?xml version="1.0" encoding="UTF-8"?><iati-activities version="2.03" '
             'generated-datetime="2024-05-03T08:47:49+00:00">  <iati-activity>    <iati-identi'))
 
@@ -326,7 +326,7 @@ def test_dataset_successful_xml_download_then_empty(get_and_clear_up_context):  
     checker_run(context, datasets_in_bds)
 
     check_values_for_download_success(datasets_in_bds[dataset_id])
-    assert (datasets_in_bds[dataset_id]["download_initial_contents"] ==
+    assert (datasets_in_bds[dataset_id]["last_known_good_dataset_initial_contents"] ==
             ('<?xml version="1.0" encoding="UTF-8"?><iati-activities version="2.03" '
             'generated-datetime="2024-05-03T08:47:49+00:00">  <iati-activity>    <iati-identi'))
 
@@ -337,5 +337,5 @@ def test_dataset_successful_xml_download_then_empty(get_and_clear_up_context):  
 
     assert datasets_in_bds[dataset_id]["most_recent_get_attempt_http_status"] == 200
     assert datasets_in_bds[dataset_id]["most_recent_get_attempt_error_details"] is not None
-    assert datasets_in_bds[dataset_id]["download_content_length"] == 0
-    assert datasets_in_bds[dataset_id]["download_initial_contents"] is None
+    assert datasets_in_bds[dataset_id]["last_known_good_dataset_content_length"] == 0
+    assert datasets_in_bds[dataset_id]["last_known_good_dataset_initial_contents"] is None
