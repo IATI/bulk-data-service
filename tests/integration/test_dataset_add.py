@@ -12,7 +12,6 @@ from helpers.helpers import check_values_for_download_success, get_and_clear_up_
     ("reporting_org_id", uuid.UUID("ea055d99-f7e9-456f-9f99-963e95493c1b")),
     ("reporting_org_short_name", "test_foundation_a"),
     ("source_url", "http://localhost:3000/data/test_foundation_a-dataset-404.xml"),
-    ("type", "activity"),
     ("registration_service_name", "ckan-registry"),
     ("registration_service_dataset_metadata", json.dumps(
             {
@@ -138,7 +137,6 @@ def test_add_new_undownloadable_dataset(get_and_clear_up_context, field, expecte
     ("reporting_org_id", uuid.UUID("ea055d99-f7e9-456f-9f99-963e95493c1b")),
     ("reporting_org_short_name", "test_foundation_a"),
     ("source_url", "http://localhost:3000/data/test_foundation_a-dataset-001.xml"),
-    ("type", "activity"),
     ("hash", "d8776c9e0cf913057c688e140e78cbb10799c158"),
     ("hash_excluding_generated_timestamp", "5bc6f66bef15d6a61c549379c12d8e0d06a2e31c"),
     ("registration_service_name", "ckan-registry"),
@@ -262,7 +260,6 @@ def test_add_downloadable_dataset_xml_utf_8(get_and_clear_up_context, field, exp
     ("reporting_org_id", uuid.UUID("ea055d99-f7e9-456f-9f99-963e95493c1b")),
     ("reporting_org_short_name", "test_foundation_a"),
     ("source_url", "http://localhost:3000/data/test_foundation_a-dataset-001-utf-16-be"),
-    ("type", "activity"),
     ("hash", "0eab5bd008e2f5151c2578b84fda46c054a90c25"),
     ("hash_excluding_generated_timestamp", "d4efc8c57b52463f4b7c181fdd0e778cbe994e84"),
     ("registration_service_name", "ckan-registry")
@@ -287,7 +284,6 @@ def test_add_downloadable_dataset_xml_utf_16_be(get_and_clear_up_context, field,
     ("reporting_org_id", uuid.UUID("ea055d99-f7e9-456f-9f99-963e95493c1b")),
     ("reporting_org_short_name", "test_foundation_a"),
     ("source_url", "http://localhost:3000/data/test_foundation_a-dataset-001-utf-16-le"),
-    ("type", "activity"),
     ("hash", "8209b4c54a3c67a143626a176ccddfb9991d2708"),
     ("hash_excluding_generated_timestamp", "d4efc8c57b52463f4b7c181fdd0e778cbe994e84"),
     ("registration_service_name", "ckan-registry")
@@ -312,7 +308,6 @@ def test_add_downloadable_dataset_xml_utf_16_le(get_and_clear_up_context, field,
     ("reporting_org_id", uuid.UUID("ea055d99-f7e9-456f-9f99-963e95493c1b")),
     ("reporting_org_short_name", "test_foundation_a"),
     ("source_url", "http://localhost:3000/data/test_foundation_a-dataset-empty.xml"),
-    ("type", "activity"),
     ("hash", None),
     ("hash_excluding_generated_timestamp", None),
     ("registration_service_name", "ckan-registry")
@@ -343,7 +338,6 @@ def test_add_downloadable_dataset_empty(get_and_clear_up_context, field, expecte
     ("reporting_org_id", uuid.UUID("ea055d99-f7e9-456f-9f99-963e95493c1b")),
     ("reporting_org_short_name", "test_foundation_a"),
     ("source_url", "http://localhost:3000/data/test_foundation_a-dataset.pdf"),
-    ("type", "activity"),
     ("hash", None),
     ("hash_excluding_generated_timestamp", None),
     ("registration_service_name", "ckan-registry")

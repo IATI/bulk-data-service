@@ -10,7 +10,6 @@ from helpers.helpers import check_values_for_download_success, get_and_clear_up_
 @pytest.mark.parametrize("field,original,expected", [
     ("source_url", "http://localhost:3000/data/test_foundation_a-dataset-001.xml",
         "http://localhost:3000/not_found"),
-    ("type", "activity", "organisation"),
     ("registration_service_dataset_metadata", json.dumps(
             {
                 "author": None,
