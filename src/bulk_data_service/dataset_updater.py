@@ -288,17 +288,12 @@ def download_and_save_dataset(
     hash = get_hash_of_bytes(download_response.content)
     hash_excluding_generated = get_hash_excluding_generated_timestamp(download_response.text, encoding)  # type: ignore
 
-    if hash_excluding_generated != bds_dataset["hash_excluding_generated_timestamp"]:
-        bds_dataset["content_modified_excluding_generated_timestamp"] = most_recent_get_attempt_datetime
-
     if hash == bds_dataset["hash"]:
         context["logger"].info(
             "dataset id: {} - Hash of download is identical to "
             "previous value, so not re-zipping and re-uploading to Azure".format(bds_dataset["id"])
         )
     else:
-        bds_dataset["content_modified"] = most_recent_get_attempt_datetime
-
         iati_xml_zipped = zip_data_as_single_file(bds_dataset["short_name"] + ".xml", download_response.content)
 
         response_xml = azure_upload_to_blob(
@@ -360,7 +355,6 @@ def create_bds_dataset(registered_dataset: dict) -> dict:
         "short_name": registered_dataset["short_name"],
         "reporting_org_id": registered_dataset["reporting_org_id"],
         "reporting_org_short_name": registered_dataset["reporting_org_short_name"],
-        "type": registered_dataset["type"],
         "source_url": registered_dataset["source_url"],
         "registration_service_dataset_metadata": registered_dataset["registration_service_dataset_metadata"],
         "registration_service_name": registered_dataset["registration_service_name"],
@@ -371,8 +365,6 @@ def create_bds_dataset(registered_dataset: dict) -> dict:
         "hash_excluding_generated_timestamp": None,
         "last_verified_on_server": None,
         "last_successful_download": None,
-        "content_modified": None,
-        "content_modified_excluding_generated_timestamp": None,
         "server_header_last_modified": None,
         "server_header_etag": None,
         "download_content_length": None,
@@ -394,7 +386,6 @@ def update_bds_dataset_registration_info(bds_dataset: dict, registered_dataset: 
     for field in [
         "reporting_org_id",
         "reporting_org_short_name",
-        "type",
         "source_url",
         "registration_service_dataset_metadata",
         "registration_service_name",

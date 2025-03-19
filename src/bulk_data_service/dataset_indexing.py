@@ -158,7 +158,6 @@ def get_full_index_dataset_source_fields(context: dict) -> list[str]:
         "short_name",
         "reporting_org_id",
         "reporting_org_short_name",
-        "type",
         "source_url",
         "hash",
         "hash_excluding_generated_timestamp",
@@ -173,8 +172,6 @@ def get_full_index_dataset_source_fields(context: dict) -> list[str]:
         "download_content_length",
         "download_initial_contents",
         "most_recent_get_attempt_error_details",
-        "content_modified",
-        "content_modified_excluding_generated_timestamp",
         "server_header_last_modified",
         "server_header_etag",
     ]

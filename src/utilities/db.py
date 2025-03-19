@@ -70,11 +70,20 @@ def insert_or_update_dataset(connection: psycopg.Connection, data):
                     UPDATE SET
                         reporting_org_id = %(reporting_org_id)s,
                         reporting_org_short_name = %(reporting_org_short_name)s,
-                        type = %(type)s,
                         source_url = %(source_url)s,
+                        registration_service_dataset_metadata = %(registration_service_dataset_metadata)s,
+                        registration_service_name = %(registration_service_name)s,
+
                         hash = %(hash)s,
                         hash_excluding_generated_timestamp = %(hash_excluding_generated_timestamp)s,
                         last_update_check = %(last_update_check)s,
+                        last_successful_download = %(last_successful_download)s,
+                        last_verified_on_server = %(last_verified_on_server)s,
+                        server_header_last_modified = %(server_header_last_modified)s,
+                        server_header_etag = %(server_header_etag)s,
+                        download_content_length = %(download_content_length)s,
+                        download_initial_contents = %(download_initial_contents)s,
+
                         most_recent_head_attempt_datetime = %(most_recent_head_attempt_datetime)s,
                         most_recent_head_attempt_http_status = %(most_recent_head_attempt_http_status)s,
                         most_recent_head_attempt_error_details = %(most_recent_head_attempt_error_details)s,
@@ -82,18 +91,9 @@ def insert_or_update_dataset(connection: psycopg.Connection, data):
 
                         most_recent_get_attempt_datetime = %(most_recent_get_attempt_datetime)s,
                         most_recent_get_attempt_http_status = %(most_recent_get_attempt_http_status)s,
-                        last_successful_download = %(last_successful_download)s,
-                        last_verified_on_server = %(last_verified_on_server)s,
                         most_recent_get_attempt_error_details = %(most_recent_get_attempt_error_details)s,
-                        content_modified = %(content_modified)s,
-                        content_modified_excluding_generated_timestamp =
-                            %(content_modified_excluding_generated_timestamp)s,
-                        server_header_last_modified = %(server_header_last_modified)s,
-                        server_header_etag = %(server_header_etag)s,
-                        registration_service_dataset_metadata = %(registration_service_dataset_metadata)s,
-                        registration_service_name = %(registration_service_name)s,
-                        download_content_length = %(download_content_length)s,
-                        download_initial_contents = %(download_initial_contents)s
+                        most_recent_get_attempt_server_headers = %(most_recent_get_attempt_server_headers)s
+
                     WHERE
                         iati_datasets.id = %(id)s
         """.format(
