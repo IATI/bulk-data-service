@@ -10,6 +10,7 @@ from helpers.helpers import check_values_for_download_success, get_and_clear_up_
 @pytest.mark.parametrize("field,original,expected", [
     ("source_url", "http://localhost:3000/data/test_foundation_a-dataset-001.xml",
         "http://localhost:3000/not_found"),
+    ("license_id", "other-at", "uk-ogl"),
     ("registration_service_dataset_metadata", json.dumps(
             {
                 "author": None,
@@ -116,7 +117,7 @@ from helpers.helpers import check_values_for_download_success, get_and_clear_up_
                 "creator_user_id": "4abc4897-94b7-4b0e-84c2-c8778f435ccb",
                 "id": "c8a40aa5-9f31-4bcf-a36f-51c1fc2cc159",
                 "isopen": True,
-                "license_id": "other-at",
+                "license_id": "uk-ogl",
                 "license_title": "Other (Attribution)",
                 "maintainer": None,
                 "maintainer_email": None,
@@ -226,7 +227,7 @@ def test_update_dataset_publisher_details(get_and_clear_up_context,  # noqa: F81
     assert len(datasets_in_bds) == 1
     assert datasets_in_bds[dataset_id][field] == original
 
-    # this is same dataset as above, with a different url
+    # this is same dataset as above, with a different url and license
     context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-05-1-dataset-updated"
     checker_run(context, datasets_in_bds)
 
