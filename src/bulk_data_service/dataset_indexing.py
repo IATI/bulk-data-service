@@ -138,9 +138,9 @@ def get_minimal_index_entry_from_dataset(context: dict, dataset: dict) -> dict:
 def get_full_index_entry_from_dataset(context: dict, dataset: dict) -> dict:
     full_index_entry = {k: v for k, v in dataset.items() if k in get_full_index_dataset_source_fields(context)}
 
-    field_from_json_str_to_object(full_index_entry, "download_error_message", "download_error_details")
+    field_from_json_str_to_object(full_index_entry, "most_recent_get_attempt_error_details", "download_error_details")
 
-    field_from_json_str_to_object(full_index_entry, "head_error_message", "head_error_details")
+    field_from_json_str_to_object(full_index_entry, "most_recent_head_attempt_error_details", "head_error_details")
 
     return full_index_entry
 
@@ -163,16 +163,16 @@ def get_full_index_dataset_source_fields(context: dict) -> list[str]:
         "hash",
         "hash_excluding_generated_timestamp",
         "last_update_check",
-        "last_head_attempt",
-        "last_head_http_status",
-        "head_error_message",
-        "last_download_attempt",
-        "last_download_http_status",
+        "most_recent_head_attempt_datetime",
+        "most_recent_head_attempt_http_status",
+        "most_recent_head_attempt_error_details",
+        "most_recent_get_attempt_datetime",
+        "most_recent_get_attempt_http_status",
         "last_successful_download",
         "last_verified_on_server",
         "download_content_length",
         "download_initial_contents",
-        "download_error_message",
+        "most_recent_get_attempt_error_details",
         "content_modified",
         "content_modified_excluding_generated_timestamp",
         "server_header_last_modified",

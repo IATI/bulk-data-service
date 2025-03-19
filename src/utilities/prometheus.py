@@ -17,12 +17,12 @@ def get_metrics_definitions() -> list[tuple[str, str, str | None]]:
         (
             "datasets_head_request_non_200",
             "The number of HEAD requests that returned non-200 status in the last run",
-            "SELECT COUNT(id) FROM iati_datasets WHERE last_head_http_status != 200",
+            "SELECT COUNT(id) FROM iati_datasets WHERE most_recent_head_attempt_http_status != 200",
         ),
         (
             "datasets_downloads_non_200",
             "The number of download attempts that returned non-200 status in the last run",
-            "SELECT COUNT(id) FROM iati_datasets WHERE last_download_http_status != 200",
+            "SELECT COUNT(id) FROM iati_datasets WHERE most_recent_get_attempt_http_status != 200",
         ),
         ("checker_run_duration", "The time taken by the last run of the checker (seconds)", None),
         ("zipper_run_duration", "The time taken by the last run of the zipper (seconds)", None),

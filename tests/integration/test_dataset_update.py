@@ -246,8 +246,8 @@ def test_dataset_download_404s_then_successful(get_and_clear_up_context):  # noq
     datasets_in_bds = {}
     checker_run(context, datasets_in_bds)
 
-    assert datasets_in_bds[dataset_id]["last_download_http_status"] == 404
-    assert datasets_in_bds[dataset_id]["download_error_message"] is not None
+    assert datasets_in_bds[dataset_id]["most_recent_get_attempt_http_status"] == 404
+    assert datasets_in_bds[dataset_id]["most_recent_get_attempt_error_details"] is not None
     assert datasets_in_bds[dataset_id]["download_content_length"] is None
     assert datasets_in_bds[dataset_id]["download_initial_contents"] is None
 
@@ -280,8 +280,8 @@ def test_dataset_successful_xml_download_then_pdf(get_and_clear_up_context):  # 
                                          "http%3A%2F%2Flocalhost%3A3000%2Fdata%2Ftest_foundation_a-dataset.pdf")
     checker_run(context, datasets_in_bds)
 
-    assert datasets_in_bds[dataset_id]["last_download_http_status"] == 200
-    assert datasets_in_bds[dataset_id]["download_error_message"] is not None
+    assert datasets_in_bds[dataset_id]["most_recent_get_attempt_http_status"] == 200
+    assert datasets_in_bds[dataset_id]["most_recent_get_attempt_error_details"] is not None
     assert datasets_in_bds[dataset_id]["download_content_length"] > 0
     assert datasets_in_bds[dataset_id]["download_initial_contents"] is None
 
@@ -298,8 +298,8 @@ def test_dataset_pdf_download_then_successful_xml(get_and_clear_up_context):  # 
     datasets_in_bds = {}
     checker_run(context, datasets_in_bds)
 
-    assert datasets_in_bds[dataset_id]["last_download_http_status"] == 200
-    assert datasets_in_bds[dataset_id]["download_error_message"] is not None
+    assert datasets_in_bds[dataset_id]["most_recent_get_attempt_http_status"] == 200
+    assert datasets_in_bds[dataset_id]["most_recent_get_attempt_error_details"] is not None
     assert datasets_in_bds[dataset_id]["download_content_length"] > 0
     assert datasets_in_bds[dataset_id]["download_initial_contents"] is None
 
@@ -335,7 +335,7 @@ def test_dataset_successful_xml_download_then_empty(get_and_clear_up_context):  
                                          "http%3A%2F%2Flocalhost%3A3000%2Fdata%2Ftest_foundation_a-dataset-empty.xml")
     checker_run(context, datasets_in_bds)
 
-    assert datasets_in_bds[dataset_id]["last_download_http_status"] == 200
-    assert datasets_in_bds[dataset_id]["download_error_message"] is not None
+    assert datasets_in_bds[dataset_id]["most_recent_get_attempt_http_status"] == 200
+    assert datasets_in_bds[dataset_id]["most_recent_get_attempt_error_details"] is not None
     assert datasets_in_bds[dataset_id]["download_content_length"] == 0
     assert datasets_in_bds[dataset_id]["download_initial_contents"] is None

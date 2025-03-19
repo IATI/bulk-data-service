@@ -174,7 +174,7 @@ def full_index_common_checks(context: dict, dataset: dict, index_item: dict | No
     assert index_item is not None
 
     for field in get_full_index_dataset_source_fields(context):
-        if field == "download_error_message" or field == "head_error_message":
+        if field == "most_recent_get_attempt_error_details" or field == "most_recent_head_attempt_error_details":
             continue
         if isinstance(dataset[field], uuid.UUID):
             assert uuid.UUID(index_item[field]) == dataset[field]
