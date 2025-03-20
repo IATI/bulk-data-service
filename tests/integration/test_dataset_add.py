@@ -4,7 +4,12 @@ import uuid
 import pytest
 
 from bulk_data_service.checker import checker_run
-from helpers.helpers import check_values_for_download_success, get_and_clear_up_context  # noqa: F401
+from helpers.helpers import (
+    check_last_known_good_dataset_values_are_set,
+    check_most_recent_get_attempt_for_success,
+    check_last_known_good_dataset_values_are_unset,
+    get_and_clear_up_context
+    )  # noqa: F401
 
 
 @pytest.mark.parametrize("field,expected", [
@@ -126,11 +131,9 @@ def test_add_new_undownloadable_dataset(get_and_clear_up_context, field, expecte
     datasets_in_bds = {}
     checker_run(context, datasets_in_bds)
 
+    check_last_known_good_dataset_values_are_unset(datasets_in_bds[dataset_id])
+
     assert datasets_in_bds[dataset_id][field] == expected
-    assert datasets_in_bds[dataset_id]["most_recent_get_attempt_error_details"] is not None
-    assert datasets_in_bds[dataset_id]["last_known_good_dataset_downloaded"] is None
-    assert datasets_in_bds[dataset_id]["most_recent_get_attempt_http_status"] != 200
-    assert datasets_in_bds[dataset_id]["last_known_good_dataset_content_length"] is None
 
 
 @pytest.mark.parametrize("field,expected", [
@@ -141,6 +144,7 @@ def test_add_new_undownloadable_dataset(get_and_clear_up_context, field, expecte
     ("license_id", "other-at"),
     ("last_known_good_dataset_hash", "d8776c9e0cf913057c688e140e78cbb10799c158"),
     ("last_known_good_dataset_hash_excluding_generated_timestamp", "5bc6f66bef15d6a61c549379c12d8e0d06a2e31c"),
+    ("last_known_good_dataset_source_url", "http://localhost:3000/data/test_foundation_a-dataset-001.xml"),
     ("registration_service_name", "ckan-registry"),
     ("registration_service_dataset_metadata", json.dumps(
            {
@@ -254,7 +258,8 @@ def test_add_downloadable_dataset_xml_utf_8(get_and_clear_up_context, field, exp
     checker_run(context, datasets_in_bds)
 
     assert datasets_in_bds[dataset_id][field] == expected
-    check_values_for_download_success(datasets_in_bds[dataset_id])
+    check_most_recent_get_attempt_for_success(datasets_in_bds[dataset_id])
+    check_last_known_good_dataset_values_are_set(datasets_in_bds[dataset_id])
 
 
 @pytest.mark.parametrize("field,expected", [
@@ -279,7 +284,7 @@ def test_add_downloadable_dataset_xml_utf_16_be(get_and_clear_up_context, field,
     checker_run(context, datasets_in_bds)
 
     assert datasets_in_bds[dataset_id][field] == expected
-    check_values_for_download_success(datasets_in_bds[dataset_id])
+    check_last_known_good_dataset_values_are_set(datasets_in_bds[dataset_id])
 
 
 @pytest.mark.parametrize("field,expected", [
@@ -304,7 +309,7 @@ def test_add_downloadable_dataset_xml_utf_16_le(get_and_clear_up_context, field,
     checker_run(context, datasets_in_bds)
 
     assert datasets_in_bds[dataset_id][field] == expected
-    check_values_for_download_success(datasets_in_bds[dataset_id])
+    check_last_known_good_dataset_values_are_set(datasets_in_bds[dataset_id])
 
 
 @pytest.mark.parametrize("field,expected", [
@@ -313,8 +318,16 @@ def test_add_downloadable_dataset_xml_utf_16_le(get_and_clear_up_context, field,
     ("reporting_org_short_name", "test_foundation_a"),
     ("source_url", "http://localhost:3000/data/test_foundation_a-dataset-empty.xml"),
     ("license_id", "other-at"),
+    ("most_recent_get_attempt_http_status", 200),
     ("last_known_good_dataset_hash", None),
     ("last_known_good_dataset_hash_excluding_generated_timestamp", None),
+    ("last_known_good_dataset_downloaded", None),
+    ("last_known_good_dataset_verified_on_server", None),
+    ("last_known_good_dataset_content_length", None),
+    ("last_known_good_dataset_initial_contents", None),
+    ("last_known_good_dataset_server_header_last_modified", None),
+    ("last_known_good_dataset_server_header_etag", None),
+    ("last_known_good_dataset_source_url", None),
     ("registration_service_name", "ckan-registry")
 ])
 def test_add_downloadable_dataset_empty(get_and_clear_up_context, field, expected):  # noqa: F811
@@ -329,10 +342,6 @@ def test_add_downloadable_dataset_empty(get_and_clear_up_context, field, expecte
     checker_run(context, datasets_in_bds)
 
     assert datasets_in_bds[dataset_id][field] == expected
-    assert datasets_in_bds[dataset_id]["last_known_good_dataset_downloaded"] is None
-    assert datasets_in_bds[dataset_id]["most_recent_get_attempt_http_status"] == 200
-    assert datasets_in_bds[dataset_id]["last_known_good_dataset_content_length"] == 0
-    assert datasets_in_bds[dataset_id]["last_known_good_dataset_initial_contents"] is None
 
     error_details = json.loads(datasets_in_bds[dataset_id]["most_recent_get_attempt_error_details"])
     assert error_details["bds_message"] == "File does not appear to be IATI XML"
@@ -344,8 +353,16 @@ def test_add_downloadable_dataset_empty(get_and_clear_up_context, field, expecte
     ("reporting_org_short_name", "test_foundation_a"),
     ("source_url", "http://localhost:3000/data/test_foundation_a-dataset.pdf"),
     ("license_id", "other-at"),
+    ("most_recent_get_attempt_http_status", 200),
     ("last_known_good_dataset_hash", None),
     ("last_known_good_dataset_hash_excluding_generated_timestamp", None),
+    ("last_known_good_dataset_downloaded", None),
+    ("last_known_good_dataset_verified_on_server", None),
+    ("last_known_good_dataset_content_length", None),
+    ("last_known_good_dataset_initial_contents", None),
+    ("last_known_good_dataset_server_header_last_modified", None),
+    ("last_known_good_dataset_server_header_etag", None),
+    ("last_known_good_dataset_source_url", None),
     ("registration_service_name", "ckan-registry")
 ])
 def test_add_downloadable_dataset_pdf(get_and_clear_up_context, field, expected):  # noqa: F811
@@ -360,10 +377,6 @@ def test_add_downloadable_dataset_pdf(get_and_clear_up_context, field, expected)
     checker_run(context, datasets_in_bds)
 
     assert datasets_in_bds[dataset_id][field] == expected
-    assert datasets_in_bds[dataset_id]["last_known_good_dataset_downloaded"] is None
-    assert datasets_in_bds[dataset_id]["most_recent_get_attempt_http_status"] == 200
-    assert datasets_in_bds[dataset_id]["last_known_good_dataset_content_length"] > 0
-    assert datasets_in_bds[dataset_id]["last_known_good_dataset_initial_contents"] is None
 
     error_details = json.loads(datasets_in_bds[dataset_id]["most_recent_get_attempt_error_details"])
     assert error_details["bds_message"] == "File does not appear to be IATI XML"

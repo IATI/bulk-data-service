@@ -4,7 +4,7 @@ import uuid
 import pytest
 
 from bulk_data_service.checker import checker_run
-from helpers.helpers import check_values_for_download_success, get_and_clear_up_context  # noqa: F401
+from helpers.helpers import check_last_known_good_dataset_values_are_set, get_and_clear_up_context  # noqa: F401
 
 
 @pytest.mark.parametrize("field,original,expected", [
@@ -255,7 +255,7 @@ def test_dataset_download_404s_then_successful(get_and_clear_up_context):  # noq
     context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-01-1-dataset"
     checker_run(context, datasets_in_bds)
 
-    check_values_for_download_success(datasets_in_bds[dataset_id])
+    check_last_known_good_dataset_values_are_set(datasets_in_bds[dataset_id])
 
 
 def test_dataset_successful_xml_download_then_pdf(get_and_clear_up_context):  # noqa: F811
@@ -269,7 +269,7 @@ def test_dataset_successful_xml_download_then_pdf(get_and_clear_up_context):  # 
     datasets_in_bds = {}
     checker_run(context, datasets_in_bds)
 
-    check_values_for_download_success(datasets_in_bds[dataset_id])
+    check_last_known_good_dataset_values_are_set(datasets_in_bds[dataset_id])
     # extra check, for the actual value of start of XML
     assert (datasets_in_bds[dataset_id]["last_known_good_dataset_initial_contents"] ==
             ('<?xml version="1.0" encoding="UTF-8"?><iati-activities version="2.03" '
@@ -283,7 +283,7 @@ def test_dataset_successful_xml_download_then_pdf(get_and_clear_up_context):  # 
     assert datasets_in_bds[dataset_id]["most_recent_get_attempt_http_status"] == 200
     assert datasets_in_bds[dataset_id]["most_recent_get_attempt_error_details"] is not None
     assert datasets_in_bds[dataset_id]["last_known_good_dataset_content_length"] > 0
-    assert datasets_in_bds[dataset_id]["last_known_good_dataset_initial_contents"] is None
+    assert datasets_in_bds[dataset_id]["last_known_good_dataset_initial_contents"] is not None
 
 
 def test_dataset_pdf_download_then_successful_xml(get_and_clear_up_context):  # noqa: F811
@@ -300,14 +300,14 @@ def test_dataset_pdf_download_then_successful_xml(get_and_clear_up_context):  # 
 
     assert datasets_in_bds[dataset_id]["most_recent_get_attempt_http_status"] == 200
     assert datasets_in_bds[dataset_id]["most_recent_get_attempt_error_details"] is not None
-    assert datasets_in_bds[dataset_id]["last_known_good_dataset_content_length"] > 0
+    assert datasets_in_bds[dataset_id]["last_known_good_dataset_content_length"] is None
     assert datasets_in_bds[dataset_id]["last_known_good_dataset_initial_contents"] is None
 
     # dataset c8a40aa5-9f31-... with XML
     context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-01-1-dataset"
     checker_run(context, datasets_in_bds)
 
-    check_values_for_download_success(datasets_in_bds[dataset_id])
+    check_last_known_good_dataset_values_are_set(datasets_in_bds[dataset_id])
     # extra check, for the actual value of start of XML
     assert (datasets_in_bds[dataset_id]["last_known_good_dataset_initial_contents"] ==
             ('<?xml version="1.0" encoding="UTF-8"?><iati-activities version="2.03" '
@@ -325,7 +325,7 @@ def test_dataset_successful_xml_download_then_empty(get_and_clear_up_context):  
     datasets_in_bds = {}
     checker_run(context, datasets_in_bds)
 
-    check_values_for_download_success(datasets_in_bds[dataset_id])
+    check_last_known_good_dataset_values_are_set(datasets_in_bds[dataset_id])
     assert (datasets_in_bds[dataset_id]["last_known_good_dataset_initial_contents"] ==
             ('<?xml version="1.0" encoding="UTF-8"?><iati-activities version="2.03" '
             'generated-datetime="2024-05-03T08:47:49+00:00">  <iati-activity>    <iati-identi'))
@@ -337,5 +337,5 @@ def test_dataset_successful_xml_download_then_empty(get_and_clear_up_context):  
 
     assert datasets_in_bds[dataset_id]["most_recent_get_attempt_http_status"] == 200
     assert datasets_in_bds[dataset_id]["most_recent_get_attempt_error_details"] is not None
-    assert datasets_in_bds[dataset_id]["last_known_good_dataset_content_length"] == 0
-    assert datasets_in_bds[dataset_id]["last_known_good_dataset_initial_contents"] is None
+    assert datasets_in_bds[dataset_id]["last_known_good_dataset_content_length"] > 0
+    assert datasets_in_bds[dataset_id]["last_known_good_dataset_initial_contents"] is not None

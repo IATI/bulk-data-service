@@ -30,12 +30,33 @@ def unzip_from_buffer(filename: str, buffer: bytes) -> bytes:
     return content
 
 
-def check_values_for_download_success(dataset: dict):
+def check_most_recent_get_attempt_for_success(dataset: dict):
     assert dataset["most_recent_get_attempt_error_details"] is None
-    assert dataset["last_known_good_dataset_downloaded"] is not None
     assert dataset["most_recent_get_attempt_http_status"] == 200
+
+
+def check_last_known_good_dataset_values_are_set(dataset: dict):
+    assert dataset["last_known_good_dataset_downloaded"] is not None
+    assert dataset["last_known_good_dataset_downloaded"] == dataset["last_known_good_dataset_verified_on_server"]
+    assert dataset["last_known_good_dataset_hash"] is not None
+    assert dataset["last_known_good_dataset_hash_excluding_generated_timestamp"] is not None
     assert dataset["last_known_good_dataset_content_length"] > 0
     assert dataset["last_known_good_dataset_initial_contents"] is not None
+    assert dataset["last_known_good_dataset_server_header_last_modified"] is not None
+    assert dataset["last_known_good_dataset_server_header_etag"] is not None
+    assert dataset["last_known_good_dataset_source_url"] is not None
+
+
+def check_last_known_good_dataset_values_are_unset(dataset: dict):
+    assert dataset["last_known_good_dataset_downloaded"] is None
+    assert dataset["last_known_good_dataset_verified_on_server"] is None
+    assert dataset["last_known_good_dataset_hash"] is None
+    assert dataset["last_known_good_dataset_hash_excluding_generated_timestamp"] is None
+    assert dataset["last_known_good_dataset_content_length"] is None
+    assert dataset["last_known_good_dataset_initial_contents"] is None
+    assert dataset["last_known_good_dataset_server_header_last_modified"] is None
+    assert dataset["last_known_good_dataset_server_header_etag"] is None
+    assert dataset["last_known_good_dataset_source_url"] is None
 
 
 def get_number_xml_files_in_working_dir(context):

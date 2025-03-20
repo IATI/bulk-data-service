@@ -52,7 +52,16 @@
           "latency": 0,
           "statusCode": 200,
           "label": "",
-          "headers": [],
+          "headers": [
+            {
+              "key": "Last-Modified",
+              "value": "Thu, 20 Mar 2025 08:58:59 GMT"
+            },
+            {
+              "key": "ETag",
+              "value": "{{urlParam 'filename'}}"
+            }
+          ],
           "bodyType": "FILE",
           "filePath": "tests/artifacts/iati-xml-files/{{urlParam 'filename'}}",
           "databucketID": "",
@@ -263,6 +272,25 @@
               "operator": "equals"
             }
           ],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": false,
+          "crudKey": "id",
+          "callbacks": []
+        },
+        {
+          "uuid": "6dd2210a-b44c-4c8c-ab8b-ac6fb7b372b0",
+          "body": "",
+          "latency": 0,
+          "statusCode": 204,
+          "label": "",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [],
           "rulesOperator": "OR",
           "disableTemplating": false,
           "fallbackTo404": false,
