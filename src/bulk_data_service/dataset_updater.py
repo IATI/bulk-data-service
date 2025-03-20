@@ -94,8 +94,8 @@ def add_or_update_registered_dataset(
 ):
 
     if registered_dataset_id not in datasets_in_bds:
-        old_source_url = ""
         bds_dataset = create_bds_dataset(registered_datasets[registered_dataset_id])
+        old_source_url = ""
         datasets_in_bds[registered_dataset_id] = bds_dataset
     else:
         bds_dataset = datasets_in_bds[registered_dataset_id]
@@ -273,9 +273,6 @@ def download_and_save_dataset(
 
     inital_chars = get_initial_chars_if_text(download_response, encoding)
 
-    bds_dataset["last_known_good_dataset_content_length"] = len(download_response.content)
-    bds_dataset["last_known_good_dataset_initial_contents"] = inital_chars
-
     download_has_opening_iati_element = content_has_iati_opening_element(inital_chars)
 
     if not download_has_opening_iati_element:
@@ -283,15 +280,12 @@ def download_and_save_dataset(
             {
                 "most_recent_get_attempt_datetime": most_recent_get_attempt_datetime,
                 "most_recent_get_attempt_http_status": download_response.status_code,
-                "last_known_good_dataset_verified_on_server": most_recent_get_attempt_datetime,
                 "most_recent_get_attempt_error_details": json.dumps(
                     {
                         "bds_message": "File does not appear to be IATI XML",
                         "http_headers": dict(download_response.headers),
                     }
                 ),
-                "last_known_good_dataset_server_header_last_modified": last_modified_header,
-                "last_known_good_dataset_server_header_etag": download_response.headers.get("ETag", None),
             }
         )
         return
@@ -340,16 +334,19 @@ def download_and_save_dataset(
 
     bds_dataset.update(
         {
-            "last_known_good_dataset_hash": hash,
-            "last_known_good_dataset_hash_excluding_generated_timestamp": hash_excluding_generated,
             "last_update_check": most_recent_get_attempt_datetime,
             "most_recent_get_attempt_datetime": most_recent_get_attempt_datetime,
             "most_recent_get_attempt_http_status": download_response.status_code,
+            "most_recent_get_attempt_error_details": None,
+            "last_known_good_dataset_hash": hash,
+            "last_known_good_dataset_hash_excluding_generated_timestamp": hash_excluding_generated,
             "last_known_good_dataset_downloaded": most_recent_get_attempt_datetime,
             "last_known_good_dataset_verified_on_server": most_recent_get_attempt_datetime,
-            "most_recent_get_attempt_error_details": None,
+            "last_known_good_dataset_content_length": len(download_response.content),
+            "last_known_good_dataset_initial_contents": inital_chars,
             "last_known_good_dataset_server_header_last_modified": last_modified_header,
             "last_known_good_dataset_server_header_etag": download_response.headers.get("ETag", None),
+            "last_known_good_dataset_source_url": bds_dataset["source_url"],
         }
     )
 
@@ -379,6 +376,7 @@ def create_bds_dataset(registered_dataset: dict) -> dict:
         "last_known_good_dataset_server_header_etag": None,
         "last_known_good_dataset_content_length": None,
         "last_known_good_dataset_initial_contents": None,
+        "last_known_good_dataset_source_url": None,
         "most_recent_head_attempt_datetime": None,
         "most_recent_head_attempt_http_status": None,
         "most_recent_head_attempt_error_details": None,

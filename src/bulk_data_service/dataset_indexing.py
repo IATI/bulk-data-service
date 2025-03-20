@@ -168,6 +168,7 @@ def get_full_index_dataset_source_fields(context: dict) -> list[str]:
         "last_known_good_dataset_initial_contents",
         "last_known_good_dataset_server_header_last_modified",
         "last_known_good_dataset_server_header_etag",
+        "last_known_good_dataset_source_url",
         "most_recent_head_attempt_datetime",
         "most_recent_head_attempt_http_status",
         "most_recent_head_attempt_error_details",

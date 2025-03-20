@@ -75,15 +75,17 @@ def insert_or_update_dataset(connection: psycopg.Connection, data):
                         registration_service_dataset_metadata = %(registration_service_dataset_metadata)s,
                         registration_service_name = %(registration_service_name)s,
 
+                        last_update_check = %(last_update_check)s,
+
                         last_known_good_dataset_hash = %(last_known_good_dataset_hash)s,
                         last_known_good_dataset_hash_excluding_generated_timestamp = %(last_known_good_dataset_hash_excluding_generated_timestamp)s,
-                        last_update_check = %(last_update_check)s,
                         last_known_good_dataset_downloaded = %(last_known_good_dataset_downloaded)s,
                         last_known_good_dataset_verified_on_server = %(last_known_good_dataset_verified_on_server)s,
                         last_known_good_dataset_server_header_last_modified = %(last_known_good_dataset_server_header_last_modified)s,
                         last_known_good_dataset_server_header_etag = %(last_known_good_dataset_server_header_etag)s,
                         last_known_good_dataset_content_length = %(last_known_good_dataset_content_length)s,
                         last_known_good_dataset_initial_contents = %(last_known_good_dataset_initial_contents)s,
+                        last_known_good_dataset_source_url = %(last_known_good_dataset_source_url)s,
 
                         most_recent_head_attempt_datetime = %(most_recent_head_attempt_datetime)s,
                         most_recent_head_attempt_http_status = %(most_recent_head_attempt_http_status)s,
