@@ -4,7 +4,13 @@ import uuid
 import pytest
 
 from bulk_data_service.checker import checker_run
-from helpers.helpers import check_last_known_good_dataset_values_are_set, get_and_clear_up_context  # noqa: F401
+from helpers.helpers import get_and_clear_up_context  # noqa: F401
+from helpers.helpers import (
+    check_last_known_good_dataset_values_are_set,
+    check_last_known_good_dataset_values_are_unset,
+    check_most_recent_get_attempt_downloaded_but_non_iati,
+    check_most_recent_get_attempt_for_success,
+)
 
 
 @pytest.mark.parametrize("field,original,expected", [
@@ -248,12 +254,14 @@ def test_dataset_download_404s_then_successful(get_and_clear_up_context):  # noq
 
     assert datasets_in_bds[dataset_id]["most_recent_get_attempt_http_status"] == 404
     assert datasets_in_bds[dataset_id]["most_recent_get_attempt_error_details"] is not None
-    assert datasets_in_bds[dataset_id]["last_known_good_dataset_content_length"] is None
-    assert datasets_in_bds[dataset_id]["last_known_good_dataset_initial_contents"] is None
+
+    check_last_known_good_dataset_values_are_unset(datasets_in_bds[dataset_id])
 
     # dataset c8a40aa5-9f31-... with good URL
     context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-01-1-dataset"
     checker_run(context, datasets_in_bds)
+
+    check_most_recent_get_attempt_for_success(datasets_in_bds[dataset_id])
 
     check_last_known_good_dataset_values_are_set(datasets_in_bds[dataset_id])
 
@@ -280,10 +288,9 @@ def test_dataset_successful_xml_download_then_pdf(get_and_clear_up_context):  # 
                                          "http%3A%2F%2Flocalhost%3A3000%2Fdata%2Ftest_foundation_a-dataset.pdf")
     checker_run(context, datasets_in_bds)
 
-    assert datasets_in_bds[dataset_id]["most_recent_get_attempt_http_status"] == 200
-    assert datasets_in_bds[dataset_id]["most_recent_get_attempt_error_details"] is not None
-    assert datasets_in_bds[dataset_id]["last_known_good_dataset_content_length"] > 0
-    assert datasets_in_bds[dataset_id]["last_known_good_dataset_initial_contents"] is not None
+    check_most_recent_get_attempt_downloaded_but_non_iati(datasets_in_bds[dataset_id])
+
+    check_last_known_good_dataset_values_are_set(datasets_in_bds[dataset_id])
 
 
 def test_dataset_pdf_download_then_successful_xml(get_and_clear_up_context):  # noqa: F811
@@ -335,7 +342,6 @@ def test_dataset_successful_xml_download_then_empty(get_and_clear_up_context):  
                                          "http%3A%2F%2Flocalhost%3A3000%2Fdata%2Ftest_foundation_a-dataset-empty.xml")
     checker_run(context, datasets_in_bds)
 
-    assert datasets_in_bds[dataset_id]["most_recent_get_attempt_http_status"] == 200
-    assert datasets_in_bds[dataset_id]["most_recent_get_attempt_error_details"] is not None
-    assert datasets_in_bds[dataset_id]["last_known_good_dataset_content_length"] > 0
-    assert datasets_in_bds[dataset_id]["last_known_good_dataset_initial_contents"] is not None
+    check_most_recent_get_attempt_downloaded_but_non_iati(datasets_in_bds[dataset_id])
+
+    check_last_known_good_dataset_values_are_set(datasets_in_bds[dataset_id])

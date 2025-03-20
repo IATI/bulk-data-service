@@ -30,6 +30,13 @@ def unzip_from_buffer(filename: str, buffer: bytes) -> bytes:
     return content
 
 
+def check_most_recent_get_attempt_downloaded_but_non_iati(dataset: dict):
+    assert dataset["most_recent_get_attempt_datetime"] is not None
+    assert dataset["most_recent_get_attempt_http_status"] == 200
+    error_details = json.loads(dataset["most_recent_get_attempt_error_details"])
+    assert error_details["bds_message"] == "File does not appear to be IATI XML"
+
+
 def check_most_recent_get_attempt_for_success(dataset: dict):
     assert dataset["most_recent_get_attempt_error_details"] is None
     assert dataset["most_recent_get_attempt_http_status"] == 200
