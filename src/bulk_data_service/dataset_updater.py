@@ -126,7 +126,7 @@ def add_or_update_registered_dataset(
 
         except RuntimeError as e:
             bds_dataset["most_recent_get_attempt_error_details"] = json.dumps(
-                {"bds_message": "Download of IATI XML failed with non-200 HTTP status"} | e.args[0]
+                {"message": "Download of IATI XML failed with non-200 HTTP status"} | e.args[0]
             )
             context["logger"].warning(
                 "dataset id: {} - {}".format(
@@ -140,8 +140,8 @@ def add_or_update_registered_dataset(
             bds_dataset["most_recent_get_attempt_datetime"] = get_timestamp()
             bds_dataset["most_recent_get_attempt_error_details"] = json.dumps(
                 {
-                    "bds_message": "Download of IATI XML produced EXCEPTION with GET request",
-                    "message": "{}".format(e),
+                    "message": "Download of IATI XML produced EXCEPTION with GET request",
+                    "details": "{}".format(e),
                 }
             )
             context["logger"].warning(
@@ -229,7 +229,7 @@ def check_dataset_etag_last_mod_header(
 
         bds_dataset["most_recent_head_attempt_error_details"] = json.dumps(
             {
-                "bds_message": (
+                "message": (
                     "Last successful download within {} hours, "
                     "but HEAD request to check ETag/Last-Modified "
                     "return non-200 status. {} "
@@ -282,7 +282,7 @@ def download_and_save_dataset(
                 "most_recent_get_attempt_http_status": download_response.status_code,
                 "most_recent_get_attempt_error_details": json.dumps(
                     {
-                        "bds_message": "File does not appear to be IATI XML",
+                        "message": "File does not appear to be IATI XML",
                         "http_headers": dict(download_response.headers),
                     }
                 ),
