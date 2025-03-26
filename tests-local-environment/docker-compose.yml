@@ -32,7 +32,7 @@ services:
       retries: 5
 
   mock-registration-and-data-service:
-    image: mockoon/cli:latest
+    image: mockoon/cli:9.1.0
     ports:
       - 3000:3000
     volumes:
