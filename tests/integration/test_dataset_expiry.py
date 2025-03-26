@@ -4,8 +4,7 @@ from datetime import timedelta
 from azure.storage.blob import BlobServiceClient
 
 from bulk_data_service.checker import checker_run, zipper_run
-from helpers.helpers import get_and_clear_up_context  # noqa: F401
-from helpers.helpers import get_number_xml_files_in_working_dir
+from helpers.helpers import get_number_xml_files_in_working_dir, get_and_clear_up_context  # noqa: F401
 from utilities.azure import get_azure_blob_name, get_azure_container_name
 from utilities.db import get_datasets_in_bds, get_reporting_orgs_in_bds
 
