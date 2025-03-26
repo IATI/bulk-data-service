@@ -102,21 +102,23 @@ def add_or_update_registered_dataset(
         old_source_url = bds_dataset["source_url"]
         update_bds_dataset_registration_info(bds_dataset, registered_datasets[registered_dataset_id])
 
-    bds_dataset["last_update_check"] = get_timestamp()
+    check_time = get_timestamp()
+
+    bds_dataset["last_update_check"] = check_time
 
     attempt_download = True
 
-    download_within_hours = get_randomised_download_within_hours(context)
+    hours = get_randomised_redownload_after_n_hours(context)
 
-    if bds_dataset["source_url"] == old_source_url and dataset_downloaded_within(bds_dataset, download_within_hours):
+    if bds_dataset["source_url"] == old_source_url and dataset_downloaded_within(bds_dataset, hours):
 
         attempt_download = check_dataset_etag_last_mod_header(
-            context, db_conn, session, bds_dataset, download_within_hours
+            context, db_conn, session, bds_dataset, hours, check_time
         )
 
     if attempt_download:
         try:
-            download_and_save_dataset(context, session, az_blob_service, bds_dataset)
+            download_and_save_dataset(context, session, az_blob_service, bds_dataset, check_time)
 
             datasets_in_bds[registered_dataset_id] = bds_dataset
 
@@ -152,7 +154,7 @@ def add_or_update_registered_dataset(
             insert_or_update_dataset(db_conn, bds_dataset)
 
 
-def get_randomised_download_within_hours(context: dict) -> int:
+def get_randomised_redownload_after_n_hours(context: dict) -> int:
     hours_force_redownload = int(context["FORCE_REDOWNLOAD_AFTER_HOURS"])
 
     if hours_force_redownload > 8:
@@ -172,6 +174,7 @@ def check_dataset_etag_last_mod_header(
     session: requests.Session,
     bds_dataset: dict,
     download_within_hours: int,
+    attempt_time: datetime,
 ) -> bool:
 
     attempt_download = True
@@ -189,7 +192,7 @@ def check_dataset_etag_last_mod_header(
                 "but ETag changed so redownloading".format(bds_dataset["id"], download_within_hours)
             )
 
-            update_dataset_head_request_fields(bds_dataset, head_response.status_code)
+            update_dataset_head_request_fields(bds_dataset, attempt_time, head_response.status_code)
 
         elif "Last-Modified" in head_response.headers and set_timestamp_tz_utc(
             datetime.strptime(head_response.headers["Last-Modified"], "%a, %d %b %Y %H:%M:%S GMT")
@@ -200,7 +203,7 @@ def check_dataset_etag_last_mod_header(
                 "but Last-Modified header changed so redownloading".format(bds_dataset["id"], download_within_hours)
             )
 
-            update_dataset_head_request_fields(bds_dataset, head_response.status_code)
+            update_dataset_head_request_fields(bds_dataset, attempt_time, head_response.status_code)
 
         else:
             context["logger"].info(
@@ -208,7 +211,7 @@ def check_dataset_etag_last_mod_header(
                 "Last-Modified and ETag same, so not redownloading".format(bds_dataset["id"], download_within_hours)
             )
 
-            update_dataset_head_request_fields(bds_dataset, head_response.status_code)
+            update_dataset_head_request_fields(bds_dataset, attempt_time, head_response.status_code)
 
             bds_dataset["last_known_good_dataset_verified_on_server"] = bds_dataset[
                 "most_recent_head_attempt_datetime"
@@ -244,7 +247,10 @@ def check_dataset_etag_last_mod_header(
         )
 
         update_dataset_head_request_fields(
-            bds_dataset, e.args[0]["http_status_code"], bds_dataset["most_recent_head_attempt_error_details"]
+            bds_dataset,
+            attempt_time,
+            e.args[0]["http_status_code"],
+            bds_dataset["most_recent_head_attempt_error_details"],
         )
 
         insert_or_update_dataset(db_conn, bds_dataset)
@@ -260,11 +266,12 @@ def check_dataset_etag_last_mod_header(
 
 
 def download_and_save_dataset(
-    context: dict, session: requests.Session, az_blob_service: BlobServiceClient, bds_dataset: dict
+    context: dict,
+    session: requests.Session,
+    az_blob_service: BlobServiceClient,
+    bds_dataset: dict,
+    attempt_datetime: datetime,
 ):
-
-    most_recent_get_attempt_datetime = get_timestamp()
-
     download_response = http_download_dataset(session, bds_dataset["source_url"])
 
     last_modified_header = get_last_modified_header_if_exists(download_response)
@@ -278,7 +285,7 @@ def download_and_save_dataset(
     if not download_has_opening_iati_element:
         bds_dataset.update(
             {
-                "most_recent_get_attempt_datetime": most_recent_get_attempt_datetime,
+                "most_recent_get_attempt_datetime": attempt_datetime,
                 "most_recent_get_attempt_http_status": download_response.status_code,
                 "most_recent_get_attempt_error_details": json.dumps(
                     {
@@ -334,14 +341,14 @@ def download_and_save_dataset(
 
     bds_dataset.update(
         {
-            "last_update_check": most_recent_get_attempt_datetime,
-            "most_recent_get_attempt_datetime": most_recent_get_attempt_datetime,
+            "last_update_check": attempt_datetime,
+            "most_recent_get_attempt_datetime": attempt_datetime,
             "most_recent_get_attempt_http_status": download_response.status_code,
             "most_recent_get_attempt_error_details": None,
             "last_known_good_dataset_hash": hash,
             "last_known_good_dataset_hash_excluding_generated_timestamp": hash_excluding_generated,
-            "last_known_good_dataset_downloaded": most_recent_get_attempt_datetime,
-            "last_known_good_dataset_verified_on_server": most_recent_get_attempt_datetime,
+            "last_known_good_dataset_downloaded": attempt_datetime,
+            "last_known_good_dataset_verified_on_server": attempt_datetime,
             "last_known_good_dataset_content_length": len(download_response.content),
             "last_known_good_dataset_initial_contents": inital_chars,
             "last_known_good_dataset_server_header_last_modified": last_modified_header,
@@ -351,8 +358,8 @@ def download_and_save_dataset(
     )
 
 
-def update_dataset_head_request_fields(dataset: dict, status_code: int, error_msg: str = ""):
-    dataset["most_recent_head_attempt_datetime"] = get_timestamp()
+def update_dataset_head_request_fields(dataset: dict, updated: datetime, status_code: int, error_msg: str = ""):
+    dataset["most_recent_head_attempt_datetime"] = updated
     dataset["most_recent_head_attempt_http_status"] = status_code
     dataset["most_recent_head_attempt_error_details"] = error_msg
 
