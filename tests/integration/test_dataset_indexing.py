@@ -4,10 +4,7 @@ import pytest
 from azure.storage.blob import BlobServiceClient
 
 from bulk_data_service.checker import checker_run
-from bulk_data_service.dataset_indexing import (
-    get_dataset_index_name,
-    get_reporting_org_index_name,
-)
+from bulk_data_service.dataset_indexing import get_dataset_index_name, get_reporting_org_index_name
 from helpers.data_helpers import (
     check_index_last_known_good_fields,
     check_index_most_recent_fields,

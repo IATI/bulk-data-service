@@ -6,7 +6,7 @@ from typing import Any
 from azure.storage.blob import BlobServiceClient
 
 from utilities.azure import azure_upload_to_blob, get_azure_blob_public_url
-from utilities.misc import dataset_has_iati_xml_download, get_timestamp, filter_dict_by_structure
+from utilities.misc import dataset_has_iati_xml_download, filter_dict_by_structure, get_timestamp
 
 
 def create_and_upload_indices(context: dict, datasets: dict[uuid.UUID, dict], reporting_orgs: dict[uuid.UUID, dict]):
@@ -109,15 +109,14 @@ def get_dataset_index_entry(context: dict, dataset: dict, index_type: str) -> di
         "source_url": None,
         "license_id": None,
         "last_update_check": None,
-
         "last_known_good_dataset": {
             "downloaded": None,
             "verified_on_server": None,
             "hash": None,
             "hash_excluding_generated_timestamp": None,
             "cached_dataset_url_xml": None,
-            "cached_dataset_url_zip": None
-        }
+            "cached_dataset_url_zip": None,
+        },
     }
 
     index_entry = get_full_index_entry_from_dataset(context, dataset)

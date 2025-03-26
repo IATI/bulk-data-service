@@ -5,7 +5,6 @@ import uuid
 import pytest
 
 from bulk_data_service.checker import checker_run
-from helpers.helpers import get_and_clear_up_context  # noqa: F401
 from helpers.data_helpers import (
     check_dataset_fields,
     check_dataset_registration_fields,
@@ -14,6 +13,7 @@ from helpers.data_helpers import (
     check_most_recent_get_attempt_downloaded_but_non_iati,
     check_most_recent_get_attempt_for_success,
 )
+from helpers.helpers import get_and_clear_up_context  # noqa: F401
 
 
 @pytest.mark.parametrize("source_url,expected_http_status_code", [
