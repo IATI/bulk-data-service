@@ -5,11 +5,17 @@
 | Product          | IATI Bulk Data Service                                                                                                                                                                                                              |
 | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Description      | A Python application which fetches the list of registered IATI datasets and periodically downloads them, making each available individually as an XML file and ZIP file, and also providing a ZIP file containing all the datasets. |
-| Website          | None                                                                                                                                                                                                                                |
+| Website          | https://bulk-data.iatistandard.org/                                                                                                                                                                                                 |
 | Related          |
-| Documentation    | Rest of README.md                                                                                                                                                                                                                   |
+| Documentation    | Rest of `README`                                                                                                                                                                                                                    |
 | Technical Issues | See https://github.com/IATI/bulk-data-service/issues                                                                                                                                                                                |
 | Support          | https://iatistandard.org/en/guidance/get-support/                                                                                                                                                                                   |
+
+## Description
+
+The Bulk Data Service downloads a list of the IATI datasets from the Registry and attempts to download each one. It caches a copy of each successful download for up to 72 hours. These cached copies are available individually as XML or ZIP (the URLs are listed in the full dataset index, linked to from the [Bulk Data website](https://bulk-data.iatistandard.org/).
+
+The update process is documented in [Dataset update process](docs/dataset-update-process.md).
 
 ## High-level requirements
 
@@ -25,9 +31,11 @@
 #### 1. Setup and activate a Python virtual environment.
 
 ```
-python3.12 -m venv .ve
+python -m venv .ve
 source .ve/bin/activate
 ```
+
+_Note: if you don't use `pyenv`, you may need to run `python3.12 -m venv .ve`_
 
 #### 2. Install the dependencies
 
@@ -73,7 +81,7 @@ dotenv run python src/iati_bulk_data_service.py -- --operation zipper --single-r
 
 It will store the ZIP files in the directory defined in the `ZIP_WORKING_DIR` environment variable.
 
-_Note:_ not all versions of `dotenv` require a `run` subcommand.
+_Note: not all versions of `dotenv` require a `run` subcommand._
 
 ## Development on the app
 
@@ -144,7 +152,7 @@ pip-compile --upgrade --extra dev -o requirements-dev.txt pyproject.toml
 
 The Bulk Data Service's database schema management is handled by [yoyo](https://ollycope.com/software/yoyo/latest/). The database is created and migrated (if needed) whenever the app is run, so during development, it is always safe to drop the database if you want to start over.
 
-`yoyo` has a command line tool which can be used to do this, and which can also be used to rollback the database schema to any particula revision, if that is useful during development.
+`yoyo` has a command line tool which can be used to do this, and which can also be used to rollback the database schema to any particular revision, if that is useful during development.
 
 `yoyo` is configured via `yoyo.ini` which draws values from environment variables, and so it is best run using `dotenv` which will configure it for whatever local setup you are using:
 
@@ -160,7 +168,11 @@ dotenv run yoyo -- new        # create file for a new migration
 
 Requirements: docker compose
 
-There are some unit and integration tests written in `pytest`. The integration tests work by running various bits of the code against running servers, and there is a docker compose setup which launches: Azurite, Postgres, and a Mockoon server. The Azurite and Postgres services are ephemeral, and don't persist any data to disk. The Mockoon server serves some of the artifacts in `tests/artifacts` over HTTP, and has some routes configured to return error codes so these can be tested
+Unit and integration tests are written in `pytest`. The integration tests work by running various bits of the code against running servers, and there is a docker compose setup which launches: Azurite, Postgres, and a Mockoon server.
+
+The Azurite and Postgres services are ephemeral, and don't persist any data to disk.
+
+The Mockoon server serves some of the artifacts in `tests/artifacts` over HTTP, and has some routes configured to return error codes so these can be tested
 
 To run the tests, you must first start this docker compose setup with:
 
@@ -169,7 +181,7 @@ cd tests-automated-environment
 docker compose up --remove-orphans
 ```
 
-Note: the `--remove-orphans` just helps keep things clean as you develop, and alter the setup.
+_Note: the `--remove-orphans` just helps keep things clean as you develop, and alter the setup._
 
 Once this is running, run the tests with:
 
@@ -229,9 +241,11 @@ useful to do things manually. The Bulk Data Service can be released to an Azure 
 
 For this to work, you need to put the secrets you want to use in `azure-deployment/manual-azure-deploy-secrets.env` and the variables you want to use in `azure-deployment/manual-azure-deploy-variables.env`. These is an example of each of these files that can be used as a starting point.
 
-### Manually building the docker image (to test/develop the deployment setup)
+### Manually building the docker image
 
-You can build the docker image using the following command, replacing `INSTANCE_NAME` with the relevant instance:
+It is sometimes useful for testing/debugging to manually build the docker image.
+
+You can do so using the following command, replacing `INSTANCE_NAME` with the relevant instance:
 
 ```bash
 docker build . -t criati.azurecr.io/bulk-data-service-INSTANCE_NAME
