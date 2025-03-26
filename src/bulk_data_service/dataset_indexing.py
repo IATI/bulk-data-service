@@ -6,29 +6,25 @@ from typing import Any
 from azure.storage.blob import BlobServiceClient
 
 from utilities.azure import azure_upload_to_blob, get_azure_blob_public_url
-from utilities.misc import dataset_has_iati_xml_download, get_timestamp
+from utilities.misc import dataset_has_iati_xml_download, get_timestamp, filter_dict_by_structure
 
 
-def create_and_upload_indices(
-    context: dict, datasets_in_bds: dict[uuid.UUID, dict], reporting_orgs_in_bds: dict[uuid.UUID, dict]
-):
+def create_and_upload_indices(context: dict, datasets: dict[uuid.UUID, dict], reporting_orgs: dict[uuid.UUID, dict]):
     index_creation_time = get_timestamp()
 
     context["logger"].info("Creating indices")
 
-    dataset_index_minimal = create_dataset_index_json(context, index_creation_time, datasets_in_bds, "minimal")
+    dataset_index_minimal = create_dataset_index_json(context, index_creation_time, datasets, "minimal")
 
-    dataset_index_full = create_dataset_index_json(context, index_creation_time, datasets_in_bds, "full")
+    dataset_index_full = create_dataset_index_json(context, index_creation_time, datasets, "full")
 
-    reporting_org_index_full = create_reporting_org_index_json(
-        context, index_creation_time, datasets_in_bds, reporting_orgs_in_bds
-    )
+    reporting_org_index = create_reporting_org_index_json(context, index_creation_time, datasets, reporting_orgs)
 
     upload_index_json_to_azure(context, get_dataset_index_name(context, "minimal"), dataset_index_minimal)
 
     upload_index_json_to_azure(context, get_dataset_index_name(context, "full"), dataset_index_full)
 
-    upload_index_json_to_azure(context, get_reporting_org_index_name(context), reporting_org_index_full)
+    upload_index_json_to_azure(context, get_reporting_org_index_name(context), reporting_org_index)
 
     context["logger"].info("Creation of indices finished")
 
@@ -55,9 +51,9 @@ def create_dataset_index_json(
     index_type: str,
 ) -> str:
 
-    index = create_index_time_entries(created_time)
+    index = create_index_created_entries(created_time)
 
-    index["datasets"] = get_dataset_index(context, datasets_in_bds, index_type)
+    index["datasets"] = get_index_all_datasets(context, datasets_in_bds, index_type)
 
     return json.dumps(index, default=str, sort_keys=True, indent=True)
 
@@ -69,21 +65,21 @@ def create_reporting_org_index_json(
     reporting_orgs_in_bds: dict[uuid.UUID, dict],
 ) -> str:
 
-    index = create_index_time_entries(created_time)
+    index = create_index_created_entries(created_time)
 
     index["reporting_orgs"] = get_reporting_orgs_for_datasets(context, datasets_in_bds, reporting_orgs_in_bds)
 
     return json.dumps(index, default=str, sort_keys=True, indent=True)
 
 
-def create_index_time_entries(created_time: datetime) -> dict[str, Any]:
+def create_index_created_entries(created_time: datetime) -> dict[str, Any]:
     return {"index_created": created_time, "index_created_unix_timestamp": int(created_time.timestamp())}
 
 
 def get_reporting_orgs_for_datasets(
-    context: dict, datasets_in_bds: dict[uuid.UUID, dict], reporting_orgs_in_bds: dict[uuid.UUID, dict]
+    context: dict, datasets: dict[uuid.UUID, dict], reporting_orgs: dict[uuid.UUID, dict]
 ) -> list:
-    reporting_org_names_w_datasets = set([dataset["reporting_org_short_name"] for dataset in datasets_in_bds.values()])
+    reporting_org_names_w_datasets = set([dataset["reporting_org_short_name"] for dataset in datasets.values()])
 
     orgs_w_datasets = [
         {
@@ -92,32 +88,44 @@ def get_reporting_orgs_for_datasets(
             "human_readable_name": org["human_readable_name"],
             "iati_identifier": org["iati_identifier"],
         }
-        for org in reporting_orgs_in_bds.values()
+        for org in reporting_orgs.values()
         if org["short_name"] in reporting_org_names_w_datasets
     ]
 
     return orgs_w_datasets
 
 
-def get_dataset_index(context: dict, datasets_in_bds: dict[uuid.UUID, dict], index_type: str) -> list:
-    return [get_index_entry(context, dataset, index_type) for _, dataset in datasets_in_bds.items()]
+def get_index_all_datasets(context: dict, datasets: dict[uuid.UUID, dict], index_type: str) -> list:
+    return [get_dataset_index_entry(context, dataset, index_type) for _, dataset in datasets.items()]
 
 
-def get_index_entry(context: dict, dataset: dict, index_type: str) -> dict[str, Any]:
+def get_dataset_index_entry(context: dict, dataset: dict, index_type: str) -> dict[str, Any]:
+
+    minimal_index_structure = {
+        "id": None,
+        "short_name": None,
+        "reporting_org_id": None,
+        "reporting_org_short_name": None,
+        "source_url": None,
+        "license_id": None,
+        "last_update_check": None,
+
+        "last_known_good_dataset": {
+            "downloaded": None,
+            "verified_on_server": None,
+            "hash": None,
+            "hash_excluding_generated_timestamp": None,
+            "cached_dataset_url_xml": None,
+            "cached_dataset_url_zip": None
+        }
+    }
+
+    index_entry = get_full_index_entry_from_dataset(context, dataset)
 
     if index_type == "minimal":
-        dataset_index_entry = get_minimal_index_entry_from_dataset(context, dataset)
-    else:
-        dataset_index_entry = get_full_index_entry_from_dataset(context, dataset)
+        index_entry = filter_dict_by_structure(index_entry, minimal_index_structure)
 
-    dataset_index_entry["url_xml"] = None
-    dataset_index_entry["url_zip"] = None
-
-    if dataset_has_iati_xml_download(dataset):
-        dataset_index_entry["url_xml"] = get_azure_blob_public_url(context, dataset, "xml")
-        dataset_index_entry["url_zip"] = get_azure_blob_public_url(context, dataset, "zip")
-
-    return dataset_index_entry
+    return index_entry
 
 
 def get_dataset_index_name(context: dict, index_type: str) -> str:
@@ -132,49 +140,91 @@ def get_reporting_org_index_name(context: dict) -> str:
 
 
 def get_minimal_index_entry_from_dataset(context: dict, dataset: dict) -> dict:
-    return {k: v for k, v in dataset.items() if k in get_minimal_index_dataset_fields(context)}
+    return get_full_index_entry_from_dataset(context, dataset)
 
 
 def get_full_index_entry_from_dataset(context: dict, dataset: dict) -> dict:
-    full_index_entry = {k: v for k, v in dataset.items() if k in get_full_index_dataset_source_fields(context)}
 
-    field_from_json_str_to_object(full_index_entry, "most_recent_get_attempt_error_details", "download_error_details")
+    index_field_structure = get_full_index_structured_fields(context)
 
-    field_from_json_str_to_object(full_index_entry, "most_recent_head_attempt_error_details", "head_error_details")
+    full_index_entry = {}
+
+    for _, index_prefix, _, _ in index_field_structure:
+        if index_prefix is not None and index_prefix not in full_index_entry:
+            full_index_entry[index_prefix] = {}
+
+    for db_field, index_prefix, index_field, conversion_func in index_field_structure:
+        target = full_index_entry if index_prefix is None else full_index_entry[index_prefix]
+        target[index_field] = (
+            dataset[db_field]
+            if conversion_func is None
+            else conversion_func(dataset, db_field, index_prefix, index_field)
+        )
 
     return full_index_entry
 
 
-def field_from_json_str_to_object(entry: dict, source_field: str, dest_field: str):
-    entry[dest_field] = json.loads(
-        entry[source_field] if entry[source_field] is not None and entry[source_field] != "" else "{}"
-    )
-    del entry[source_field]
+def get_object_from_json_str(json_str: str | None):
+    return json.loads(json_str if json_str is not None and json_str != "" else "{}")
 
 
-def get_full_index_dataset_source_fields(context: dict) -> list[str]:
+def get_full_index_structured_fields(context: dict) -> list[Any]:
+
+    def convert_to_object_from_json(dataset, db_field, index_prefix, index_field):
+        return get_object_from_json_str(dataset[db_field])
+
+    def create_cached_dataset_url(dataset, db_field, index_prefix, index_field):
+        return (
+            get_azure_blob_public_url(context, dataset, index_field[-3:])
+            if dataset_has_iati_xml_download(dataset)
+            else None
+        )
+
     return [
-        "id",
-        "short_name",
-        "reporting_org_id",
-        "reporting_org_short_name",
-        "source_url",
-        "last_update_check",
-        "last_known_good_dataset_hash",
-        "last_known_good_dataset_hash_excluding_generated_timestamp",
-        "last_known_good_dataset_downloaded",
-        "last_known_good_dataset_verified_on_server",
-        "last_known_good_dataset_content_length",
-        "last_known_good_dataset_initial_contents",
-        "last_known_good_dataset_server_header_last_modified",
-        "last_known_good_dataset_server_header_etag",
-        "last_known_good_dataset_source_url",
-        "most_recent_head_attempt_datetime",
-        "most_recent_head_attempt_http_status",
-        "most_recent_head_attempt_error_details",
-        "most_recent_get_attempt_datetime",
-        "most_recent_get_attempt_http_status",
-        "most_recent_get_attempt_error_details",
+        ("id", None, "id", None),
+        ("short_name", None, "short_name", None),
+        ("reporting_org_id", None, "reporting_org_id", None),
+        ("reporting_org_short_name", None, "reporting_org_short_name", None),
+        ("source_url", None, "source_url", None),
+        ("license_id", None, "license_id", None),
+        ("last_update_check", None, "last_update_check", None),
+        ("most_recent_head_attempt_datetime", "most_recent_head_attempt", "datetime", None),
+        ("most_recent_head_attempt_http_status", "most_recent_head_attempt", "http_status", None),
+        (
+            "most_recent_head_attempt_error_details",
+            "most_recent_head_attempt",
+            "error_details",
+            convert_to_object_from_json,
+        ),
+        ("most_recent_get_attempt_datetime", "most_recent_get_attempt", "datetime", None),
+        ("most_recent_get_attempt_http_status", "most_recent_get_attempt", "http_status", None),
+        (
+            "most_recent_get_attempt_error_details",
+            "most_recent_get_attempt",
+            "error_details",
+            convert_to_object_from_json,
+        ),
+        ("last_known_good_dataset_hash", "last_known_good_dataset", "hash", None),
+        (
+            "last_known_good_dataset_hash_excluding_generated_timestamp",
+            "last_known_good_dataset",
+            "hash_excluding_generated_timestamp",
+            None,
+        ),
+        ("last_known_good_dataset_downloaded", "last_known_good_dataset", "downloaded", None),
+        ("last_known_good_dataset_verified_on_server", "last_known_good_dataset", "verified_on_server", None),
+        ("last_known_good_dataset_content_length", "last_known_good_dataset", "content_length", None),
+        ("last_known_good_dataset_initial_contents", "last_known_good_dataset", "initial_contents", None),
+        (
+            "last_known_good_dataset_server_header_last_modified",
+            "last_known_good_dataset",
+            "server_header_last_modified",
+            None,
+        ),
+        ("last_known_good_dataset_server_header_etag", "last_known_good_dataset", "server_header_etag", None),
+        ("last_known_good_dataset_source_url", "last_known_good_dataset", "source_url", None),
+        (None, "last_known_good_dataset", "cached_dataset_url_xml", create_cached_dataset_url),
+        (None, "last_known_good_dataset", "cached_dataset_url_zip", create_cached_dataset_url),
     ]
 
 
@@ -185,6 +235,7 @@ def get_minimal_index_dataset_fields(context: dict) -> list[str]:
         "reporting_org_id",
         "reporting_org_short_name",
         "source_url",
+        "license_id",
         "last_known_good_dataset_hash",
         "last_known_good_dataset_hash_excluding_generated_timestamp",
         "last_known_good_dataset_downloaded",
