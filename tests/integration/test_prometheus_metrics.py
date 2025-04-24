@@ -115,7 +115,7 @@ def test_metrics_with_success_then_delay_404(get_and_clear_up_context):  # noqa:
 
     dataset_id = uuid.UUID("c8a40aa5-9f31-4bcf-a36f-51c1fc2cc159")
 
-    datasets[dataset_id]["last_successful_download"] = get_timestamp() - timedelta(hours=7)
+    datasets[dataset_id]["last_known_good_dataset_downloaded"] = get_timestamp() - timedelta(hours=7)
 
     context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-03-1-dataset-404"
     checker_run(context, datasets)

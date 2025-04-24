@@ -1,369 +1,96 @@
 import json
+import urllib.parse
 import uuid
 
 import pytest
 
 from bulk_data_service.checker import checker_run
-from helpers.helpers import check_values_for_download_success, get_and_clear_up_context  # noqa: F401
+from helpers.data_helpers import (
+    check_dataset_fields,
+    check_dataset_registration_fields,
+    check_last_known_good_dataset_values_are_set,
+    check_last_known_good_dataset_values_are_unset,
+    check_most_recent_get_attempt_downloaded_but_non_iati,
+    check_most_recent_get_attempt_for_success,
+)
+from helpers.helpers import get_and_clear_up_context  # noqa: F401
 
 
-@pytest.mark.parametrize("field,expected", [
-    ("short_name", "test_foundation_a-dataset-001"),
-    ("reporting_org_id", uuid.UUID("ea055d99-f7e9-456f-9f99-963e95493c1b")),
-    ("reporting_org_short_name", "test_foundation_a"),
-    ("source_url", "http://localhost:3000/data/test_foundation_a-dataset-404.xml"),
-    ("type", "activity"),
-    ("registration_service_name", "ckan-registry"),
-    ("registration_service_dataset_metadata", json.dumps(
-            {
-                "author": None,
-                "author_email": "publisher@email-here.com",
-                "creator_user_id": "4abc4897-94b7-4b0e-84c2-c8778f435ccb",
-                "id": "c8a40aa5-9f31-4bcf-a36f-51c1fc2cc159",
-                "isopen": True,
-                "license_id": "other-at",
-                "license_title": "Other (Attribution)",
-                "maintainer": None,
-                "maintainer_email": None,
-                "metadata_created": "2024-03-04T10:24:11.373108",
-                "metadata_modified": "2024-05-07T15:38:58.740018",
-                "name": "test_foundation_a-dataset-001",
-                "notes": "",
-                "num_resources": 1,
-                "num_tags": 0,
-                "organization": {
-                    "id": "ea055d99-f7e9-456f-9f99-963e95493c1b",
-                    "name": "test_foundation_a",
-                    "title": "Test Foundation A",
-                    "type": "organization",
-                    "description": "",
-                    "image_url": "",
-                    "created": "2020-02-24T20:56:01.763851",
-                    "is_organization": True,
-                    "approval_status": "approved",
-                    "state": "active"
-                },
-                "owner_org": "5d04f169-c702-45fe-8162-da7834859d86",
-                "private": False,
-                "state": "active",
-                "title": "040324",
-                "type": "dataset",
-                "url": None,
-                "version": None,
-                "extras": [
-                    {
-                        "key": "activity_count",
-                        "value": "10"
-                    },
-                    {
-                        "key": "country",
-                        "value": "GB"
-                    },
-                    {
-                        "key": "data_updated",
-                        "value": "2024-03-01 14:24:09"
-                    },
-                    {
-                        "key": "filetype",
-                        "value": "activity"
-                    },
-                    {
-                        "key": "iati_version",
-                        "value": "2.03"
-                    },
-                    {
-                        "key": "language",
-                        "value": ""
-                    },
-                    {
-                        "key": "secondary_publisher",
-                        "value": ""
-                    },
-                    {
-                        "key": "validation_status",
-                        "value": "Not Found"
-                    }
-                ],
-                "resources": [
-                    {
-                        "cache_last_updated": None,
-                        "cache_url": None,
-                        "created": "2024-05-07T15:38:57.312249",
-                        "description": None,
-                        "format": "IATI-XML",
-                        "hash": "f6bb14d61bb2652f1014d6ebfee3c4b873241bac",
-                        "id": "d1b3d323-c8ba-48c5-89ce-6e745241d7fe",
-                        "last_modified": None,
-                        "metadata_modified": "2024-05-07T15:38:58.757860",
-                        "mimetype": "",
-                        "mimetype_inner": None,
-                        "name": None,
-                        "package_id": "b83ebe89-d522-4d3b-87e9-53aa9ac8eee9",
-                        "position": 0,
-                        "resource_type": None,
-                        "size": 399382,
-                        "state": "active",
-                        "url": "http://localhost:3000/data/test_foundation_a-dataset-404.xml",
-                        "url_type": None
-                    }
-                ],
-                "tags": [],
-                "groups": [],
-                "relationships_as_subject": [],
-                "relationships_as_object": []
-            }
-    ))
+@pytest.mark.parametrize("source_url,expected_http_status_code", [
+    ("http://localhost:3000/data/test_foundation_a-dataset-001---403.xml", 403),
+    ("http://localhost:3000/data/test_foundation_a-dataset-001---404.xml", 404),
+    ("http://localhost:3000/data/test_foundation_a-dataset-001---500.xml", 500),
 ])
-def test_add_new_undownloadable_dataset(get_and_clear_up_context, field, expected):  # noqa: F811
+def test_add_new_undownloadable_dataset(get_and_clear_up_context, source_url, expected_http_status_code):  # noqa: F811
 
     context = get_and_clear_up_context
 
     dataset_id = uuid.UUID("c8a40aa5-9f31-4bcf-a36f-51c1fc2cc159")
-
-    # dataset c8a40aa5-9f31-... with 404
-    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-03-1-dataset-404"
+    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-01-1-dataset/{}".format(urllib.parse.quote_plus(source_url))
 
     datasets_in_bds = {}
     checker_run(context, datasets_in_bds)
 
-    assert datasets_in_bds[dataset_id][field] == expected
-    assert datasets_in_bds[dataset_id]["download_error_message"] is not None
-    assert datasets_in_bds[dataset_id]["last_successful_download"] is None
-    assert datasets_in_bds[dataset_id]["last_download_http_status"] != 200
-    assert datasets_in_bds[dataset_id]["download_content_length"] is None
+    check_dataset_registration_fields(source_url, datasets_in_bds[dataset_id])
+
+    check_last_known_good_dataset_values_are_unset(datasets_in_bds[dataset_id])
+
+    assert datasets_in_bds[dataset_id]["most_recent_get_attempt_datetime"] is not None
+    assert datasets_in_bds[dataset_id]["most_recent_get_attempt_http_status"] == expected_http_status_code
+    assert datasets_in_bds[dataset_id]["most_recent_get_attempt_error_details"] is not None
 
 
-@pytest.mark.parametrize("field,expected", [
-    ("short_name", "test_foundation_a-dataset-001"),
-    ("reporting_org_id", uuid.UUID("ea055d99-f7e9-456f-9f99-963e95493c1b")),
-    ("reporting_org_short_name", "test_foundation_a"),
-    ("source_url", "http://localhost:3000/data/test_foundation_a-dataset-001.xml"),
-    ("type", "activity"),
-    ("hash", "d8776c9e0cf913057c688e140e78cbb10799c158"),
-    ("hash_excluding_generated_timestamp", "5bc6f66bef15d6a61c549379c12d8e0d06a2e31c"),
-    ("registration_service_name", "ckan-registry"),
-    ("registration_service_dataset_metadata", json.dumps(
-           {
-                "author": None,
-                "author_email": "publisher@email-here.com",
-                "creator_user_id": "4abc4897-94b7-4b0e-84c2-c8778f435ccb",
-                "id": "c8a40aa5-9f31-4bcf-a36f-51c1fc2cc159",
-                "isopen": True,
-                "license_id": "other-at",
-                "license_title": "Other (Attribution)",
-                "maintainer": None,
-                "maintainer_email": None,
-                "metadata_created": "2024-03-04T10:24:11.373108",
-                "metadata_modified": "2024-05-07T15:38:58.740018",
-                "name": "test_foundation_a-dataset-001",
-                "notes": "",
-                "num_resources": 1,
-                "num_tags": 0,
-                "organization": {
-                    "id": "ea055d99-f7e9-456f-9f99-963e95493c1b",
-                    "name": "test_foundation_a",
-                    "title": "Test Foundation A",
-                    "type": "organization",
-                    "description": "",
-                    "image_url": "",
-                    "created": "2020-02-24T20:56:01.763851",
-                    "is_organization": True,
-                    "approval_status": "approved",
-                    "state": "active"
-                },
-                "owner_org": "5d04f169-c702-45fe-8162-da7834859d86",
-                "private": False,
-                "state": "active",
-                "title": "040324",
-                "type": "dataset",
-                "url": None,
-                "version": None,
-                "extras": [
-                    {
-                        "key": "activity_count",
-                        "value": "10"
-                    },
-                    {
-                        "key": "country",
-                        "value": "GB"
-                    },
-                    {
-                        "key": "data_updated",
-                        "value": "2024-03-01 14:24:09"
-                    },
-                    {
-                        "key": "filetype",
-                        "value": "activity"
-                    },
-                    {
-                        "key": "iati_version",
-                        "value": "2.03"
-                    },
-                    {
-                        "key": "language",
-                        "value": ""
-                    },
-                    {
-                        "key": "secondary_publisher",
-                        "value": ""
-                    },
-                    {
-                        "key": "validation_status",
-                        "value": "Not Found"
-                    }
-                ],
-                "resources": [
-                    {
-                        "cache_last_updated": None,
-                        "cache_url": None,
-                        "created": "2024-05-07T15:38:57.312249",
-                        "description": None,
-                        "format": "IATI-XML",
-                        "hash": "f6bb14d61bb2652f1014d6ebfee3c4b873241bac",
-                        "id": "d1b3d323-c8ba-48c5-89ce-6e745241d7fe",
-                        "last_modified": None,
-                        "metadata_modified": "2024-05-07T15:38:58.757860",
-                        "mimetype": "",
-                        "mimetype_inner": None,
-                        "name": None,
-                        "package_id": "b83ebe89-d522-4d3b-87e9-53aa9ac8eee9",
-                        "position": 0,
-                        "resource_type": None,
-                        "size": 399382,
-                        "state": "active",
-                        "url": "http://localhost:3000/data/test_foundation_a-dataset-001.xml",
-                        "url_type": None
-                    }
-                ],
-                "tags": [],
-                "groups": [],
-                "relationships_as_subject": [],
-                "relationships_as_object": []
-            }
-    ))
+@pytest.mark.parametrize("dataset_url,last_known_good_dataset_hash,last_known_good_dataset_hash_excluding_generated_timestamp,last_known_good_dataset_content_length", [
+    ("http://localhost:3000/data/test_foundation_a-dataset-001.xml", "d8776c9e0cf913057c688e140e78cbb10799c158", "5bc6f66bef15d6a61c549379c12d8e0d06a2e31c", 650),
+    ("http://localhost:3000/data/test_foundation_a-dataset-001-utf-16-be", "0eab5bd008e2f5151c2578b84fda46c054a90c25", "d4efc8c57b52463f4b7c181fdd0e778cbe994e84", 1452),
+    ("http://localhost:3000/data/test_foundation_a-dataset-001-utf-16-le", "8209b4c54a3c67a143626a176ccddfb9991d2708", "d4efc8c57b52463f4b7c181fdd0e778cbe994e84", 1452),
 ])
-def test_add_downloadable_dataset_xml_utf_8(get_and_clear_up_context, field, expected):  # noqa: F811
+def test_add_downloadable_dataset_for_various_encodings(
+        get_and_clear_up_context, # noqa: F811
+        dataset_url,
+        last_known_good_dataset_hash,
+        last_known_good_dataset_hash_excluding_generated_timestamp,
+        last_known_good_dataset_content_length
+        ):
 
     context = get_and_clear_up_context
 
     dataset_id = uuid.UUID("c8a40aa5-9f31-4bcf-a36f-51c1fc2cc159")
+    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-01-1-dataset/{}".format(urllib.parse.quote_plus(dataset_url))
 
-    # dataset c8a40aa5-9f31-... with 404
-    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-01-1-dataset"
     datasets_in_bds = {}
     checker_run(context, datasets_in_bds)
 
-    assert datasets_in_bds[dataset_id][field] == expected
-    check_values_for_download_success(datasets_in_bds[dataset_id])
+    check_dataset_registration_fields(dataset_url, datasets_in_bds[dataset_id])
+
+    check_most_recent_get_attempt_for_success(datasets_in_bds[dataset_id])
+
+    check_last_known_good_dataset_values_are_set(datasets_in_bds[dataset_id])
+
+    check_dataset_fields([("last_known_good_dataset_hash", last_known_good_dataset_hash),
+                          ("last_known_good_dataset_hash_excluding_generated_timestamp", last_known_good_dataset_hash_excluding_generated_timestamp),
+                          ("last_known_good_dataset_content_length", last_known_good_dataset_content_length),
+                          ("last_known_good_dataset_source_url", dataset_url),],
+                          datasets_in_bds[dataset_id])
 
 
-@pytest.mark.parametrize("field,expected", [
-    ("short_name", "test_foundation_a-dataset-001"),
-    ("reporting_org_id", uuid.UUID("ea055d99-f7e9-456f-9f99-963e95493c1b")),
-    ("reporting_org_short_name", "test_foundation_a"),
-    ("source_url", "http://localhost:3000/data/test_foundation_a-dataset-001-utf-16-be"),
-    ("type", "activity"),
-    ("hash", "0eab5bd008e2f5151c2578b84fda46c054a90c25"),
-    ("hash_excluding_generated_timestamp", "d4efc8c57b52463f4b7c181fdd0e778cbe994e84"),
-    ("registration_service_name", "ckan-registry")
+@pytest.mark.parametrize("source_url", [
+    ("http://localhost:3000/data/test_foundation_a-dataset-empty.xml"),
+    ("http://localhost:3000/data/test_foundation_a-dataset.pdf"),
 ])
-def test_add_downloadable_dataset_xml_utf_16_be(get_and_clear_up_context, field, expected):  # noqa: F811
+def test_add_downloadable_file_that_is_not_iati_dataset(get_and_clear_up_context, source_url):  # noqa: F811
 
     context = get_and_clear_up_context
 
     dataset_id = uuid.UUID("c8a40aa5-9f31-4bcf-a36f-51c1fc2cc159")
+    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-01-1-dataset/{}".format(urllib.parse.quote_plus(source_url))
 
-    context["DATA_REGISTRY_BASE_URL"] = ("http://localhost:3000/ckan-registration/datasets-01-1-dataset/"
-                                         "http%3A%2F%2Flocalhost%3A3000%2Fdata%2Ftest_foundation_a-dataset-001-utf-16-be")
     datasets_in_bds = {}
     checker_run(context, datasets_in_bds)
 
-    assert datasets_in_bds[dataset_id][field] == expected
-    check_values_for_download_success(datasets_in_bds[dataset_id])
+    check_dataset_registration_fields(source_url, datasets_in_bds[dataset_id])
 
+    check_last_known_good_dataset_values_are_unset(datasets_in_bds[dataset_id])
 
-@pytest.mark.parametrize("field,expected", [
-    ("short_name", "test_foundation_a-dataset-001"),
-    ("reporting_org_id", uuid.UUID("ea055d99-f7e9-456f-9f99-963e95493c1b")),
-    ("reporting_org_short_name", "test_foundation_a"),
-    ("source_url", "http://localhost:3000/data/test_foundation_a-dataset-001-utf-16-le"),
-    ("type", "activity"),
-    ("hash", "8209b4c54a3c67a143626a176ccddfb9991d2708"),
-    ("hash_excluding_generated_timestamp", "d4efc8c57b52463f4b7c181fdd0e778cbe994e84"),
-    ("registration_service_name", "ckan-registry")
-])
-def test_add_downloadable_dataset_xml_utf_16_le(get_and_clear_up_context, field, expected):  # noqa: F811
+    check_most_recent_get_attempt_downloaded_but_non_iati(datasets_in_bds[dataset_id])
 
-    context = get_and_clear_up_context
-
-    dataset_id = uuid.UUID("c8a40aa5-9f31-4bcf-a36f-51c1fc2cc159")
-
-    context["DATA_REGISTRY_BASE_URL"] = ("http://localhost:3000/ckan-registration/datasets-01-1-dataset/"
-                                         "http%3A%2F%2Flocalhost%3A3000%2Fdata%2Ftest_foundation_a-dataset-001-utf-16-le")
-    datasets_in_bds = {}
-    checker_run(context, datasets_in_bds)
-
-    assert datasets_in_bds[dataset_id][field] == expected
-    check_values_for_download_success(datasets_in_bds[dataset_id])
-
-
-@pytest.mark.parametrize("field,expected", [
-    ("short_name", "test_foundation_a-dataset-001"),
-    ("reporting_org_id", uuid.UUID("ea055d99-f7e9-456f-9f99-963e95493c1b")),
-    ("reporting_org_short_name", "test_foundation_a"),
-    ("source_url", "http://localhost:3000/data/test_foundation_a-dataset-empty.xml"),
-    ("type", "activity"),
-    ("hash", None),
-    ("hash_excluding_generated_timestamp", None),
-    ("registration_service_name", "ckan-registry")
-])
-def test_add_downloadable_dataset_empty(get_and_clear_up_context, field, expected):  # noqa: F811
-
-    context = get_and_clear_up_context
-
-    dataset_id = uuid.UUID("c8a40aa5-9f31-4bcf-a36f-51c1fc2cc159")
-
-    context["DATA_REGISTRY_BASE_URL"] = ("http://localhost:3000/ckan-registration/datasets-01-1-dataset/"
-                                         "http%3A%2F%2Flocalhost%3A3000%2Fdata%2Ftest_foundation_a-dataset-empty.xml")
-    datasets_in_bds = {}
-    checker_run(context, datasets_in_bds)
-
-    assert datasets_in_bds[dataset_id][field] == expected
-    assert datasets_in_bds[dataset_id]["last_successful_download"] is None
-    assert datasets_in_bds[dataset_id]["last_download_http_status"] == 200
-    assert datasets_in_bds[dataset_id]["download_content_length"] == 0
-    assert datasets_in_bds[dataset_id]["download_initial_contents"] is None
-
-    error_details = json.loads(datasets_in_bds[dataset_id]["download_error_message"])
-    assert error_details["bds_message"] == "File does not appear to be IATI XML"
-
-
-@pytest.mark.parametrize("field,expected", [
-    ("short_name", "test_foundation_a-dataset-001"),
-    ("reporting_org_id", uuid.UUID("ea055d99-f7e9-456f-9f99-963e95493c1b")),
-    ("reporting_org_short_name", "test_foundation_a"),
-    ("source_url", "http://localhost:3000/data/test_foundation_a-dataset.pdf"),
-    ("type", "activity"),
-    ("hash", None),
-    ("hash_excluding_generated_timestamp", None),
-    ("registration_service_name", "ckan-registry")
-])
-def test_add_downloadable_dataset_pdf(get_and_clear_up_context, field, expected):  # noqa: F811
-
-    context = get_and_clear_up_context
-
-    dataset_id = uuid.UUID("c8a40aa5-9f31-4bcf-a36f-51c1fc2cc159")
-
-    context["DATA_REGISTRY_BASE_URL"] = ("http://localhost:3000/ckan-registration/datasets-01-1-dataset/"
-                                         "http%3A%2F%2Flocalhost%3A3000%2Fdata%2Ftest_foundation_a-dataset.pdf")
-    datasets_in_bds = {}
-    checker_run(context, datasets_in_bds)
-
-    assert datasets_in_bds[dataset_id][field] == expected
-    assert datasets_in_bds[dataset_id]["last_successful_download"] is None
-    assert datasets_in_bds[dataset_id]["last_download_http_status"] == 200
-    assert datasets_in_bds[dataset_id]["download_content_length"] > 0
-    assert datasets_in_bds[dataset_id]["download_initial_contents"] is None
-
-    error_details = json.loads(datasets_in_bds[dataset_id]["download_error_message"])
-    assert error_details["bds_message"] == "File does not appear to be IATI XML"

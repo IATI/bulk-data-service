@@ -75,9 +75,9 @@ def remove_download_for_expired_dataset(
         "last good download from Bulk Data Service".format(bds_dataset["id"], max_hours)
     )
 
-    bds_dataset["last_successful_download"] = None
-    bds_dataset["hash"] = None
-    bds_dataset["hash_excluding_generated_timestamp"] = None
+    bds_dataset["last_known_good_dataset_downloaded"] = None
+    bds_dataset["last_known_good_dataset_hash"] = None
+    bds_dataset["last_known_good_dataset_hash_excluding_generated_timestamp"] = None
 
     insert_or_update_dataset(db_conn, bds_dataset)
 
@@ -92,6 +92,6 @@ def dataset_has_download_and_is_expired(context: dict[str, Any], bds_dataset: di
 
     max_hours = int(context["REMOVE_LAST_GOOD_DOWNLOAD_AFTER_FAILING_HOURS"])
 
-    return dataset_has_iati_xml_download(bds_dataset) and bds_dataset["last_successful_download"] < (
+    return dataset_has_iati_xml_download(bds_dataset) and bds_dataset["last_known_good_dataset_downloaded"] < (
         get_timestamp() - timedelta(hours=max_hours)
     )

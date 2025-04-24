@@ -4,8 +4,7 @@ import zipfile
 
 from bulk_data_service.checker import checker_run
 from bulk_data_service.zipper import zipper_run
-from helpers.helpers import get_and_clear_up_context  # noqa: F401
-from helpers.helpers import get_number_xml_files_in_working_dir
+from helpers.helpers import get_and_clear_up_context, get_number_xml_files_in_working_dir  # noqa: F401
 from utilities.db import get_reporting_orgs_in_bds
 
 
