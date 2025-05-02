@@ -13,6 +13,7 @@ from utilities.misc import (
     filter_dict_by_structure,
     get_number_xml_files_in_dir,
     get_timestamp_as_str_z,
+    lookup_license_title_from_id,
 )
 
 
@@ -122,6 +123,25 @@ class IATIBulkDataServiceZipper(IATIDataZipper):
 
 class CodeforIATILegacyZipper(IATIDataZipper):
 
+    def get_dataset_metadata_in_ckan_format(self, dataset: dict) -> str:
+        return json.dumps(
+            {
+                "id": str(dataset["id"]),
+                "license_id": dataset["license_id"],
+                "license_title": lookup_license_title_from_id(dataset["license_id"]),
+                "name": dataset["short_name"],
+                "organization": {"id": str(dataset["reporting_org_id"]), "name": dataset["reporting_org_short_name"]},
+                "resources": [{"url": dataset["source_url"]}],
+                "extras": [],
+                "tags": [],
+                "groups": [],
+                "users": [],
+            }
+        )
+
+    def get_reporting_org_metadata_in_ckan_format(self, dataset: dict) -> str:
+        return json.dumps({"id": str(dataset["reporting_org_id"]), "name": dataset["reporting_org_short_name"]})
+
     def prepare(self):
         # rename 'iati-data' directory to 'iati-data-main'
         if os.path.exists(os.path.join(self.zip_working_dir, super().zip_internal_directory_name)):
@@ -169,11 +189,14 @@ class CodeforIATILegacyZipper(IATIDataZipper):
                 with open(reporting_org_metadata_filename, "w") as pub_file:
                     reporting_org_metadata = "{}"
                     if self.datasets_in_bds[dataset_in_bds_db]["reporting_org_id"] in self.reporting_orgs:
-                        reporting_org_metadata = self.filter_publisher_metadata(
-                            self.reporting_orgs[self.datasets_in_bds[dataset_in_bds_db]["reporting_org_id"]][
-                                "registration_service_reporting_org_metadata"
-                            ]
+                        reporting_org_metadata = self.get_reporting_org_metadata_in_ckan_format(
+                            self.datasets_in_bds[dataset_in_bds_db]
                         )
+                        # reporting_org_metadata = self.filter_publisher_metadata(
+                        #     self.reporting_orgs[self.datasets_in_bds[dataset_in_bds_db]["reporting_org_id"]][
+                        #         "registration_service_reporting_org_metadata"
+                        #     ]
+                        # )
                     pub_file.write(reporting_org_metadata)
 
     def get_publisher_metadata_filename(self, reporting_org_short_name):
@@ -200,9 +223,10 @@ class CodeforIATILegacyZipper(IATIDataZipper):
             if not os.path.exists(dataset_metadata_filename):
                 with open(dataset_metadata_filename, "w") as pub_file:
                     pub_file.write(
-                        self.filter_dataset_metadata_file(
-                            self.datasets_in_bds[dataset_in_bds_db]["registration_service_dataset_metadata"]
-                        )
+                        self.get_dataset_metadata_in_ckan_format(self.datasets_in_bds[dataset_in_bds_db])
+                        # self.filter_dataset_metadata_file(
+                        #     self.datasets_in_bds[dataset_in_bds_db]["registration_service_dataset_metadata"]
+                        # )
                     )
 
     def filter_dataset_metadata_file(self, ckan_dataset_metadata: str) -> str:
