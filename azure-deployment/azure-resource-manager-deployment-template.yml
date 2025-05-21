@@ -17,8 +17,8 @@ properties: # Properties of container group
       properties: # Properties of an instance
         resources: # Resource requirements of the instance
           requests:
-            memoryInGB: 12
-            cpu: 3
+            memoryInGB: 6
+            cpu: 1.5
         image: "#ACR_LOGIN_SERVER#/#APP_NAME#-#TARGET_ENVIRONMENT#:#DOCKER_IMAGE_TAG#"
         ports:
           - port: 9090
