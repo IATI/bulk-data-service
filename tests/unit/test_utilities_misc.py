@@ -220,6 +220,5 @@ def test_content_has_iati_opening_element_negatives(input, expected):
                               comment here
                               -->  <iati-activities and more content""", True),
                           ])
-
 def test_content_has_iati_opening_element_positives(input, expected):
     assert content_has_iati_opening_element(input) == expected

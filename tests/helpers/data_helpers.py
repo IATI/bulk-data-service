@@ -73,6 +73,7 @@ def check_index_last_known_good_fields(context: dict, dataset: dict, dataset_ind
 def get_datetime_as_str_or_none(date: datetime.datetime | None) -> str | None:
     return (str(date) if date is not None else None)
 
+
 def check_dataset_fields(expected_fields: list, dataset: dict):
     for field, expected_value in expected_fields:
         assert dataset[field] == expected_value

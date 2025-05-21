@@ -13,6 +13,7 @@ from utilities.misc import (
     filter_dict_by_structure,
     get_number_xml_files_in_dir,
     get_timestamp_as_str_z,
+    lookup_license_title_from_id,
 )
 
 
@@ -122,6 +123,25 @@ class IATIBulkDataServiceZipper(IATIDataZipper):
 
 class CodeforIATILegacyZipper(IATIDataZipper):
 
+    def get_dataset_metadata_in_ckan_format(self, dataset: dict) -> str:
+        return json.dumps(
+            {
+                "id": str(dataset["id"]),
+                "license_id": dataset["license_id"],
+                "license_title": lookup_license_title_from_id(dataset["license_id"]),
+                "name": dataset["short_name"],
+                "organization": {"id": str(dataset["reporting_org_id"]), "name": dataset["reporting_org_short_name"]},
+                "resources": [{"url": dataset["source_url"]}],
+                "extras": [],
+                "tags": [],
+                "groups": [],
+                "users": [],
+            }
+        )
+
+    def get_reporting_org_metadata_in_ckan_format(self, dataset: dict) -> str:
+        return json.dumps({"id": str(dataset["reporting_org_id"]), "name": dataset["reporting_org_short_name"]})
+
     def prepare(self):
         # rename 'iati-data' directory to 'iati-data-main'
         if os.path.exists(os.path.join(self.zip_working_dir, super().zip_internal_directory_name)):
@@ -169,10 +189,8 @@ class CodeforIATILegacyZipper(IATIDataZipper):
                 with open(reporting_org_metadata_filename, "w") as pub_file:
                     reporting_org_metadata = "{}"
                     if self.datasets_in_bds[dataset_in_bds_db]["reporting_org_id"] in self.reporting_orgs:
-                        reporting_org_metadata = self.filter_publisher_metadata(
-                            self.reporting_orgs[self.datasets_in_bds[dataset_in_bds_db]["reporting_org_id"]][
-                                "registration_service_reporting_org_metadata"
-                            ]
+                        reporting_org_metadata = self.get_reporting_org_metadata_in_ckan_format(
+                            self.datasets_in_bds[dataset_in_bds_db]
                         )
                     pub_file.write(reporting_org_metadata)
 
@@ -180,16 +198,6 @@ class CodeforIATILegacyZipper(IATIDataZipper):
         return os.path.join(
             self.zip_working_dir, self.zip_internal_directory_name, "metadata", f"{reporting_org_short_name}.json"
         )
-
-    def filter_publisher_metadata(self, ckan_publisher_metadata: str) -> str:
-        desired_structure = {
-            "id": None,
-            "name": None,
-        }
-
-        filtered_dict = filter_dict_by_structure(json.loads(ckan_publisher_metadata), desired_structure)
-
-        return json.dumps(filtered_dict)
 
     def write_transformed_dataset_metadata_files(self):
         for dataset_in_bds_db in self.datasets_in_bds:
@@ -199,29 +207,7 @@ class CodeforIATILegacyZipper(IATIDataZipper):
                 os.makedirs(dataset_metadata_pathname, exist_ok=True)
             if not os.path.exists(dataset_metadata_filename):
                 with open(dataset_metadata_filename, "w") as pub_file:
-                    pub_file.write(
-                        self.filter_dataset_metadata_file(
-                            self.datasets_in_bds[dataset_in_bds_db]["registration_service_dataset_metadata"]
-                        )
-                    )
-
-    def filter_dataset_metadata_file(self, ckan_dataset_metadata: str) -> str:
-        desired_structure = {
-            "id": None,
-            "license_id": None,
-            "license_title": None,
-            "name": None,
-            "organization": {"id": None, "name": None},
-            "resources": [{"url": None}],
-        }
-        empty_array_entries = ["extras", "tags", "groups", "users"]
-
-        filtered_dict = filter_dict_by_structure(json.loads(ckan_dataset_metadata), desired_structure)
-
-        for empty_array_entry in empty_array_entries:
-            filtered_dict[empty_array_entry] = []
-
-        return json.dumps(filtered_dict)
+                    pub_file.write(self.get_dataset_metadata_in_ckan_format(self.datasets_in_bds[dataset_in_bds_db]))
 
     def get_dataset_data_pathname(self, dataset_in_bds):
         return os.path.join(
