@@ -60,7 +60,7 @@ properties: # Properties of container group
           - name: AZURE_STORAGE_CONNECTION_STRING
             secureValue: "#AZURE_STORAGE_CONNECTION_STRING#"
           - name: DB_HOST
-            secureValue: "#APP_NAME#-db-#TARGET_ENVIRONMENT#.postgres.database.azure.com"
+            secureValue: "#DB_HOST#"
           - name: DB_PORT
             secureValue: "#DB_PORT#"
           - name: DB_USER
