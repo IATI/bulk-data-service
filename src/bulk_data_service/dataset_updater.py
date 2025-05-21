@@ -94,29 +94,31 @@ def add_or_update_registered_dataset(
 ):
 
     if registered_dataset_id not in datasets_in_bds:
-        old_source_url = ""
         bds_dataset = create_bds_dataset(registered_datasets[registered_dataset_id])
+        old_source_url = ""
         datasets_in_bds[registered_dataset_id] = bds_dataset
     else:
         bds_dataset = datasets_in_bds[registered_dataset_id]
         old_source_url = bds_dataset["source_url"]
         update_bds_dataset_registration_info(bds_dataset, registered_datasets[registered_dataset_id])
 
-    bds_dataset["last_update_check"] = get_timestamp()
+    check_time = get_timestamp()
+
+    bds_dataset["last_update_check"] = check_time
 
     attempt_download = True
 
-    download_within_hours = get_randomised_download_within_hours(context)
+    hours = get_randomised_redownload_after_n_hours(context)
 
-    if bds_dataset["source_url"] == old_source_url and dataset_downloaded_within(bds_dataset, download_within_hours):
+    if bds_dataset["source_url"] == old_source_url and dataset_downloaded_within(bds_dataset, hours):
 
         attempt_download = check_dataset_etag_last_mod_header(
-            context, db_conn, session, bds_dataset, download_within_hours
+            context, db_conn, session, bds_dataset, hours, check_time
         )
 
     if attempt_download:
         try:
-            download_and_save_dataset(context, session, az_blob_service, bds_dataset)
+            download_and_save_dataset(context, session, az_blob_service, bds_dataset, check_time)
 
             datasets_in_bds[registered_dataset_id] = bds_dataset
 
@@ -125,30 +127,34 @@ def add_or_update_registered_dataset(
             context["logger"].info("dataset id: {} - Added/updated dataset".format(bds_dataset["id"]))
 
         except RuntimeError as e:
-            bds_dataset["download_error_message"] = json.dumps(
-                {"bds_message": "Download of IATI XML failed with non-200 HTTP status"} | e.args[0]
+            bds_dataset["most_recent_get_attempt_error_details"] = json.dumps(
+                {"message": "Download of IATI XML failed with non-200 HTTP status"} | e.args[0]
             )
             context["logger"].warning(
-                "dataset id: {} - {}".format(registered_dataset_id, bds_dataset["download_error_message"])
+                "dataset id: {} - {}".format(
+                    registered_dataset_id, bds_dataset["most_recent_get_attempt_error_details"]
+                )
             )
-            bds_dataset["last_download_attempt"] = get_timestamp()
-            bds_dataset["last_download_http_status"] = e.args[0]["http_status_code"]
+            bds_dataset["most_recent_get_attempt_datetime"] = get_timestamp()
+            bds_dataset["most_recent_get_attempt_http_status"] = e.args[0]["http_status_code"]
             insert_or_update_dataset(db_conn, bds_dataset)
         except Exception as e:
-            bds_dataset["last_download_attempt"] = get_timestamp()
-            bds_dataset["download_error_message"] = json.dumps(
+            bds_dataset["most_recent_get_attempt_datetime"] = get_timestamp()
+            bds_dataset["most_recent_get_attempt_error_details"] = json.dumps(
                 {
-                    "bds_message": "Download of IATI XML produced EXCEPTION with GET request",
-                    "message": "{}".format(e),
+                    "message": "Download of IATI XML produced EXCEPTION with GET request",
+                    "details": "{}".format(e),
                 }
             )
             context["logger"].warning(
-                "dataset id: {} - {}".format(registered_dataset_id, bds_dataset["download_error_message"])
+                "dataset id: {} - {}".format(
+                    registered_dataset_id, bds_dataset["most_recent_get_attempt_error_details"]
+                )
             )
             insert_or_update_dataset(db_conn, bds_dataset)
 
 
-def get_randomised_download_within_hours(context: dict) -> int:
+def get_randomised_redownload_after_n_hours(context: dict) -> int:
     hours_force_redownload = int(context["FORCE_REDOWNLOAD_AFTER_HOURS"])
 
     if hours_force_redownload > 8:
@@ -159,7 +165,7 @@ def get_randomised_download_within_hours(context: dict) -> int:
 
 def dataset_downloaded_within(bds_dataset: dict, hours: int) -> bool:
     hours_ago = get_timestamp() - timedelta(hours=hours)
-    return dataset_has_iati_xml_download(bds_dataset) and bds_dataset["last_successful_download"] > hours_ago
+    return dataset_has_iati_xml_download(bds_dataset) and bds_dataset["last_known_good_dataset_downloaded"] > hours_ago
 
 
 def check_dataset_etag_last_mod_header(
@@ -168,6 +174,7 @@ def check_dataset_etag_last_mod_header(
     session: requests.Session,
     bds_dataset: dict,
     download_within_hours: int,
+    attempt_time: datetime,
 ) -> bool:
 
     attempt_download = True
@@ -175,25 +182,28 @@ def check_dataset_etag_last_mod_header(
     try:
         head_response = http_head_dataset(session, bds_dataset["source_url"])
 
-        if "ETag" in head_response.headers and head_response.headers["ETag"] != bds_dataset["server_header_etag"]:
+        if (
+            "ETag" in head_response.headers
+            and head_response.headers["ETag"] != bds_dataset["last_known_good_dataset_server_header_etag"]
+        ):
 
             context["logger"].info(
                 "dataset id: {} - Last successful download within {} hours, "
                 "but ETag changed so redownloading".format(bds_dataset["id"], download_within_hours)
             )
 
-            update_dataset_head_request_fields(bds_dataset, head_response.status_code)
+            update_dataset_head_request_fields(bds_dataset, attempt_time, head_response.status_code)
 
         elif "Last-Modified" in head_response.headers and set_timestamp_tz_utc(
             datetime.strptime(head_response.headers["Last-Modified"], "%a, %d %b %Y %H:%M:%S GMT")
-        ) != set_timestamp_tz_utc(bds_dataset["server_header_last_modified"]):
+        ) != set_timestamp_tz_utc(bds_dataset["last_known_good_dataset_server_header_last_modified"]):
 
             context["logger"].info(
                 "dataset id: {} - Last successful download within {} hours, "
                 "but Last-Modified header changed so redownloading".format(bds_dataset["id"], download_within_hours)
             )
 
-            update_dataset_head_request_fields(bds_dataset, head_response.status_code)
+            update_dataset_head_request_fields(bds_dataset, attempt_time, head_response.status_code)
 
         else:
             context["logger"].info(
@@ -201,9 +211,11 @@ def check_dataset_etag_last_mod_header(
                 "Last-Modified and ETag same, so not redownloading".format(bds_dataset["id"], download_within_hours)
             )
 
-            update_dataset_head_request_fields(bds_dataset, head_response.status_code)
+            update_dataset_head_request_fields(bds_dataset, attempt_time, head_response.status_code)
 
-            bds_dataset["last_verified_on_server"] = bds_dataset["last_head_attempt"]
+            bds_dataset["last_known_good_dataset_verified_on_server"] = bds_dataset[
+                "most_recent_head_attempt_datetime"
+            ]
 
             insert_or_update_dataset(db_conn, bds_dataset)
 
@@ -218,9 +230,9 @@ def check_dataset_etag_last_mod_header(
             extra_err_message = "Dataset not downloaded within the last 6 hours so forcing full re-download attempt."
             attempt_download = True
 
-        bds_dataset["head_error_message"] = json.dumps(
+        bds_dataset["most_recent_head_attempt_error_details"] = json.dumps(
             {
-                "bds_message": (
+                "message": (
                     "Last successful download within {} hours, "
                     "but HEAD request to check ETag/Last-Modified "
                     "return non-200 status. {} "
@@ -230,10 +242,15 @@ def check_dataset_etag_last_mod_header(
             | e.args[0]
         )
 
-        context["logger"].warning("dataset id: {} - {}".format(bds_dataset["id"], bds_dataset["head_error_message"]))
+        context["logger"].warning(
+            "dataset id: {} - {}".format(bds_dataset["id"], bds_dataset["most_recent_head_attempt_error_details"])
+        )
 
         update_dataset_head_request_fields(
-            bds_dataset, e.args[0]["http_status_code"], bds_dataset["head_error_message"]
+            bds_dataset,
+            attempt_time,
+            e.args[0]["http_status_code"],
+            bds_dataset["most_recent_head_attempt_error_details"],
         )
 
         insert_or_update_dataset(db_conn, bds_dataset)
@@ -249,11 +266,12 @@ def check_dataset_etag_last_mod_header(
 
 
 def download_and_save_dataset(
-    context: dict, session: requests.Session, az_blob_service: BlobServiceClient, bds_dataset: dict
+    context: dict,
+    session: requests.Session,
+    az_blob_service: BlobServiceClient,
+    bds_dataset: dict,
+    attempt_datetime: datetime,
 ):
-
-    last_download_attempt = get_timestamp()
-
     download_response = http_download_dataset(session, bds_dataset["source_url"])
 
     last_modified_header = get_last_modified_header_if_exists(download_response)
@@ -262,25 +280,19 @@ def download_and_save_dataset(
 
     inital_chars = get_initial_chars_if_text(download_response, encoding)
 
-    bds_dataset["download_content_length"] = len(download_response.content)
-    bds_dataset["download_initial_contents"] = inital_chars
-
     download_has_opening_iati_element = content_has_iati_opening_element(inital_chars)
 
     if not download_has_opening_iati_element:
         bds_dataset.update(
             {
-                "last_download_attempt": last_download_attempt,
-                "last_download_http_status": download_response.status_code,
-                "last_verified_on_server": last_download_attempt,
-                "download_error_message": json.dumps(
+                "most_recent_get_attempt_datetime": attempt_datetime,
+                "most_recent_get_attempt_http_status": download_response.status_code,
+                "most_recent_get_attempt_error_details": json.dumps(
                     {
-                        "bds_message": "File does not appear to be IATI XML",
+                        "message": "File does not appear to be IATI XML",
                         "http_headers": dict(download_response.headers),
                     }
                 ),
-                "server_header_last_modified": last_modified_header,
-                "server_header_etag": download_response.headers.get("ETag", None),
             }
         )
         return
@@ -288,17 +300,12 @@ def download_and_save_dataset(
     hash = get_hash_of_bytes(download_response.content)
     hash_excluding_generated = get_hash_excluding_generated_timestamp(download_response.text, encoding)  # type: ignore
 
-    if hash_excluding_generated != bds_dataset["hash_excluding_generated_timestamp"]:
-        bds_dataset["content_modified_excluding_generated_timestamp"] = last_download_attempt
-
-    if hash == bds_dataset["hash"]:
+    if hash == bds_dataset["last_known_good_dataset_hash"]:
         context["logger"].info(
             "dataset id: {} - Hash of download is identical to "
             "previous value, so not re-zipping and re-uploading to Azure".format(bds_dataset["id"])
         )
     else:
-        bds_dataset["content_modified"] = last_download_attempt
-
         iati_xml_zipped = zip_data_as_single_file(bds_dataset["short_name"] + ".xml", download_response.content)
 
         response_xml = azure_upload_to_blob(
@@ -334,24 +341,27 @@ def download_and_save_dataset(
 
     bds_dataset.update(
         {
-            "hash": hash,
-            "hash_excluding_generated_timestamp": hash_excluding_generated,
-            "last_update_check": last_download_attempt,
-            "last_download_attempt": last_download_attempt,
-            "last_download_http_status": download_response.status_code,
-            "last_successful_download": last_download_attempt,
-            "last_verified_on_server": last_download_attempt,
-            "download_error_message": None,
-            "server_header_last_modified": last_modified_header,
-            "server_header_etag": download_response.headers.get("ETag", None),
+            "last_update_check": attempt_datetime,
+            "most_recent_get_attempt_datetime": attempt_datetime,
+            "most_recent_get_attempt_http_status": download_response.status_code,
+            "most_recent_get_attempt_error_details": None,
+            "last_known_good_dataset_hash": hash,
+            "last_known_good_dataset_hash_excluding_generated_timestamp": hash_excluding_generated,
+            "last_known_good_dataset_downloaded": attempt_datetime,
+            "last_known_good_dataset_verified_on_server": attempt_datetime,
+            "last_known_good_dataset_content_length": len(download_response.content),
+            "last_known_good_dataset_initial_contents": inital_chars,
+            "last_known_good_dataset_server_header_last_modified": last_modified_header,
+            "last_known_good_dataset_server_header_etag": download_response.headers.get("ETag", None),
+            "last_known_good_dataset_source_url": bds_dataset["source_url"],
         }
     )
 
 
-def update_dataset_head_request_fields(dataset: dict, status_code: int, error_msg: str = ""):
-    dataset["last_head_attempt"] = get_timestamp()
-    dataset["last_head_http_status"] = status_code
-    dataset["head_error_message"] = error_msg
+def update_dataset_head_request_fields(dataset: dict, updated: datetime, status_code: int, error_msg: str = ""):
+    dataset["most_recent_head_attempt_datetime"] = updated
+    dataset["most_recent_head_attempt_http_status"] = status_code
+    dataset["most_recent_head_attempt_error_details"] = error_msg
 
 
 def create_bds_dataset(registered_dataset: dict) -> dict:
@@ -360,27 +370,28 @@ def create_bds_dataset(registered_dataset: dict) -> dict:
         "short_name": registered_dataset["short_name"],
         "reporting_org_id": registered_dataset["reporting_org_id"],
         "reporting_org_short_name": registered_dataset["reporting_org_short_name"],
-        "type": registered_dataset["type"],
         "source_url": registered_dataset["source_url"],
-        "hash": None,
-        "hash_excluding_generated_timestamp": None,
-        "last_update_check": None,
-        "last_head_attempt": None,
-        "last_head_http_status": None,
-        "head_error_message": None,
-        "last_verified_on_server": None,
-        "last_download_attempt": None,
-        "last_download_http_status": None,
-        "last_successful_download": None,
-        "download_error_message": None,
-        "content_modified": None,
-        "content_modified_excluding_generated_timestamp": None,
-        "server_header_last_modified": None,
-        "server_header_etag": None,
+        "license_id": registered_dataset["license_id"],
         "registration_service_dataset_metadata": registered_dataset["registration_service_dataset_metadata"],
         "registration_service_name": registered_dataset["registration_service_name"],
-        "download_content_length": None,
-        "download_initial_contents": None,
+        "last_update_check": None,
+        "last_known_good_dataset_hash": None,
+        "last_known_good_dataset_hash_excluding_generated_timestamp": None,
+        "last_known_good_dataset_verified_on_server": None,
+        "last_known_good_dataset_downloaded": None,
+        "last_known_good_dataset_server_header_last_modified": None,
+        "last_known_good_dataset_server_header_etag": None,
+        "last_known_good_dataset_content_length": None,
+        "last_known_good_dataset_initial_contents": None,
+        "last_known_good_dataset_source_url": None,
+        "most_recent_head_attempt_datetime": None,
+        "most_recent_head_attempt_http_status": None,
+        "most_recent_head_attempt_error_details": None,
+        "most_recent_head_attempt_server_headers": None,
+        "most_recent_get_attempt_datetime": None,
+        "most_recent_get_attempt_http_status": None,
+        "most_recent_get_attempt_error_details": None,
+        "most_recent_get_attempt_server_headers": None,
     }
 
 
@@ -388,8 +399,8 @@ def update_bds_dataset_registration_info(bds_dataset: dict, registered_dataset: 
     for field in [
         "reporting_org_id",
         "reporting_org_short_name",
-        "type",
         "source_url",
+        "license_id",
         "registration_service_dataset_metadata",
         "registration_service_name",
     ]:

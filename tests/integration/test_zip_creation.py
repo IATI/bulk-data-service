@@ -4,8 +4,7 @@ import zipfile
 
 from bulk_data_service.checker import checker_run
 from bulk_data_service.zipper import zipper_run
-from helpers.helpers import get_and_clear_up_context  # noqa: F401
-from helpers.helpers import get_number_xml_files_in_working_dir
+from helpers.helpers import get_and_clear_up_context, get_number_xml_files_in_working_dir  # noqa: F401
 from utilities.db import get_reporting_orgs_in_bds
 
 
@@ -96,6 +95,34 @@ def test_publisher_metadata_content_for_successful_metadata_dl(get_and_clear_up_
             {
                 "id": "ea055d99-f7e9-456f-9f99-963e95493c1b",
                 "name": "test_foundation_a",
+            }
+        )
+
+
+def test_dataset_metadata_content_for_successful_metadata_dl(get_and_clear_up_context):  # noqa: F811
+
+    context = get_and_clear_up_context
+
+    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-05-1-dataset-updated"
+    datasets_in_bds = {}
+    checker_run(context, datasets_in_bds)
+
+    datasets_in_zip = {}
+    zipper_run(context, datasets_in_zip, datasets_in_bds, get_reporting_orgs_in_bds(context))
+
+    with open(context["ZIP_WORKING_DIR"] + "-2/iati-data-main/metadata/test_foundation_a/test_foundation_a-dataset-001.json", "r") as f:
+        assert f.read() == json.dumps(
+            {
+                "id": "c8a40aa5-9f31-4bcf-a36f-51c1fc2cc159",
+                "license_id": "uk-ogl",
+                "license_title": "UK Open Government Licence (OGL)",
+                "name": "test_foundation_a-dataset-001",
+                "organization": {"id": "ea055d99-f7e9-456f-9f99-963e95493c1b", "name": "test_foundation_a", },
+                "resources": [{"url": "http://localhost:3000/not_found"}],
+                "extras": [],
+                "tags": [],
+                "groups": [],
+                "users": [],
             }
         )
 

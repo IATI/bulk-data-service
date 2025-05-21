@@ -17,8 +17,8 @@ properties: # Properties of container group
       properties: # Properties of an instance
         resources: # Resource requirements of the instance
           requests:
-            memoryInGB: 4
-            cpu: 1
+            memoryInGB: 6
+            cpu: 1.5
         image: "#ACR_LOGIN_SERVER#/#APP_NAME#-#TARGET_ENVIRONMENT#:#DOCKER_IMAGE_TAG#"
         ports:
           - port: 9090
@@ -60,7 +60,7 @@ properties: # Properties of container group
           - name: AZURE_STORAGE_CONNECTION_STRING
             secureValue: "#AZURE_STORAGE_CONNECTION_STRING#"
           - name: DB_HOST
-            secureValue: "#APP_NAME#-db-#TARGET_ENVIRONMENT#.postgres.database.azure.com"
+            secureValue: "#DB_HOST#"
           - name: DB_PORT
             secureValue: "#DB_PORT#"
           - name: DB_USER

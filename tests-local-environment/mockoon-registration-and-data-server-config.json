@@ -52,7 +52,16 @@
           "latency": 0,
           "statusCode": 200,
           "label": "",
-          "headers": [],
+          "headers": [
+            {
+              "key": "Last-Modified",
+              "value": "Thu, 20 Mar 2025 08:58:59 GMT"
+            },
+            {
+              "key": "ETag",
+              "value": "{{urlParam 'filename'}}"
+            }
+          ],
           "bodyType": "FILE",
           "filePath": "tests/artifacts/iati-xml-files/{{urlParam 'filename'}}",
           "databucketID": "",
@@ -259,6 +268,60 @@
               "target": "params",
               "modifier": "status_code",
               "value": "500",
+              "invert": false,
+              "operator": "equals"
+            }
+          ],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": false,
+          "crudKey": "id",
+          "callbacks": []
+        },
+        {
+          "uuid": "6dd2210a-b44c-4c8c-ab8b-ac6fb7b372b0",
+          "body": "",
+          "latency": 0,
+          "statusCode": 204,
+          "label": "",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [
+            {
+              "target": "params",
+              "modifier": "status_code",
+              "value": "204",
+              "invert": false,
+              "operator": "equals"
+            }
+          ],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": false,
+          "crudKey": "id",
+          "callbacks": []
+        },
+        {
+          "uuid": "7439d36e-abf3-417a-b9b1-a77bcdb96d63",
+          "body": "",
+          "latency": 0,
+          "statusCode": 404,
+          "label": "",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [
+            {
+              "target": "params",
+              "modifier": "status_code",
+              "value": "404",
               "invert": false,
               "operator": "equals"
             }

@@ -70,28 +70,33 @@ def insert_or_update_dataset(connection: psycopg.Connection, data):
                     UPDATE SET
                         reporting_org_id = %(reporting_org_id)s,
                         reporting_org_short_name = %(reporting_org_short_name)s,
-                        type = %(type)s,
                         source_url = %(source_url)s,
-                        hash = %(hash)s,
-                        hash_excluding_generated_timestamp = %(hash_excluding_generated_timestamp)s,
-                        last_update_check = %(last_update_check)s,
-                        last_head_attempt = %(last_head_attempt)s,
-                        last_head_http_status = %(last_head_http_status)s,
-                        head_error_message = %(head_error_message)s,
-                        last_download_attempt = %(last_download_attempt)s,
-                        last_download_http_status = %(last_download_http_status)s,
-                        last_successful_download = %(last_successful_download)s,
-                        last_verified_on_server = %(last_verified_on_server)s,
-                        download_error_message = %(download_error_message)s,
-                        content_modified = %(content_modified)s,
-                        content_modified_excluding_generated_timestamp =
-                            %(content_modified_excluding_generated_timestamp)s,
-                        server_header_last_modified = %(server_header_last_modified)s,
-                        server_header_etag = %(server_header_etag)s,
+                        license_id = %(license_id)s,
                         registration_service_dataset_metadata = %(registration_service_dataset_metadata)s,
                         registration_service_name = %(registration_service_name)s,
-                        download_content_length = %(download_content_length)s,
-                        download_initial_contents = %(download_initial_contents)s
+
+                        last_update_check = %(last_update_check)s,
+
+                        last_known_good_dataset_hash = %(last_known_good_dataset_hash)s,
+                        last_known_good_dataset_hash_excluding_generated_timestamp = %(last_known_good_dataset_hash_excluding_generated_timestamp)s,
+                        last_known_good_dataset_downloaded = %(last_known_good_dataset_downloaded)s,
+                        last_known_good_dataset_verified_on_server = %(last_known_good_dataset_verified_on_server)s,
+                        last_known_good_dataset_server_header_last_modified = %(last_known_good_dataset_server_header_last_modified)s,
+                        last_known_good_dataset_server_header_etag = %(last_known_good_dataset_server_header_etag)s,
+                        last_known_good_dataset_content_length = %(last_known_good_dataset_content_length)s,
+                        last_known_good_dataset_initial_contents = %(last_known_good_dataset_initial_contents)s,
+                        last_known_good_dataset_source_url = %(last_known_good_dataset_source_url)s,
+
+                        most_recent_head_attempt_datetime = %(most_recent_head_attempt_datetime)s,
+                        most_recent_head_attempt_http_status = %(most_recent_head_attempt_http_status)s,
+                        most_recent_head_attempt_error_details = %(most_recent_head_attempt_error_details)s,
+                        most_recent_head_attempt_server_headers = %(most_recent_head_attempt_server_headers)s,
+
+                        most_recent_get_attempt_datetime = %(most_recent_get_attempt_datetime)s,
+                        most_recent_get_attempt_http_status = %(most_recent_get_attempt_http_status)s,
+                        most_recent_get_attempt_error_details = %(most_recent_get_attempt_error_details)s,
+                        most_recent_get_attempt_server_headers = %(most_recent_get_attempt_server_headers)s
+
                     WHERE
                         iati_datasets.id = %(id)s
         """.format(
