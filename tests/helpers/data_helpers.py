@@ -49,7 +49,7 @@ def check_index_registration_fields(dataset: dict, dataset_index_item: dict):
     assert uuid.UUID(dataset_index_item["reporting_org_id"]) == dataset["reporting_org_id"]
     assert dataset_index_item["reporting_org_short_name"] == dataset["reporting_org_short_name"]
     assert dataset_index_item["source_url"] == dataset["source_url"]
-    assert dataset_index_item["license_id"] == dataset["license_id"]
+    assert dataset_index_item["licence_id"] == dataset["licence_id"]
 
 
 def check_index_most_recent_fields(context: dict, field_grouping: str, dataset: dict, dataset_index_item: dict):
@@ -90,7 +90,7 @@ def expected_values_for_dataset_registration_fields(source_url: str) -> list:
             ("reporting_org_id", uuid.UUID("ea055d99-f7e9-456f-9f99-963e95493c1b")),
             ("reporting_org_short_name", "test_foundation_a"),
             ("source_url", source_url),
-            ("license_id", "other-at"),
+            ("licence_id", "other-at"),
             ("registration_service_name", "ckan-registry"),
             ("registration_service_dataset_metadata", json.dumps(
                     {
