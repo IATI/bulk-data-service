@@ -71,7 +71,7 @@ def insert_or_update_dataset(connection: psycopg.Connection, data):
                         reporting_org_id = %(reporting_org_id)s,
                         reporting_org_short_name = %(reporting_org_short_name)s,
                         source_url = %(source_url)s,
-                        license_id = %(license_id)s,
+                        licence_id = %(licence_id)s,
                         registration_service_dataset_metadata = %(registration_service_dataset_metadata)s,
                         registration_service_name = %(registration_service_name)s,
 

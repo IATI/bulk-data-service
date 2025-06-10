@@ -134,9 +134,9 @@ def find_object_by_key(objects: list, key: str, value_to_find: Any):
     return next(filter(lambda x: x[key] == value_to_find, objects), None)
 
 
-def lookup_license_title_from_id(license_id: str) -> str:
-    LICENSE_TITLE_LOOKUP = {
-        "notspecified": "License Not Specified",
+def lookup_licence_title_from_id(licence_id: str) -> str:
+    LICENCE_TITLE_LOOKUP = {
+        "notspecified": "Licence Not Specified",
         "odc-pddl": "Open Data Commons Public Domain Dedication and Licence (PDDL)",
         "odc-odbl": "Open Data Commons Open Database License (ODbL)",
         "odc-by": "Open Data Commons Attribution Licence",
@@ -216,4 +216,4 @@ def lookup_license_title_from_id(license_id: str) -> str:
         "zpl": "Zope Public License",
         "zlib-license": "zlib/libpng license",
     }
-    return LICENSE_TITLE_LOOKUP[license_id] if license_id in LICENSE_TITLE_LOOKUP else "Unknown License"
+    return LICENCE_TITLE_LOOKUP[licence_id] if licence_id in LICENCE_TITLE_LOOKUP else "Unknown License"

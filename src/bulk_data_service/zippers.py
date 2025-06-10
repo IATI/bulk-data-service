@@ -13,7 +13,7 @@ from utilities.misc import (
     filter_dict_by_structure,
     get_number_xml_files_in_dir,
     get_timestamp_as_str_z,
-    lookup_license_title_from_id,
+    lookup_licence_title_from_id,
 )
 
 
@@ -127,8 +127,8 @@ class CodeforIATILegacyZipper(IATIDataZipper):
         return json.dumps(
             {
                 "id": str(dataset["id"]),
-                "license_id": dataset["license_id"],
-                "license_title": lookup_license_title_from_id(dataset["license_id"]),
+                "license_id": dataset["licence_id"],
+                "license_title": lookup_licence_title_from_id(dataset["licence_id"]),
                 "name": dataset["short_name"],
                 "organization": {"id": str(dataset["reporting_org_id"]), "name": dataset["reporting_org_short_name"]},
                 "resources": [{"url": dataset["source_url"]}],
