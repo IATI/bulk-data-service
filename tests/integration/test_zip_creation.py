@@ -110,13 +110,13 @@ def test_dataset_metadata_content_for_successful_metadata_dl(get_and_clear_up_co
     datasets_in_zip = {}
     zipper_run(context, datasets_in_zip, datasets_in_bds, get_reporting_orgs_in_bds(context))
 
-    with open(context["ZIP_WORKING_DIR"] + "-2/iati-data-main/metadata/test_foundation_a/test_foundation_a-dataset-001.json", "r") as f:
+    with open(context["ZIP_WORKING_DIR"] + "-2/iati-data-main/metadata/test_foundation_a/test_foundation_a-dataset-001-newname.json", "r") as f:
         assert f.read() == json.dumps(
             {
                 "id": "c8a40aa5-9f31-4bcf-a36f-51c1fc2cc159",
                 "license_id": "uk-ogl",
                 "license_title": "UK Open Government Licence (OGL)",
-                "name": "test_foundation_a-dataset-001",
+                "name": "test_foundation_a-dataset-001-newname",
                 "organization": {"id": "ea055d99-f7e9-456f-9f99-963e95493c1b", "name": "test_foundation_a", },
                 "resources": [{"url": "http://localhost:3000/not_found"}],
                 "extras": [],

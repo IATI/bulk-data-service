@@ -397,6 +397,7 @@ def create_bds_dataset(registered_dataset: dict) -> dict:
 
 def update_bds_dataset_registration_info(bds_dataset: dict, registered_dataset: dict):
     for field in [
+        "short_name",
         "reporting_org_id",
         "reporting_org_short_name",
         "source_url",
