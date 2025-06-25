@@ -310,7 +310,7 @@ def download_and_save_dataset(
 
         response_xml = azure_upload_to_blob(
             az_blob_service,
-            context["AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_XML"],
+            context["AZURE_STORAGE_BLOB_CONTAINER_NAME"],
             "{}/{}.xml".format(bds_dataset["reporting_org_short_name"], bds_dataset["short_name"]),
             download_response.content,
             "application/xml",
@@ -323,7 +323,7 @@ def download_and_save_dataset(
 
         response_zip = azure_upload_to_blob(
             az_blob_service,
-            context["AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_ZIP"],
+            context["AZURE_STORAGE_BLOB_CONTAINER_NAME"],
             "{}/{}.zip".format(bds_dataset["reporting_org_short_name"], bds_dataset["short_name"]),
             iati_xml_zipped,
             "application/zip",
@@ -331,7 +331,7 @@ def download_and_save_dataset(
 
         if not azure_blob_exists(
             az_blob_service,
-            context["AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_XML"],
+            context["AZURE_STORAGE_BLOB_CONTAINER_NAME"],
             "{}/{}.xml".format(bds_dataset["reporting_org_short_name"], bds_dataset["short_name"]),
         ):
             context["logger"].error("dataset id: {} - Azure XML upload failed")

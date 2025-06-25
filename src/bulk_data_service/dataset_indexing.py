@@ -33,13 +33,7 @@ def upload_index_json_to_azure(context: dict, index_name: str, index_json: str):
 
     az_blob_service = BlobServiceClient.from_connection_string(context["AZURE_STORAGE_CONNECTION_STRING"])
 
-    for container in set(
-        [
-            context["AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_XML"],
-            context["AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_ZIP"],
-        ]
-    ):
-        azure_upload_to_blob(az_blob_service, container, index_name, index_json, "application/json")
+    azure_upload_to_blob(az_blob_service, context["AZURE_STORAGE_BLOB_CONTAINER_NAME"], index_name, index_json, "application/json")
 
     az_blob_service.close()
 
