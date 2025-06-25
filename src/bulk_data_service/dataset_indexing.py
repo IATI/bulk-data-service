@@ -33,13 +33,7 @@ def upload_index_json_to_azure(context: dict, index_name: str, index_json: str):
 
     az_blob_service = BlobServiceClient.from_connection_string(context["AZURE_STORAGE_CONNECTION_STRING"])
 
-    for container in set(
-        [
-            context["AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_XML"],
-            context["AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_ZIP"],
-        ]
-    ):
-        azure_upload_to_blob(az_blob_service, container, index_name, index_json, "application/json")
+    azure_upload_to_blob(az_blob_service, context["AZURE_STORAGE_BLOB_CONTAINER_NAME"], index_name, index_json, "application/json")
 
     az_blob_service.close()
 
@@ -107,7 +101,7 @@ def get_dataset_index_entry(context: dict, dataset: dict, index_type: str) -> di
         "reporting_org_id": None,
         "reporting_org_short_name": None,
         "source_url": None,
-        "license_id": None,
+        "licence_id": None,
         "last_update_check": None,
         "last_known_good_dataset": {
             "downloaded": None,
@@ -185,7 +179,7 @@ def get_full_index_structured_fields(context: dict) -> list[Any]:
         ("reporting_org_id", None, "reporting_org_id", None),
         ("reporting_org_short_name", None, "reporting_org_short_name", None),
         ("source_url", None, "source_url", None),
-        ("license_id", None, "license_id", None),
+        ("licence_id", None, "licence_id", None),
         ("last_update_check", None, "last_update_check", None),
         ("most_recent_head_attempt_datetime", "most_recent_head_attempt", "datetime", None),
         ("most_recent_head_attempt_http_status", "most_recent_head_attempt", "http_status", None),
@@ -234,7 +228,7 @@ def get_minimal_index_dataset_fields(context: dict) -> list[str]:
         "reporting_org_id",
         "reporting_org_short_name",
         "source_url",
-        "license_id",
+        "licence_id",
         "last_known_good_dataset_hash",
         "last_known_good_dataset_hash_excluding_generated_timestamp",
         "last_known_good_dataset_downloaded",

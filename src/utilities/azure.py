@@ -46,19 +46,15 @@ def create_azure_blob_containers(context: dict):
     container_names = [c.name for c in containers]
 
     try:
-        if context["AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_XML"] not in container_names:
-            blob_service.create_container(context["AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_XML"])
-            container_names.append(context["AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_XML"])
-        if context["AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_ZIP"] not in container_names:
-            blob_service.create_container(context["AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_ZIP"])
+        if context["AZURE_STORAGE_BLOB_CONTAINER_NAME"] not in container_names:
+            blob_service.create_container(context["AZURE_STORAGE_BLOB_CONTAINER_NAME"])
+            container_names.append(context["AZURE_STORAGE_BLOB_CONTAINER_NAME"])
     except Exception as e:
         context["logger"].error(
-            "Could not create Azure blob storage containers."
-            "XML container name: {}. "
-            "ZIP container name: {}. "
+            "Could not create Azure blob storage container. "
+            "Container name: {}. "
             "Error details: {}".format(
-                context["AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_XML"],
-                context["AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_ZIP"],
+                context["AZURE_STORAGE_BLOB_CONTAINER_NAME"],
                 e,
             )
         )
@@ -74,11 +70,9 @@ def delete_azure_blob_containers(context: dict):
     container_names = [c.name for c in containers]
 
     try:
-        if context["AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_XML"] in container_names:
-            blob_service.delete_container(context["AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_XML"])
-            container_names.remove(context["AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_XML"])
-        if context["AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_ZIP"] in container_names:
-            blob_service.delete_container(context["AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_ZIP"])
+        if context["AZURE_STORAGE_BLOB_CONTAINER_NAME"] in container_names:
+            blob_service.delete_container(context["AZURE_STORAGE_BLOB_CONTAINER_NAME"])
+            container_names.remove(context["AZURE_STORAGE_BLOB_CONTAINER_NAME"])
     except Exception as e:
         context["logger"].error("Could not delete Azure blob storage container: {}".format(e))
         raise e
@@ -106,7 +100,7 @@ def delete_azure_iati_blob(context: dict, blob_service_client: BlobServiceClient
 
 
 def get_azure_container_name(context: dict, iati_blob_type: str) -> str:
-    return context["AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_" + iati_blob_type.upper()]
+    return context["AZURE_STORAGE_BLOB_CONTAINER_NAME"]
 
 
 def get_azure_blob_name(dataset: dict, iati_blob_type: str) -> str:
@@ -128,7 +122,7 @@ def upload_zip_to_azure(context: dict, zip_local_pathname: str, zip_azure_filena
     az_blob_service = BlobServiceClient.from_connection_string(context["AZURE_STORAGE_CONNECTION_STRING"])
 
     blob_client = az_blob_service.get_blob_client(
-        context["AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_ZIP"], zip_azure_filename
+        context["AZURE_STORAGE_BLOB_CONTAINER_NAME"], zip_azure_filename
     )
 
     content_settings = ContentSettings(content_type="zip")

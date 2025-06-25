@@ -16,7 +16,8 @@ from helpers.helpers import get_and_clear_up_context  # noqa: F401
 @pytest.mark.parametrize("field,original,expected", [
     ("source_url", "http://localhost:3000/data/test_foundation_a-dataset-001.xml",
         "http://localhost:3000/not_found"),
-    ("license_id", "other-at", "uk-ogl"),
+    ("short_name", "test_foundation_a-dataset-001", "test_foundation_a-dataset-001-newname"),
+    ("licence_id", "other-at", "uk-ogl"),
     ("registration_service_dataset_metadata", json.dumps(
             {
                 "author": None,
@@ -129,7 +130,7 @@ from helpers.helpers import get_and_clear_up_context  # noqa: F401
                 "maintainer_email": None,
                 "metadata_created": "2024-03-04T10:24:11.373108",
                 "metadata_modified": "2024-05-07T15:38:58.740018",
-                "name": "test_foundation_a-dataset-001",
+                "name": "test_foundation_a-dataset-001-newname",
                 "notes": "",
                 "num_resources": 1,
                 "num_tags": 0,
@@ -217,7 +218,7 @@ from helpers.helpers import get_and_clear_up_context  # noqa: F401
         )
      )
 ])
-def test_update_dataset_publisher_details(get_and_clear_up_context,  # noqa: F811
+def test_update_dataset_registration_details(get_and_clear_up_context,  # noqa: F811
                                           field,
                                           original,
                                           expected):
@@ -233,7 +234,7 @@ def test_update_dataset_publisher_details(get_and_clear_up_context,  # noqa: F81
     assert len(datasets_in_bds) == 1
     assert datasets_in_bds[dataset_id][field] == original
 
-    # this is same dataset as above, with a different url and license
+    # this is same dataset as above, with a different url and licence
     context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-05-1-dataset-updated"
     checker_run(context, datasets_in_bds)
 

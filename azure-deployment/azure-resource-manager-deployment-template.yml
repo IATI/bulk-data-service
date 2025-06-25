@@ -52,10 +52,8 @@ properties: # Properties of container group
             value: "#REMOVE_LAST_GOOD_DOWNLOAD_AFTER_FAILING_HOURS#"
           - name: ZIP_WORKING_DIR
             value: "#ZIP_WORKING_DIR#"
-          - name: AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_XML
-            value: "#AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_XML#"
-          - name: AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_ZIP
-            value: "#AZURE_STORAGE_BLOB_CONTAINER_NAME_IATI_ZIP#"
+          - name: AZURE_STORAGE_BLOB_CONTAINER_NAME
+            value: "#AZURE_STORAGE_BLOB_CONTAINER_NAME#"
 
           - name: AZURE_STORAGE_CONNECTION_STRING
             secureValue: "#AZURE_STORAGE_CONNECTION_STRING#"
