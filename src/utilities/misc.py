@@ -14,8 +14,8 @@ START_OF_IATI_XML_REGEX = re.compile(
 )
 
 
-def content_has_iati_opening_element(content: str | None) -> bool:
-    return START_OF_IATI_XML_REGEX.search(content if content is not None else "") is not None
+def content_has_iati_opening_element(content: str) -> bool:
+    return START_OF_IATI_XML_REGEX.search(content) is not None
 
 
 def get_initial_chars_if_text(download_response: requests.Response, encoding: str | None) -> str | None:
@@ -24,7 +24,17 @@ def get_initial_chars_if_text(download_response: requests.Response, encoding: st
 
     download_response.encoding = encoding
 
-    return download_response.text[:250].replace("\n", "").replace("\r", "")[:150]
+    return download_response.text[:6000].replace("\n", "").replace("\r", "")
+
+
+def get_initial_iati_content(initial_chars: str | None) -> str | None:
+
+    if initial_chars is None:
+        return None
+
+    initial_chars_wo_newlines = initial_chars.replace("\n", "").replace("\r", "")
+
+    return initial_chars_wo_newlines[:150] if content_has_iati_opening_element(initial_chars_wo_newlines) else None
 
 
 def dataset_has_iati_xml_download(dataset: dict) -> bool:

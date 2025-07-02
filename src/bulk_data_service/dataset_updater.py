@@ -20,11 +20,11 @@ from utilities.http import (
     http_head_dataset,
 )
 from utilities.misc import (
-    content_has_iati_opening_element,
     dataset_has_iati_xml_download,
     get_hash_excluding_generated_timestamp,
     get_hash_of_bytes,
     get_initial_chars_if_text,
+    get_initial_iati_content,
     get_timestamp,
     set_timestamp_tz_utc,
     zip_data_as_single_file,
@@ -278,11 +278,9 @@ def download_and_save_dataset(
 
     encoding = determine_response_encoding(download_response)
 
-    inital_chars = get_initial_chars_if_text(download_response, encoding)
+    initial_iati_content = get_initial_iati_content(get_initial_chars_if_text(download_response, encoding))
 
-    download_has_opening_iati_element = content_has_iati_opening_element(inital_chars)
-
-    if not download_has_opening_iati_element:
+    if initial_iati_content is None:
         bds_dataset.update(
             {
                 "most_recent_get_attempt_datetime": attempt_datetime,
@@ -350,7 +348,7 @@ def download_and_save_dataset(
             "last_known_good_dataset_downloaded": attempt_datetime,
             "last_known_good_dataset_verified_on_server": attempt_datetime,
             "last_known_good_dataset_content_length": len(download_response.content),
-            "last_known_good_dataset_initial_contents": inital_chars,
+            "last_known_good_dataset_initial_contents": initial_iati_content,
             "last_known_good_dataset_server_header_last_modified": last_modified_header,
             "last_known_good_dataset_server_header_etag": download_response.headers.get("ETag", None),
             "last_known_good_dataset_source_url": bds_dataset["source_url"],
