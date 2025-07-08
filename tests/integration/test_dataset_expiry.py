@@ -36,6 +36,14 @@ def test_dataset_expiry_after_72_hours_failed_downloads(get_and_clear_up_context
 
     assert len(datasets_in_bds) == 1
     assert dataset["last_known_good_dataset_downloaded"] is None
+    assert dataset["last_known_good_dataset_hash"] is None
+    assert dataset["last_known_good_dataset_hash_excluding_generated_timestamp"] is None
+    assert dataset["last_known_good_dataset_content_length"] is None
+    assert dataset["last_known_good_dataset_initial_contents"] is None
+    assert dataset["last_known_good_dataset_server_header_etag"] is None
+    assert dataset["last_known_good_dataset_server_header_last_modified"] is None
+    assert dataset["last_known_good_dataset_source_url"] is None
+    assert dataset["last_known_good_dataset_verified_on_server"] is None
 
     blob_service_client = BlobServiceClient.from_connection_string(context["AZURE_STORAGE_CONNECTION_STRING"])
 

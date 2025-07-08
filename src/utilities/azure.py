@@ -121,9 +121,7 @@ def get_azure_blob_public_url(context: dict, dataset: dict, iati_blob_type: str)
 def upload_zip_to_azure(context: dict, zip_local_pathname: str, zip_azure_filename: str):
     az_blob_service = BlobServiceClient.from_connection_string(context["AZURE_STORAGE_CONNECTION_STRING"])
 
-    blob_client = az_blob_service.get_blob_client(
-        context["AZURE_STORAGE_BLOB_CONTAINER_NAME"], zip_azure_filename
-    )
+    blob_client = az_blob_service.get_blob_client(context["AZURE_STORAGE_BLOB_CONTAINER_NAME"], zip_azure_filename)
 
     content_settings = ContentSettings(content_type="zip")
 

@@ -78,6 +78,12 @@ def remove_download_for_expired_dataset(
     bds_dataset["last_known_good_dataset_downloaded"] = None
     bds_dataset["last_known_good_dataset_hash"] = None
     bds_dataset["last_known_good_dataset_hash_excluding_generated_timestamp"] = None
+    bds_dataset["last_known_good_dataset_content_length"] = None
+    bds_dataset["last_known_good_dataset_initial_contents"] = None
+    bds_dataset["last_known_good_dataset_server_header_etag"] = None
+    bds_dataset["last_known_good_dataset_server_header_last_modified"] = None
+    bds_dataset["last_known_good_dataset_source_url"] = None
+    bds_dataset["last_known_good_dataset_verified_on_server"] = None
 
     insert_or_update_dataset(db_conn, bds_dataset)
 
