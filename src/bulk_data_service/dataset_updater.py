@@ -140,6 +140,7 @@ def add_or_update_registered_dataset(
             insert_or_update_dataset(db_conn, bds_dataset)
         except Exception as e:
             bds_dataset["most_recent_get_attempt_datetime"] = get_timestamp()
+            bds_dataset["most_recent_get_attempt_http_status"] = None
             bds_dataset["most_recent_get_attempt_error_details"] = json.dumps(
                 {
                     "message": "Download of IATI XML produced EXCEPTION with GET request",
