@@ -10,7 +10,6 @@ from bulk_data_service.dataset_indexing import get_dataset_index_name, get_repor
 from utilities.azure import azure_download_blob, get_azure_container_name, upload_zip_to_azure
 from utilities.misc import (
     dataset_has_iati_xml_download,
-    filter_dict_by_structure,
     get_number_xml_files_in_dir,
     get_timestamp_as_str_z,
     lookup_licence_title_from_id,
