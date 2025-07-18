@@ -79,9 +79,10 @@ def get_and_clear_up_context():
         }
 
     context["BULK_DATA_SERVICE_VERSION"] = get_app_version()
+    context["AZURE_SERVICE_BUS_WAIT_TIME"] = 0.1  # type: ignore
 
     for metric in get_metrics_definitions():
-        context["prom_metrics"][metric[0]] = mock.Mock()
+        context["prom_metrics"][metric[0]] = mock.Mock()  # type: ignore
 
     create_azure_blob_containers(context)
     apply_db_migrations(context)

@@ -2,14 +2,15 @@
 
 ## Summary
 
-| Product          | IATI Bulk Data Service                                                                                                                                                                                                              |
-| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Description      | A Python application which fetches the list of registered IATI datasets and periodically downloads them, making each available individually as an XML file and ZIP file, and also providing a ZIP file containing all the datasets. |
-| Website          | https://bulk-data.iatistandard.org/                                                                                                                                                                                                 |
-| Related          |
-| Documentation    | Rest of `README`                                                                                                                                                                                                                    |
-| Technical Issues | See https://github.com/IATI/bulk-data-service/issues                                                                                                                                                                                |
-| Support          | https://iatistandard.org/en/guidance/get-support/                                                                                                                                                                                   |
+| Product          | IATI Bulk Data |
+| ---------------- | ---------------------------------
+| Description      | A Python application which fetches the list of registered IATI datasets and periodically downloads them,
+making each available individually as an XML file and ZIP file, and also providing a ZIP file containing all the datasets. |
+| Website          | https://bulk-data.iatistandard.org/  |
+| Related          | |
+| Documentation    | Rest of `README` |
+| Technical Issues | See https://github.com/IATI/bulk-data-service/issues |
+| Support          | https://iatistandard.org/en/guidance/get-support/  |
 
 ## Description
 

@@ -94,7 +94,7 @@ def add_or_update_registered_dataset(
 ):
 
     if registered_dataset_id not in datasets_in_bds:
-        bds_dataset = create_bds_dataset(registered_datasets[registered_dataset_id])
+        bds_dataset = create_full_bds_dataset(registered_datasets[registered_dataset_id])
         old_source_url = ""
         datasets_in_bds[registered_dataset_id] = bds_dataset
     else:
@@ -363,7 +363,7 @@ def update_dataset_head_request_fields(dataset: dict, updated: datetime, status_
     dataset["most_recent_head_attempt_error_details"] = error_msg
 
 
-def create_bds_dataset(registered_dataset: dict) -> dict:
+def create_full_bds_dataset(registered_dataset: dict) -> dict:
     return {
         "id": registered_dataset["id"],
         "short_name": registered_dataset["short_name"],

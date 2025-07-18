@@ -27,5 +27,9 @@ DB_CONNECTION_TIMEOUT=30
 # Local Azurite Emulator
 AZURE_STORAGE_CONNECTION_STRING=AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;DefaultEndpointsProtocol=http;BlobEndpoint=http://127.0.0.1:10000/devstoreaccount1;QueueEndpoint=http://127.0.0.1:10001/devstoreaccount1;TableEndpoint=http://127.0.0.1:10002/devstoreaccount1;
 
-
 AZURE_STORAGE_BLOB_CONTAINER_NAME="test-data"
+
+AZURE_SERVICE_BUS_CONNECTION_STRING=""
+AZURE_SERVICE_BUS_REGISTRY_TOPIC_NAME="iati-mq-registry-changes-topic-local"
+AZURE_SERVICE_BUS_REGISTRY_SUB_NAME="iati-mq-registry-changes-sub-local"
+AZURE_SERVICE_BUS_WAIT_TIME=0.5
