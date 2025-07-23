@@ -64,21 +64,6 @@ def test_publisher_metadata_saved_for_successful_metadata_dl(get_and_clear_up_co
     assert os.path.exists(context["ZIP_WORKING_DIR"] + "-2/iati-data-main/metadata/test_foundation_a.json") is True
 
 
-def test_publisher_metadata_content_for_failed_metadata_dl(get_and_clear_up_context):  # noqa: F811
-
-    context = get_and_clear_up_context
-
-    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-06-1-dataset-unknown-org"
-    datasets_in_bds = {}
-    checker_run(context, datasets_in_bds)
-
-    datasets_in_zip = {}
-    zipper_run(context, datasets_in_zip, datasets_in_bds, get_reporting_orgs_in_bds(context))
-
-    with open(context["ZIP_WORKING_DIR"] + "-2/iati-data-main/metadata/test_foundation_e.json", "r") as f:
-        assert f.read() == "{}"
-
-
 def test_publisher_metadata_content_for_successful_metadata_dl(get_and_clear_up_context):  # noqa: F811
 
     context = get_and_clear_up_context

@@ -17,6 +17,9 @@ def test_remove_unregistered_dataset_from_memory(get_and_clear_up_context):  # n
     datasets_in_bds = get_datasets_in_bds(context)
     assert len(datasets_in_bds) == 0
 
+    context["DATA_REGISTRY_PUBLISHER_METADATA_URL"] = (
+        "http://localhost:3000/ckan-registration/reporting-orgs-01-four-orgs"
+    )
     context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-02-2-datasets"
     checker_run(context, datasets_in_bds)
 
@@ -38,6 +41,9 @@ def test_remove_unregistered_dataset_from_db(get_and_clear_up_context):  # noqa:
 
     datasets_in_bds = get_datasets_in_bds(context)
 
+    context["DATA_REGISTRY_PUBLISHER_METADATA_URL"] = (
+        "http://localhost:3000/ckan-registration/reporting-orgs-01-four-orgs"
+    )
     context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-02-2-datasets"
     checker_run(context, datasets_in_bds)
 
@@ -62,6 +68,9 @@ def test_remove_unregistered_dataset_from_azure_blob(get_and_clear_up_context): 
 
     datasets_in_bds = get_datasets_in_bds(context)
 
+    context["DATA_REGISTRY_PUBLISHER_METADATA_URL"] = (
+        "http://localhost:3000/ckan-registration/reporting-orgs-01-four-orgs"
+    )
     context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-02-2-datasets"
 
     checker_run(context, datasets_in_bds)
@@ -102,6 +111,9 @@ def test_remove_unregistered_dataset_from_zip_working_dir(get_and_clear_up_conte
     datasets_in_bds = get_datasets_in_bds(context)
     datasets_in_zip = {}
 
+    context["DATA_REGISTRY_PUBLISHER_METADATA_URL"] = (
+        "http://localhost:3000/ckan-registration/reporting-orgs-01-four-orgs"
+    )
     context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-02-2-datasets"
     checker_run(context, datasets_in_bds)
     zipper_run(context, datasets_in_zip, datasets_in_bds, get_reporting_orgs_in_bds(context))
@@ -126,6 +138,9 @@ def test_remove_unregistered_dataset_with_no_download(get_and_clear_up_context):
 
     datasets_in_bds = get_datasets_in_bds(context)
 
+    context["DATA_REGISTRY_PUBLISHER_METADATA_URL"] = (
+        "http://localhost:3000/ckan-registration/reporting-orgs-01-four-orgs"
+    )
     context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-04-2-datasets-1-404"
 
     checker_run(context, datasets_in_bds)
