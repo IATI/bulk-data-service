@@ -36,9 +36,10 @@ def get_number_xml_files_in_working_dir(context):
                          recursive=True))
 
 
-def truncate_db_table(context: dict):
+def truncate_db_tables(context: dict):
     connection = get_db_connection(context)
     cursor = connection.cursor()
+    cursor.execute("""TRUNCATE table iati_reporting_orgs CASCADE""")
     cursor.execute("""TRUNCATE table iati_datasets""")
     cursor.close()
     connection.commit()
@@ -79,14 +80,15 @@ def get_and_clear_up_context():
         }
 
     context["BULK_DATA_SERVICE_VERSION"] = get_app_version()
+    context["AZURE_SERVICE_BUS_WAIT_TIME"] = 0.1  # type: ignore
 
     for metric in get_metrics_definitions():
-        context["prom_metrics"][metric[0]] = mock.Mock()
+        context["prom_metrics"][metric[0]] = mock.Mock()  # type: ignore
 
     create_azure_blob_containers(context)
     apply_db_migrations(context)
     yield context
-    truncate_db_table(context)
+    truncate_db_tables(context)
     delete_azure_blob_containers(context)
     # this is a sanity check to ensure we don't remove important files on a misconfiguration
     if context["ZIP_WORKING_DIR"].startswith("/tmp"):

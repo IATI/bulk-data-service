@@ -80,9 +80,9 @@ def fetch_datasets_metadata(context: dict, reporting_orgs: dict) -> dict[uuid.UU
 
     cleaned_datasets_metadata = clean_datasets_metadata(context["logger"], datasets_list_from_registry)
 
-    add_publisher_metadata(cleaned_datasets_metadata, reporting_orgs)
+    augmented_datasets_metadata = add_publisher_metadata(cleaned_datasets_metadata, reporting_orgs)
 
-    datasets_metadata = convert_datasets_metadata(cleaned_datasets_metadata)
+    datasets_metadata = convert_datasets_metadata(augmented_datasets_metadata)
 
     return datasets_metadata
 
@@ -113,12 +113,20 @@ def fetch_datasets_metadata_from_iati_registry(context: dict, session: requests.
     return datasets_metadata
 
 
-def add_publisher_metadata(datasets_from_registry: list[dict[str, Any]], reporting_orgs: dict[uuid.UUID, dict]):
+def add_publisher_metadata(
+    datasets_from_registry: list[dict[str, Any]], reporting_orgs: dict[uuid.UUID, dict]
+) -> list[dict[str, Any]]:
+    non_orphaned_datasets = []
     for registry_dataset in datasets_from_registry:
-        publisher_metadata = ""
-        if "organization" in registry_dataset and "id" in registry_dataset["organization"]:
+        if (
+            "organization" in registry_dataset
+            and "id" in registry_dataset["organization"]
+            and uuid.UUID(registry_dataset["organization"]["id"]) in reporting_orgs
+        ):
             publisher_metadata = get_publisher_metadata_as_str(reporting_orgs, registry_dataset["organization"]["id"])
-        registry_dataset["registration_service_publisher_metadata"] = publisher_metadata
+            registry_dataset["registration_service_publisher_metadata"] = publisher_metadata
+            non_orphaned_datasets.append(registry_dataset)
+    return non_orphaned_datasets
 
 
 def get_publisher_metadata_as_str(reporting_orgs: dict[uuid.UUID, dict], publisher_id: str) -> str:
