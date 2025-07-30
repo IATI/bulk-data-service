@@ -31,6 +31,9 @@ def test_metrics_after_new_registration(get_and_clear_up_context):  # noqa: F811
 
     context = get_and_clear_up_context
 
+    context["DATA_REGISTRY_PUBLISHER_METADATA_URL"] = (
+        "http://localhost:3000/ckan-registration/reporting-orgs-01-four-orgs"
+    )
     context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-01-1-dataset"
     bds_datasets = {}
     checker_run(context, bds_datasets)
@@ -56,6 +59,9 @@ def test_metrics_after_unregistration(get_and_clear_up_context):  # noqa: F811
 
     context = get_and_clear_up_context
 
+    context["DATA_REGISTRY_PUBLISHER_METADATA_URL"] = (
+        "http://localhost:3000/ckan-registration/reporting-orgs-01-four-orgs"
+    )
     context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-02-2-datasets"
     bds_datasets = {}
     checker_run(context, bds_datasets)
