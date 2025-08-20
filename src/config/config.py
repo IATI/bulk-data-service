@@ -25,15 +25,21 @@ _config_variables = [
     "AZURE_STORAGE_CONNECTION_STRING",
     "AZURE_STORAGE_BLOB_CONTAINER_NAME",
     "CHECKER_LOOP_WAIT_MINS",
+    "AZURE_SERVICE_BUS_CONNECTION_STRING",
+    "AZURE_SERVICE_BUS_REGISTRY_TOPIC_NAME",
+    "AZURE_SERVICE_BUS_REGISTRY_SUB_NAME",
+    "AZURE_SERVICE_BUS_WAIT_TIME",
 ]
 
 
-def get_config() -> dict[str, str]:
-    config = {env_var: os.getenv(env_var, "") for env_var in _config_variables}
+def get_config() -> dict[str, str | float]:
+    config: dict[str, str | float] = {env_var: os.getenv(env_var, "") for env_var in _config_variables}
 
-    config["WEB_BASE_URL"] = config["WEB_BASE_URL"].strip("/")
+    config["WEB_BASE_URL"] = config["WEB_BASE_URL"].strip("/")  # type: ignore[union-attr]
 
     config["BULK_DATA_SERVICE_VERSION"] = get_app_version()
+
+    config["AZURE_SERVICE_BUS_WAIT_TIME"] = float(config["AZURE_SERVICE_BUS_WAIT_TIME"])
 
     return config
 

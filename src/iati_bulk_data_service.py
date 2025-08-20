@@ -1,6 +1,7 @@
 import argparse
 
 from bulk_data_service.checker import checker
+from bulk_data_service.registry_changes_processor import registry_changes_processor_start
 from bulk_data_service.zipper import zipper
 from config.config import get_config
 from config.initialisation import misc_global_initialisation
@@ -36,15 +37,17 @@ def main(args: argparse.Namespace):
         checker(context)
     elif args.operation == "zipper":
         zipper(context)
+    elif args.operation == "registry-changes-processor":
+        registry_changes_processor_start(context)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Refresh from IATI Registry")
     parser.add_argument(
         "--operation",
-        choices=["checker", "zipper"],
+        choices=["checker", "zipper", "registry-changes-processor"],
         required=True,
-        help="Operation to run: checker, downloader",
+        help="Operation to run: checker, downloader, registry-changes-processor",
     )
     parser.add_argument(
         "--single-run",

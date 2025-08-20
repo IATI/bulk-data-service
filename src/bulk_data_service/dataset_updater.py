@@ -94,7 +94,7 @@ def add_or_update_registered_dataset(
 ):
 
     if registered_dataset_id not in datasets_in_bds:
-        bds_dataset = create_bds_dataset(registered_datasets[registered_dataset_id])
+        bds_dataset = create_full_bds_dataset(registered_datasets[registered_dataset_id])
         old_source_url = ""
         datasets_in_bds[registered_dataset_id] = bds_dataset
     else:
@@ -128,7 +128,13 @@ def add_or_update_registered_dataset(
 
         except RuntimeError as e:
             bds_dataset["most_recent_get_attempt_error_details"] = json.dumps(
-                {"message": "Download of IATI XML failed with non-200 HTTP status"} | e.args[0]
+                {
+                    "message": "Download of IATI XML failed with non-200 HTTP status",
+                    "http_reason": e.args[0]["http_reason"],
+                    "http_message": e.args[0]["message"],
+                    "http_status": e.args[0]["http_status_code"],
+                    "http_headers": e.args[0]["http_headers"],
+                }
             )
             context["logger"].warning(
                 "dataset id: {} - {}".format(
@@ -363,7 +369,7 @@ def update_dataset_head_request_fields(dataset: dict, updated: datetime, status_
     dataset["most_recent_head_attempt_error_details"] = error_msg
 
 
-def create_bds_dataset(registered_dataset: dict) -> dict:
+def create_full_bds_dataset(registered_dataset: dict) -> dict:
     return {
         "id": registered_dataset["id"],
         "short_name": registered_dataset["short_name"],
