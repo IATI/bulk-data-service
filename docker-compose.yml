@@ -1,17 +1,21 @@
-
+---
 services:
-
-  iati-bulk-data-service-azurite:
+  bds-local-dev-azurite:
     image: mcr.microsoft.com/azure-storage/azurite
     ports:
       - 10000:10000
       - 10001:10001
       - 10002:10002
-    command: azurite --blobHost 0.0.0.0 --blobPort 10000 --queueHost 0.0.0.0 --queuePort 10001 --tableHost 0.0.0.0 --tablePort 10002 --location /data --loose --skipApiVersionCheck
+    command: |
+      azurite --blobHost 0.0.0.0 --blobPort 10000 --queueHost 0.0.0.0 \
+              --queuePort 10001 --tableHost 0.0.0.0 --tablePort 10002 \
+              --location /data --loose --skipApiVersionCheck
     volumes:
       - iati-bulk-data-service-azurite:/data
+    networks:
+      bds-local-dev-net:
 
-  iati-bulk-data-service-postgres:
+  bds-local-dev-db:
     image: postgres:15
     ports:
       - "${DB_PORT}:${DB_PORT}"
@@ -23,10 +27,51 @@ services:
       - PGDATA=/var/lib/postgresql/data/pgdata
     volumes:
       - iati-bulk-data-service-postgres:/var/lib/postgresql/data
+    networks:
+      bds-local-dev-net:
+
+  bds-local-dev-mq-emulator:
+    image: mcr.microsoft.com/azure-messaging/servicebus-emulator:latest
+    pull_policy: always
+    volumes:
+      # NOTE: The local dev docker compose environment and the local test docker
+      #       compose environment use the same Azure Service Bus configuration
+      #       file; the different environments determine the correct instance to
+      #       connect to because the local dev and test environments use a
+      #       different set of ports.
+      - "./tests-local-environment/service-bus-emulator-config.json:/ServiceBus_Emulator/ConfigFiles/Config.json"
+    ports:
+      - "5672:5672"
+      - "5300:5300"
+    environment:
+      SQL_SERVER: bds-local-dev-mq-db
+      MSSQL_SA_PASSWORD: "${AZURE_SERVICE_BUS_DB_PASS}"
+      ACCEPT_EULA: "Y"
+      SQL_WAIT_INTERVAL: 3
+    depends_on:
+      - bds-local-dev-mq-db
+    networks:
+      bds-local-dev-net:
+        aliases:
+          - bds-local-dev-mq-emulator
+
+  bds-local-dev-mq-db:
+    image: "mcr.microsoft.com/azure-sql-edge:latest"
+    ports:
+      - "1433:1433"
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "${AZURE_SERVICE_BUS_DB_PASS}"
+    networks:
+      bds-local-dev-net:
+        aliases:
+          - bds-local-dev-mq-db
+
+networks:
+  bds-local-dev-net:
 
 volumes:
   iati-bulk-data-service-azurite:
     driver: local
   iati-bulk-data-service-postgres:
     driver: local
-

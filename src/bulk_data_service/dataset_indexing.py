@@ -142,7 +142,7 @@ def get_full_index_entry_from_dataset(context: dict, dataset: dict) -> dict:
 
     index_field_structure = get_full_index_structured_fields(context)
 
-    full_index_entry = {}
+    full_index_entry = {}  # type: ignore[var-annotated]
 
     for _, index_prefix, _, _ in index_field_structure:
         if index_prefix is not None and index_prefix not in full_index_entry:

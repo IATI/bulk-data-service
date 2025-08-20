@@ -46,5 +46,17 @@
             "console": "integratedTerminal",
             "envFile": "${workspaceFolder}/.env"
         },
+        {
+            "name": "Python Debugger: Bulk Data Service - Registry Changes Processor",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "src/iati_bulk_data_service.py",
+            "args": [
+                "--operation",
+                "registry-changes-processor",
+            ],
+            "console": "integratedTerminal",
+            "envFile": "${workspaceFolder}/.env"
+        },
     ]
 }

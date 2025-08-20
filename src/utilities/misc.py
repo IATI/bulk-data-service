@@ -10,7 +10,7 @@ from typing import Any
 import requests
 
 START_OF_IATI_XML_REGEX = re.compile(
-    r"^(<\?xml[^>]*>)?\s*(<!--[^>]*-->)?\s*<iati-(activities|organisations)", re.IGNORECASE
+    r"^(<\?xml[^>]*>)?\s*(<!--[^>]*-->\s*)*\s*<iati-(activities|organisations)", re.IGNORECASE
 )
 
 

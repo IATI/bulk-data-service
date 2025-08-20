@@ -1,19 +1,24 @@
 services:
-  iati-bulk-data-service-azurite-tests:
+  bds-test-env-azurite:
     image: mcr.microsoft.com/azure-storage/azurite
     ports:
       - 11000:11000
       - 11001:11001
       - 11002:11002
-    command: azurite --blobHost 0.0.0.0 --blobPort 11000 --queueHost 0.0.0.0 --queuePort 11001 --tableHost 0.0.0.0 --tablePort 11002 --location /data --loose --skipApiVersionCheck
+    command: |
+      azurite --blobHost 0.0.0.0 --blobPort 11000 --queueHost 0.0.0.0 \
+              --queuePort 11001 --tableHost 0.0.0.0 --tablePort 11002 \
+              --location /data --loose --skipApiVersionCheck
     tmpfs:
       - /data
     healthcheck:
       test: nc 127.0.0.1 11000 -z
       interval: 5s
       retries: 1
+    networks:
+      bds-local-test-net:
 
-  iati-bulk-data-service-postgres-tests:
+  bds-test-env-postgres:
     image: postgres:15
     ports:
       - "${DB_PORT}:${DB_PORT}"
@@ -30,8 +35,10 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      bds-local-test-net:
 
-  mock-registration-and-data-service:
+  bds-test-env-mockoon:
     image: mockoon/cli:9.1.0
     ports:
       - 3000:3000
@@ -45,18 +52,62 @@ services:
         read_only: true
     command: ["--data", "server-config.json", "-p", "3000"]
     healthcheck:
-      test: curl -s -o /dev/null 'http://localhost:3000/registration/datasets-01'
+      test: curl -s -o /dev/null 'http://localhost:3000/data/test_foundation_a-dataset-001.xml'
       interval: 10s
       timeout: 10s
       retries: 1
+    networks:
+      bds-local-test-net:
+
+  bds-test-env-mq-emulator:
+    image: mcr.microsoft.com/azure-messaging/servicebus-emulator:latest
+    pull_policy: always
+    volumes:
+      # NOTE: The local dev docker compose environment and the local test docker
+      #       compose environment use the same Azure Service Bus configuration
+      #       file; the different environments determine the correct instance to
+      #       connect to because the local dev and test environments use a
+      #       different set of ports.
+      - "./service-bus-emulator-config.json:/ServiceBus_Emulator/ConfigFiles/Config.json"
+    ports:
+      - "5673:5672"
+      - "5301:5300"
+    environment:
+      SQL_SERVER: bds-test-env-mq-db
+      MSSQL_SA_PASSWORD: "${AZURE_SERVICE_BUS_DB_PASS}"
+      ACCEPT_EULA: "Y"
+      SQL_WAIT_INTERVAL: 3
+    depends_on:
+      - bds-test-env-mq-db
+    networks:
+      bds-local-test-net:
+        aliases:
+          - bds-test-env-mq-emulator-container
+
+  bds-test-env-mq-db:
+    image: "mcr.microsoft.com/azure-sql-edge:latest"
+    ports:
+      - "1434:1433"
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "${AZURE_SERVICE_BUS_DB_PASS}"
+    networks:
+      bds-local-test-net:
+        aliases:
+          - bds-test-env-mq-db
 
   all-services-running:
     image: alpine
     entrypoint: ["tail", "-f", "/dev/null"]
     depends_on:
-      iati-bulk-data-service-azurite-tests:
+      bds-test-env-azurite:
         condition: service_healthy
-      iati-bulk-data-service-postgres-tests:
+      bds-test-env-postgres:
         condition: service_healthy
-      mock-registration-and-data-service:
+      bds-test-env-mockoon:
         condition: service_healthy
+    networks:
+      bds-local-test-net:
+
+networks:
+  bds-local-test-net:
