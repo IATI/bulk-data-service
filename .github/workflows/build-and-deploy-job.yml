@@ -10,7 +10,6 @@ on:
         required: true
         type: string
 
-
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -116,6 +115,11 @@ jobs:
           ZIP_WORKING_DIR: ${{ vars[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'ZIP_WORKING_DIR')] }}
           AZURE_STORAGE_BLOB_CONTAINER_NAME: ${{ vars[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'AZURE_STORAGE_BLOB_CONTAINER_NAME')] }}
           CHECKER_LOOP_WAIT_MINS: ${{ vars[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'CHECKER_LOOP_WAIT_MINS')] }}
+
+          AZURE_SERVICE_BUS_CONNECTION_STRING: ${{ secrets[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'AZURE_SERVICE_BUS_CONNECTION_STRING')] }}
+          AZURE_SERVICE_BUS_REGISTRY_TOPIC_NAME: ${{ vars[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'AZURE_SERVICE_BUS_REGISTRY_TOPIC_NAME')] }}
+          AZURE_SERVICE_BUS_REGISTRY_SUB_NAME: ${{ vars[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'AZURE_SERVICE_BUS_REGISTRY_SUB_NAME')] }}
+          AZURE_SERVICE_BUS_WAIT_TIME: ${{ vars[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'AZURE_SERVICE_BUS_WAIT_TIME')] }}
 
         run: |
           ./azure-deployment/generate-manifest-from-template.sh
