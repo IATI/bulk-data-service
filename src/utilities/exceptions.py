@@ -1,0 +1,2 @@
+class BulkDataServiceRuntimeError(RuntimeError):
+    pass

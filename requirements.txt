@@ -4,37 +4,45 @@
 #
 #    pip-compile --output-file=requirements.txt --strip-extras pyproject.toml
 #
-azure-core==1.32.0
-    # via azure-storage-blob
-azure-storage-blob==12.20.0
+asyncio==3.4.3
     # via bulk-data-service (pyproject.toml)
-certifi==2025.1.31
+azure-core==1.35.0
+    # via
+    #   azure-servicebus
+    #   azure-storage-blob
+azure-servicebus==7.14.2
+    # via bulk-data-service (pyproject.toml)
+azure-storage-blob==12.25.1
+    # via bulk-data-service (pyproject.toml)
+certifi==2025.7.9
     # via requests
 cffi==1.17.1
     # via cryptography
 chardet==5.2.0
     # via bulk-data-service (pyproject.toml)
-charset-normalizer==3.4.1
+charset-normalizer==3.4.2
     # via requests
-cryptography==44.0.1
+cryptography==45.0.5
     # via azure-storage-blob
 idna==3.10
     # via requests
-importlib-metadata==8.6.1
+importlib-metadata==8.7.0
     # via yoyo-migrations
 isodate==0.7.2
-    # via azure-storage-blob
-prometheus-client==0.20.0
+    # via
+    #   azure-servicebus
+    #   azure-storage-blob
+prometheus-client==0.22.1
     # via bulk-data-service (pyproject.toml)
-psycopg==3.1.18
+psycopg==3.2.9
     # via bulk-data-service (pyproject.toml)
-psycopg-binary==3.1.18
+psycopg-binary==3.2.9
     # via psycopg
 psycopg-pool==3.2.6
     # via psycopg
 pycparser==2.22
     # via cffi
-requests==2.31.0
+requests==2.32.4
     # via
     #   azure-core
     #   bulk-data-service (pyproject.toml)
@@ -46,15 +54,16 @@ tabulate==0.9.0
     # via yoyo-migrations
 toml==0.10.2
     # via bulk-data-service (pyproject.toml)
-typing-extensions==4.12.2
+typing-extensions==4.14.1
     # via
     #   azure-core
+    #   azure-servicebus
     #   azure-storage-blob
     #   psycopg
     #   psycopg-pool
-urllib3==2.3.0
+urllib3==2.5.0
     # via requests
 yoyo-migrations==9.0.0
     # via bulk-data-service (pyproject.toml)
-zipp==3.21.0
+zipp==3.23.0
     # via importlib-metadata

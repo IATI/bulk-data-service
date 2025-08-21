@@ -2,6 +2,7 @@ import uuid
 from typing import Any
 
 import psycopg
+from psycopg.rows import dict_row
 from yoyo import get_backend, read_migrations  # type: ignore
 
 
@@ -37,7 +38,7 @@ def get_db_connection(context: dict) -> psycopg.Connection:
 def get_datasets_in_bds(context: dict) -> dict[uuid.UUID, dict]:
 
     connection = get_db_connection(context)
-    cursor = connection.cursor(row_factory=psycopg.rows.dict_row)
+    cursor = connection.cursor(row_factory=dict_row)
     cursor.execute("""SELECT * FROM iati_datasets""")
     results_as_list = cursor.fetchall()
     cursor.close()
@@ -47,10 +48,32 @@ def get_datasets_in_bds(context: dict) -> dict[uuid.UUID, dict]:
     return results
 
 
+def get_dataset_in_bds(context: dict, dataset_id: uuid.UUID) -> dict | None:
+
+    connection = get_db_connection(context)
+    cursor = connection.cursor(row_factory=dict_row)
+    cursor.execute("""SELECT * FROM iati_datasets WHERE id = %(id)s""", {"id": dataset_id})
+    result = cursor.fetchone()
+    cursor.close()
+
+    return result
+
+
+def get_reporting_org_in_bds(context: dict, reporting_org_id: uuid.UUID) -> dict | None:
+
+    connection = get_db_connection(context)
+    cursor = connection.cursor(row_factory=dict_row)
+    cursor.execute("""SELECT * FROM iati_reporting_orgs WHERE id = %(id)s""", {"id": reporting_org_id})
+    result = cursor.fetchone()
+    cursor.close()
+
+    return result
+
+
 def get_reporting_orgs_in_bds(context: dict) -> dict[uuid.UUID, dict]:
 
     connection = get_db_connection(context)
-    cursor = connection.cursor(row_factory=psycopg.rows.dict_row)
+    cursor = connection.cursor(row_factory=dict_row)
     cursor.execute("""SELECT * FROM iati_reporting_orgs""")
     results_as_list = cursor.fetchall()
     cursor.close()
@@ -78,10 +101,12 @@ def insert_or_update_dataset(connection: psycopg.Connection, data):
                         last_update_check = %(last_update_check)s,
 
                         last_known_good_dataset_hash = %(last_known_good_dataset_hash)s,
-                        last_known_good_dataset_hash_excluding_generated_timestamp = %(last_known_good_dataset_hash_excluding_generated_timestamp)s,
+                        last_known_good_dataset_hash_excluding_generated_timestamp =
+                                                %(last_known_good_dataset_hash_excluding_generated_timestamp)s,
                         last_known_good_dataset_downloaded = %(last_known_good_dataset_downloaded)s,
                         last_known_good_dataset_verified_on_server = %(last_known_good_dataset_verified_on_server)s,
-                        last_known_good_dataset_server_header_last_modified = %(last_known_good_dataset_server_header_last_modified)s,
+                        last_known_good_dataset_server_header_last_modified =
+                                                %(last_known_good_dataset_server_header_last_modified)s,
                         last_known_good_dataset_server_header_etag = %(last_known_good_dataset_server_header_etag)s,
                         last_known_good_dataset_content_length = %(last_known_good_dataset_content_length)s,
                         last_known_good_dataset_initial_contents = %(last_known_good_dataset_initial_contents)s,
@@ -104,6 +129,24 @@ def insert_or_update_dataset(connection: psycopg.Connection, data):
     )
     cursor = connection.cursor()
     cursor.execute(add_sql, data)  # type: ignore
+    cursor.close()
+    connection.commit()
+
+
+def update_dataset_registration_data(connection: psycopg.Connection, data):
+    update_sql = """UPDATE iati_datasets SET
+                        short_name = %(short_name)s,
+                        reporting_org_id = %(reporting_org_id)s,
+                        reporting_org_short_name = %(reporting_org_short_name)s,
+                        source_url = %(source_url)s,
+                        licence_id = %(licence_id)s,
+                        registration_service_dataset_metadata = %(registration_service_dataset_metadata)s,
+                        registration_service_name = %(registration_service_name)s
+                    WHERE
+                        iati_datasets.id = %(id)s
+               """
+    cursor = connection.cursor()
+    cursor.execute(update_sql, data)  # type: ignore
     cursor.close()
     connection.commit()
 

@@ -54,6 +54,12 @@ properties: # Properties of container group
             value: "#ZIP_WORKING_DIR#"
           - name: AZURE_STORAGE_BLOB_CONTAINER_NAME
             value: "#AZURE_STORAGE_BLOB_CONTAINER_NAME#"
+          - name: AZURE_SERVICE_BUS_REGISTRY_TOPIC_NAME
+            value: "#AZURE_SERVICE_BUS_REGISTRY_TOPIC_NAME#"
+          - name: AZURE_SERVICE_BUS_REGISTRY_SUB_NAME
+            value: "#AZURE_SERVICE_BUS_REGISTRY_SUB_NAME#"
+          - name: AZURE_SERVICE_BUS_WAIT_TIME
+            value: "#AZURE_SERVICE_BUS_WAIT_TIME#"
 
           - name: AZURE_STORAGE_CONNECTION_STRING
             secureValue: "#AZURE_STORAGE_CONNECTION_STRING#"
@@ -71,6 +77,8 @@ properties: # Properties of container group
             secureValue: "#DB_SSL_MODE#"
           - name: DB_CONNECTION_TIMEOUT
             secureValue: "#DB_CONNECTION_TIMEOUT#"
+          - name: AZURE_SERVICE_BUS_CONNECTION_STRING
+            secureValue: "#AZURE_SERVICE_BUS_CONNECTION_STRING#"
     - name: nginx-proxy-for-prometheus
       properties:
         image: "#ACR_LOGIN_SERVER#/bds-prom-nginx-reverse-proxy-#TARGET_ENVIRONMENT#:#DOCKER_IMAGE_TAG#"
