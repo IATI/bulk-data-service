@@ -6,7 +6,7 @@ import shutil
 import zipfile
 from typing import Any
 from unittest import mock
-
+from config.bds_context import BDSContext
 import pytest
 from azure.storage.blob import BlobServiceClient
 from dotenv import dotenv_values
@@ -36,7 +36,7 @@ def get_number_xml_files_in_working_dir(context):
                          recursive=True))
 
 
-def truncate_db_tables(context: dict):
+def truncate_db_tables(context: BDSContext):
     connection = get_db_connection(context)
     cursor = connection.cursor()
     cursor.execute("""TRUNCATE table iati_reporting_orgs CASCADE""")
@@ -50,7 +50,7 @@ def get_file_contents(filename: str) -> bytes:
         return f.read()
 
 
-def download_dataset_from_azure(context: dict, dataset: dict, type: str) -> bytes:
+def download_dataset_from_azure(context: BDSContext, dataset: dict, type: str) -> bytes:
     blob_service_client = BlobServiceClient.from_connection_string(context["AZURE_STORAGE_CONNECTION_STRING"])
     container_name = get_azure_container_name(context, "zip")
     blob_name = get_azure_blob_name(dataset, type)
@@ -60,7 +60,7 @@ def download_dataset_from_azure(context: dict, dataset: dict, type: str) -> byte
     return blob_as_bytes
 
 
-def download_index_from_azure(context: dict, index_name: str) -> Any:
+def download_index_from_azure(context: BDSContext, index_name: str) -> Any:
     blob_service_client = BlobServiceClient.from_connection_string(context["AZURE_STORAGE_CONNECTION_STRING"])
     zip_container_name = get_azure_container_name(context, "zip")
     index_blob = blob_service_client.get_blob_client(zip_container_name, index_name)
@@ -72,18 +72,20 @@ def download_index_from_azure(context: dict, index_name: str) -> Any:
 @pytest.fixture
 def get_and_clear_up_context():
     logger = mock.Mock()
-    context = dotenv_values("tests-local-environment/.env") | {
+    config = dotenv_values("tests-local-environment/.env") | {
             "logger" : logger,
             "single_run": True,
             "run_for_n_datasets": None,
             "prom_metrics": {}
         }
 
-    context["BULK_DATA_SERVICE_VERSION"] = get_app_version()
-    context["AZURE_SERVICE_BUS_WAIT_TIME"] = 0.1  # type: ignore
+    config["BULK_DATA_SERVICE_VERSION"] = get_app_version()
+    config["AZURE_SERVICE_BUS_WAIT_TIME"] = 0.1  # type: ignore
 
     for metric in get_metrics_definitions():
-        context["prom_metrics"][metric[0]] = mock.Mock()  # type: ignore
+        config["prom_metrics"][metric[0]] = mock.Mock()  # type: ignore
+
+    context = BDSContext(config, logger)
 
     create_azure_blob_containers(context)
     apply_db_migrations(context)

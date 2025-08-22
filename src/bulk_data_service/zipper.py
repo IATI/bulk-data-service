@@ -8,13 +8,14 @@ from azure.core.exceptions import ResourceNotFoundError
 from azure.storage.blob import BlobServiceClient
 
 from bulk_data_service.zippers import CodeforIATILegacyZipper, IATIBulkDataServiceZipper
+from config.bds_context import BDSContext
 from utilities.azure import azure_download_blob, get_azure_blob_name, get_azure_container_name
 from utilities.db import get_datasets_in_bds, get_reporting_orgs_in_bds
 from utilities.misc import dataset_has_iati_xml_download
 from utilities.prometheus import update_prom_metric
 
 
-def zipper(context: dict):
+def zipper(context: BDSContext):
 
     datasets = get_datasets_in_bds(context)
 
@@ -27,7 +28,7 @@ def zipper(context: dict):
 
 
 def zipper_service_loop(
-    context: dict,
+    context: BDSContext,
     datasets_in_working_dir: dict[uuid.UUID, dict],
     datasets_in_bds: dict[uuid.UUID, dict],
     reporting_orgs: dict[uuid.UUID, dict],
@@ -40,14 +41,14 @@ def zipper_service_loop(
 
 
 def zipper_run(
-    context: dict,
+    context: BDSContext,
     datasets_in_working_dir: dict[uuid.UUID, dict],
     datasets_in_bds: dict[uuid.UUID, dict],
     reporting_orgs: dict[uuid.UUID, dict],
 ):
 
     run_start = datetime.datetime.now(datetime.UTC)
-    context["logger"].info("Zipper run starting")
+    context.logger.info("Zipper run starting")
 
     setup_working_dir_with_downloaded_datasets(context, datasets_in_working_dir, datasets_in_bds)
 
@@ -81,12 +82,12 @@ def zipper_run(
         zip_creator.upload()
 
     run_end = datetime.datetime.now(datetime.UTC)
-    context["logger"].info("Zipper run finished in {}.".format(run_end - run_start))
+    context.logger.info("Zipper run finished in {}.".format(run_end - run_start))
     update_prom_metric(context, "zipper_run_duration", (run_end - run_start).seconds)
 
 
 def setup_working_dir_with_downloaded_datasets(
-    context: dict, datasets_in_working_dir: dict[uuid.UUID, dict], datasets_in_bds: dict[uuid.UUID, dict]
+    context: BDSContext, datasets_in_working_dir: dict[uuid.UUID, dict], datasets_in_bds: dict[uuid.UUID, dict]
 ):
 
     clean_working_dir(context, datasets_in_working_dir)
@@ -103,7 +104,7 @@ def setup_working_dir_with_downloaded_datasets(
         != datasets_with_downloads[k]["last_known_good_dataset_hash"]
     }
 
-    context["logger"].info(
+    context.logger.info(
         "Found {} datasets with downloads. "
         "{} are new or updated and will be (re-)downloaded.".format(
             len(datasets_with_downloads), len(new_or_updated_datasets)
@@ -116,14 +117,14 @@ def setup_working_dir_with_downloaded_datasets(
     datasets_in_working_dir.update(datasets_with_downloads)
 
 
-def clean_working_dir(context: dict, datasets_in_zip: dict[uuid.UUID, dict]):
+def clean_working_dir(context: BDSContext, datasets_in_zip: dict[uuid.UUID, dict]):
     if len(datasets_in_zip) == 0:
-        context["logger"].info("First zip run of session, so deleting all XML " "files in the ZIP working dir.")
+        context.logger.info("First zip run of session, so deleting all XML " "files in the ZIP working dir.")
         shutil.rmtree("{}/{}".format(context["ZIP_WORKING_DIR"], "iati-data"), ignore_errors=True)
 
 
 def remove_datasets_without_dls_from_working_dir(
-    context: dict, datasets_in_zip: dict[uuid.UUID, dict], datasets_in_bds: dict[uuid.UUID, dict]
+    context: BDSContext, datasets_in_zip: dict[uuid.UUID, dict], datasets_in_bds: dict[uuid.UUID, dict]
 ):
     datasets_removed = {k: v for k, v in datasets_in_zip.items() if v["id"] not in datasets_in_bds}
 
@@ -131,7 +132,7 @@ def remove_datasets_without_dls_from_working_dir(
         delete_local_xml_from_zip_working_dir(context, dataset)
 
 
-def download_new_or_updated_to_working_dir(context: dict, updated_datasets: dict[uuid.UUID, dict]):
+def download_new_or_updated_to_working_dir(context: BDSContext, updated_datasets: dict[uuid.UUID, dict]):
 
     az_blob_service = BlobServiceClient.from_connection_string(context["AZURE_STORAGE_CONNECTION_STRING"])
 
@@ -144,30 +145,30 @@ def download_new_or_updated_to_working_dir(context: dict, updated_datasets: dict
 
         os.makedirs(os.path.dirname(filename), exist_ok=True)
 
-        context["logger"].info("dataset id: {} - Downloading".format(dataset["id"]))
+        context.logger.info("dataset id: {} - Downloading".format(dataset["id"]))
 
         try:
             azure_download_blob(az_blob_service, xml_container_name, get_azure_blob_name(dataset, "xml"), filename)
         except ResourceNotFoundError as e:
-            context["logger"].error(
+            context.logger.error(
                 "dataset id: {} - Failed to download from Azure: {}".format(dataset["id"], e).replace("\n", " ")
             )
 
     az_blob_service.close()
 
 
-def get_local_pathname_dataset_xml(context: dict, dataset: dict) -> str:
+def get_local_pathname_dataset_xml(context: BDSContext, dataset: dict) -> str:
     return "{}/iati-data/datasets/{}".format(context["ZIP_WORKING_DIR"], get_azure_blob_name(dataset, "xml"))
 
 
-def delete_local_xml_from_zip_working_dir(context: dict, dataset: dict):
+def delete_local_xml_from_zip_working_dir(context: BDSContext, dataset: dict):
     dataset_local_xml = get_local_pathname_dataset_xml(context, dataset)
 
     if os.path.exists(dataset_local_xml):
         try:
             os.remove(dataset_local_xml)
         except FileNotFoundError as e:
-            context["logger"].error(
+            context.logger.error(
                 "dataset id: {} - Error removing local XML file from "
                 "ZIP working dir. Details: {}.".format(dataset["id"], e)
             )

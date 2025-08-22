@@ -1,10 +1,10 @@
 import uuid
 from datetime import timedelta
-from typing import Any
 
 import psycopg
 from azure.storage.blob import BlobServiceClient
 
+from config.bds_context import BDSContext
 from utilities.azure import delete_azure_iati_blob
 from utilities.db import get_db_connection, insert_or_update_dataset, remove_dataset_from_db
 from utilities.misc import dataset_has_iati_xml_download, get_timestamp
@@ -12,7 +12,7 @@ from utilities.prometheus import update_prom_metric
 
 
 def remove_deleted_datasets_from_bds(
-    context: dict[str, Any], datasets_in_bds: dict[uuid.UUID, dict], registered_datasets: dict[uuid.UUID, dict]
+    context: BDSContext, datasets_in_bds: dict[uuid.UUID, dict], registered_datasets: dict[uuid.UUID, dict]
 ):
 
     db_conn = get_db_connection(context)
@@ -25,7 +25,7 @@ def remove_deleted_datasets_from_bds(
 
     for id in ids_to_delete:
 
-        context["logger"].info(
+        context.logger.info(
             "dataset id: {} - Dataset no longer exists in registration "
             "service so removing from Bulk Data Service".format(id)
         )
@@ -43,7 +43,7 @@ def remove_deleted_datasets_from_bds(
     db_conn.close()
 
 
-def remove_expired_downloads(context: dict[str, Any], datasets_in_bds: dict[uuid.UUID, dict]):
+def remove_expired_downloads(context: BDSContext, datasets_in_bds: dict[uuid.UUID, dict]):
 
     db_conn = get_db_connection(context)
 
@@ -64,12 +64,12 @@ def remove_expired_downloads(context: dict[str, Any], datasets_in_bds: dict[uuid
 
 
 def remove_download_for_expired_dataset(
-    context: dict[str, Any], db_conn: psycopg.Connection, az_blob_service: BlobServiceClient, bds_dataset: dict
+    context: BDSContext, db_conn: psycopg.Connection, az_blob_service: BlobServiceClient, bds_dataset: dict
 ) -> dict:
 
     max_hours = int(context["REMOVE_LAST_GOOD_DOWNLOAD_AFTER_FAILING_HOURS"])
 
-    context["logger"].info(
+    context.logger.info(
         "dataset id: {} - Last good download for dataset "
         "is over max threshold of {} hours, so removing "
         "last good download from Bulk Data Service".format(bds_dataset["id"], max_hours)
@@ -94,7 +94,7 @@ def remove_download_for_expired_dataset(
     return bds_dataset
 
 
-def dataset_has_download_and_is_expired(context: dict[str, Any], bds_dataset: dict) -> bool:
+def dataset_has_download_and_is_expired(context: BDSContext, bds_dataset: dict) -> bool:
 
     max_hours = int(context["REMOVE_LAST_GOOD_DOWNLOAD_AFTER_FAILING_HOURS"])
 

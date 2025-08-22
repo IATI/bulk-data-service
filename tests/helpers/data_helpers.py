@@ -1,6 +1,7 @@
 import datetime
 import json
 import uuid
+from config.bds_context import BDSContext
 
 from bulk_data_service.dataset_indexing import get_object_from_json_str
 from utilities.azure import get_azure_blob_public_url
@@ -52,7 +53,7 @@ def check_index_registration_fields(dataset: dict, dataset_index_item: dict):
     assert dataset_index_item["licence_id"] == dataset["licence_id"]
 
 
-def check_index_most_recent_fields(context: dict, field_grouping: str, dataset: dict, dataset_index_item: dict):
+def check_index_most_recent_fields(context: BDSContext, field_grouping: str, dataset: dict, dataset_index_item: dict):
     field_group = "most_recent_{}_attempt".format(field_grouping)
     assert field_group in dataset_index_item
     assert dataset_index_item[field_group]["datetime"] == get_datetime_as_str_or_none(dataset["{}_datetime".format(field_group)])
@@ -60,7 +61,7 @@ def check_index_most_recent_fields(context: dict, field_grouping: str, dataset: 
     assert dataset_index_item[field_group]["error_details"] == get_object_from_json_str(dataset["{}_error_details".format(field_group)])
 
 
-def check_index_last_known_good_fields(context: dict, dataset: dict, dataset_index_item: dict):
+def check_index_last_known_good_fields(context: BDSContext, dataset: dict, dataset_index_item: dict):
     assert "last_known_good_dataset" in dataset_index_item
     assert dataset_index_item["last_known_good_dataset"]["downloaded"] == get_datetime_as_str_or_none(dataset["last_known_good_dataset_downloaded"])
     assert dataset_index_item["last_known_good_dataset"]["verified_on_server"] == get_datetime_as_str_or_none(dataset["last_known_good_dataset_verified_on_server"])

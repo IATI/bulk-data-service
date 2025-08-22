@@ -1,5 +1,6 @@
 from prometheus_client import Gauge, start_http_server
 
+from config.bds_context import BDSContext
 from utilities.db import execute_scalar_db_query_with_conn, get_db_connection
 
 
@@ -36,7 +37,7 @@ def get_metric_definition(metric_name: str) -> tuple[str, str, str | None]:
     return list(filter(lambda m: m[0] == metric_name, get_metrics_definitions()))[0]
 
 
-def initialise_prometheus_client(context: dict) -> dict:
+def initialise_prometheus_client(context: BDSContext):
 
     context["prom_metrics"] = {}
 
@@ -44,10 +45,8 @@ def initialise_prometheus_client(context: dict) -> dict:
 
     start_http_server(9090)
 
-    return context
 
-
-def update_metrics_from_db(context: dict) -> dict:
+def update_metrics_from_db(context: BDSContext):
     metrics_with_sql = list(filter(lambda m: m[2] is not None, get_metrics_definitions()))
 
     db_conn = get_db_connection(context)
@@ -58,10 +57,8 @@ def update_metrics_from_db(context: dict) -> dict:
 
     db_conn.close()
 
-    return context
 
-
-def get_prom_metric(context: dict, metric_name: str):
+def get_prom_metric(context: BDSContext, metric_name: str):
 
     if metric_name not in context["prom_metrics"]:
         metric_def = get_metric_definition(metric_name)
@@ -70,6 +67,6 @@ def get_prom_metric(context: dict, metric_name: str):
     return context["prom_metrics"][metric_name]
 
 
-def update_prom_metric(context: dict, metric_name: str, metric_value: int):
+def update_prom_metric(context: BDSContext, metric_name: str, metric_value: int):
 
     get_prom_metric(context, metric_name).set(metric_value)

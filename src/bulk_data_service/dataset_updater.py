@@ -10,6 +10,7 @@ import psycopg
 import requests
 from azure.storage.blob import BlobServiceClient
 
+from config.bds_context import BDSContext
 from utilities.azure import azure_blob_exists, azure_upload_to_blob
 from utilities.db import get_db_connection, insert_or_update_dataset
 from utilities.http import (
@@ -33,7 +34,7 @@ from utilities.prometheus import update_prom_metric
 
 
 def add_or_update_datasets(
-    context: dict, datasets_in_bds: dict[uuid.UUID, dict], registered_datasets: dict[uuid.UUID, dict]
+    context: BDSContext, datasets_in_bds: dict[uuid.UUID, dict], registered_datasets: dict[uuid.UUID, dict]
 ):
 
     update_prom_metric(context, "total_number_of_datasets", len(registered_datasets))
@@ -55,7 +56,7 @@ def add_or_update_datasets(
 
 
 def add_or_update_dataset_batch(
-    context: dict, datasets_in_bds: dict[uuid.UUID, dict], registered_datasets_to_update: dict[uuid.UUID, dict]
+    context: BDSContext, datasets_in_bds: dict[uuid.UUID, dict], registered_datasets_to_update: dict[uuid.UUID, dict]
 ):
 
     db_conn = get_db_connection(context)
@@ -84,7 +85,7 @@ def add_or_update_dataset_batch(
 
 
 def add_or_update_registered_dataset(
-    context: dict,
+    context: BDSContext,
     registered_dataset_id: uuid.UUID,
     datasets_in_bds: dict[uuid.UUID, dict],
     registered_datasets: dict[uuid.UUID, dict],
@@ -124,7 +125,7 @@ def add_or_update_registered_dataset(
 
             insert_or_update_dataset(db_conn, bds_dataset)
 
-            context["logger"].info("dataset id: {} - Added/updated dataset".format(bds_dataset["id"]))
+            context.logger.info("dataset id: {} - Added/updated dataset".format(bds_dataset["id"]))
 
         except RuntimeError as e:
             bds_dataset["most_recent_get_attempt_error_details"] = json.dumps(
@@ -136,7 +137,7 @@ def add_or_update_registered_dataset(
                     "http_headers": e.args[0]["http_headers"],
                 }
             )
-            context["logger"].warning(
+            context.logger.warning(
                 "dataset id: {} - {}".format(
                     registered_dataset_id, bds_dataset["most_recent_get_attempt_error_details"]
                 )
@@ -153,7 +154,7 @@ def add_or_update_registered_dataset(
                     "details": "{}".format(e),
                 }
             )
-            context["logger"].warning(
+            context.logger.warning(
                 "dataset id: {} - {}".format(
                     registered_dataset_id, bds_dataset["most_recent_get_attempt_error_details"]
                 )
@@ -161,7 +162,7 @@ def add_or_update_registered_dataset(
             insert_or_update_dataset(db_conn, bds_dataset)
 
 
-def get_randomised_redownload_after_n_hours(context: dict) -> int:
+def get_randomised_redownload_after_n_hours(context: BDSContext) -> int:
     hours_force_redownload = int(context["FORCE_REDOWNLOAD_AFTER_HOURS"])
 
     if hours_force_redownload > 8:
@@ -176,7 +177,7 @@ def dataset_downloaded_within(bds_dataset: dict, hours: int) -> bool:
 
 
 def check_dataset_etag_last_mod_header(
-    context: dict,
+    context: BDSContext,
     db_conn: psycopg.Connection,
     session: requests.Session,
     bds_dataset: dict,
@@ -194,7 +195,7 @@ def check_dataset_etag_last_mod_header(
             and head_response.headers["ETag"] != bds_dataset["last_known_good_dataset_server_header_etag"]
         ):
 
-            context["logger"].info(
+            context.logger.info(
                 "dataset id: {} - Last successful download within {} hours, "
                 "but ETag changed so redownloading".format(bds_dataset["id"], download_within_hours)
             )
@@ -205,7 +206,7 @@ def check_dataset_etag_last_mod_header(
             datetime.strptime(head_response.headers["Last-Modified"], "%a, %d %b %Y %H:%M:%S GMT")
         ) != set_timestamp_tz_utc(bds_dataset["last_known_good_dataset_server_header_last_modified"]):
 
-            context["logger"].info(
+            context.logger.info(
                 "dataset id: {} - Last successful download within {} hours, "
                 "but Last-Modified header changed so redownloading".format(bds_dataset["id"], download_within_hours)
             )
@@ -213,7 +214,7 @@ def check_dataset_etag_last_mod_header(
             update_dataset_head_request_fields(bds_dataset, attempt_time, head_response.status_code)
 
         else:
-            context["logger"].info(
+            context.logger.info(
                 "dataset id: {} - Last successful download within {} hours, "
                 "Last-Modified and ETag same, so not redownloading".format(bds_dataset["id"], download_within_hours)
             )
@@ -249,7 +250,7 @@ def check_dataset_etag_last_mod_header(
             | e.args[0]
         )
 
-        context["logger"].warning(
+        context.logger.warning(
             "dataset id: {} - {}".format(bds_dataset["id"], bds_dataset["most_recent_head_attempt_error_details"])
         )
 
@@ -263,17 +264,17 @@ def check_dataset_etag_last_mod_header(
         insert_or_update_dataset(db_conn, bds_dataset)
 
     except Exception as e:
-        context["logger"].warning(
+        context.logger.warning(
             "dataset id: {} - EXCEPTION with HEAD request, details: {}".format(bds_dataset["id"], e)
         )
         if "{}".format(e) == "str.replace() takes no keyword arguments":
-            context["logger"].error("Full traceback: " "{}".format(traceback.format_exc()))
+            context.logger.error("Full traceback: " "{}".format(traceback.format_exc()))
 
     return attempt_download
 
 
 def download_and_save_dataset(
-    context: dict,
+    context: BDSContext,
     session: requests.Session,
     az_blob_service: BlobServiceClient,
     bds_dataset: dict,
@@ -306,7 +307,7 @@ def download_and_save_dataset(
     hash_excluding_generated = get_hash_excluding_generated_timestamp(download_response.text, encoding)  # type: ignore
 
     if hash == bds_dataset["last_known_good_dataset_hash"]:
-        context["logger"].info(
+        context.logger.info(
             "dataset id: {} - Hash of download is identical to "
             "previous value, so not re-zipping and re-uploading to Azure".format(bds_dataset["id"])
         )
@@ -322,9 +323,7 @@ def download_and_save_dataset(
             encoding=encoding,
         )
 
-        context["logger"].debug(
-            "dataset id: {} - Azure XML upload response: {}".format(bds_dataset["id"], response_xml)
-        )
+        context.logger.debug("dataset id: {} - Azure XML upload response: {}".format(bds_dataset["id"], response_xml))
 
         response_zip = azure_upload_to_blob(
             az_blob_service,
@@ -339,8 +338,8 @@ def download_and_save_dataset(
             context["AZURE_STORAGE_BLOB_CONTAINER_NAME"],
             "{}/{}.xml".format(bds_dataset["reporting_org_short_name"], bds_dataset["short_name"]),
         ):
-            context["logger"].error("dataset id: {} - Azure XML upload failed")
-            context["logger"].debug(
+            context.logger.error("dataset id: {} - Azure XML upload failed")
+            context.logger.debug(
                 "dataset id: {} - Azure ZIP upload response: {}".format(bds_dataset["id"], response_xml)
             )
 

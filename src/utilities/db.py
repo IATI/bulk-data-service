@@ -5,8 +5,10 @@ import psycopg
 from psycopg.rows import dict_row
 from yoyo import get_backend, read_migrations  # type: ignore
 
+from config.bds_context import BDSContext
 
-def apply_db_migrations(context: dict):
+
+def apply_db_migrations(context: BDSContext):
 
     backend = get_backend(
         "postgresql+psycopg://{}:{}@{}:{}/{}".format(
@@ -22,7 +24,7 @@ def apply_db_migrations(context: dict):
         backend.apply_migrations(backend.to_apply(migrations))
 
 
-def get_db_connection(context: dict) -> psycopg.Connection:
+def get_db_connection(context: BDSContext) -> psycopg.Connection:
     connection = psycopg.connect(
         dbname=context["DB_NAME"],
         user=context["DB_USER"],
@@ -35,7 +37,7 @@ def get_db_connection(context: dict) -> psycopg.Connection:
     return connection
 
 
-def get_datasets_in_bds(context: dict) -> dict[uuid.UUID, dict]:
+def get_datasets_in_bds(context: BDSContext) -> dict[uuid.UUID, dict]:
 
     connection = get_db_connection(context)
     cursor = connection.cursor(row_factory=dict_row)
@@ -48,7 +50,7 @@ def get_datasets_in_bds(context: dict) -> dict[uuid.UUID, dict]:
     return results
 
 
-def get_dataset_in_bds(context: dict, dataset_id: uuid.UUID) -> dict | None:
+def get_dataset_in_bds(context: BDSContext, dataset_id: uuid.UUID) -> dict | None:
 
     connection = get_db_connection(context)
     cursor = connection.cursor(row_factory=dict_row)
@@ -59,7 +61,7 @@ def get_dataset_in_bds(context: dict, dataset_id: uuid.UUID) -> dict | None:
     return result
 
 
-def get_reporting_org_in_bds(context: dict, reporting_org_id: uuid.UUID) -> dict | None:
+def get_reporting_org_in_bds(context: BDSContext, reporting_org_id: uuid.UUID) -> dict | None:
 
     connection = get_db_connection(context)
     cursor = connection.cursor(row_factory=dict_row)
@@ -70,7 +72,7 @@ def get_reporting_org_in_bds(context: dict, reporting_org_id: uuid.UUID) -> dict
     return result
 
 
-def get_reporting_orgs_in_bds(context: dict) -> dict[uuid.UUID, dict]:
+def get_reporting_orgs_in_bds(context: BDSContext) -> dict[uuid.UUID, dict]:
 
     connection = get_db_connection(context)
     cursor = connection.cursor(row_factory=dict_row)
@@ -190,7 +192,7 @@ def remove_dataset_from_db(connection: psycopg.Connection, dataset_id):
     connection.commit()
 
 
-def execute_scalar_db_query(context: dict, sql: str) -> Any:
+def execute_scalar_db_query(context: BDSContext, sql: str) -> Any:
     connection = get_db_connection(context)
     value = execute_scalar_db_query_with_conn(connection, sql)
     connection.close()

@@ -7,6 +7,8 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util import Retry
 
+from config.bds_context import BDSContext
+
 
 def add_qs_params_to_url(url: str, qs_params: dict) -> str:
     scheme, netloc, path, qs, fragment = urlsplit(url)
@@ -38,7 +40,7 @@ def parse_last_modified_header(last_modified_header: str) -> Optional[datetime.d
     return last_modified_header_parsed
 
 
-def get_requests_session(context: dict) -> requests.Session:
+def get_requests_session(context: BDSContext) -> requests.Session:
     session = requests.Session()
     session.headers.update({"User-Agent": "IATI Bulk Data Service {}".format(context["BULK_DATA_SERVICE_VERSION"])})
     retries = Retry(total=2, backoff_factor=0.1)

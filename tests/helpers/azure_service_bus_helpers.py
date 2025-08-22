@@ -5,6 +5,7 @@ import pytest
 import pytest_asyncio
 from azure.servicebus import ServiceBusMessage
 from azure.servicebus.aio import ServiceBusClient, ServiceBusReceiver
+from config.bds_context import BDSContext
 
 from bulk_data_service.registry_changes_processor import fetch_messages, get_sb_receiver, process_message
 from helpers.mq_data_helpers import get_dataset_message_payload, get_reporting_org_message_payload
@@ -19,7 +20,7 @@ async def service_bus_context(get_and_clear_up_context):
     await teardown_mq(context, sbclient, sbreceiver)
 
 
-async def process_pending_messages(context: dict, sbreceiver: ServiceBusReceiver, should_raise_exception: bool):
+async def process_pending_messages(context: BDSContext, sbreceiver: ServiceBusReceiver, should_raise_exception: bool):
     msgs = await fetch_messages(context, sbreceiver, num_messages=1)
 
     for message in msgs:
@@ -31,7 +32,7 @@ async def process_pending_messages(context: dict, sbreceiver: ServiceBusReceiver
         await sbreceiver.complete_message(message)
 
 
-async def initialise_mq(context: dict) -> tuple[ServiceBusClient, ServiceBusReceiver]:
+async def initialise_mq(context: BDSContext) -> tuple[ServiceBusClient, ServiceBusReceiver]:
     sbclient = ServiceBusClient.from_connection_string(context["AZURE_SERVICE_BUS_CONNECTION_STRING"])
 
     sbreceiver = get_sb_receiver(context, sbclient)
@@ -41,19 +42,19 @@ async def initialise_mq(context: dict) -> tuple[ServiceBusClient, ServiceBusRece
     return (sbclient, sbreceiver)
 
 
-async def teardown_mq(context: dict, sbclient: ServiceBusClient, sbreceiver: ServiceBusReceiver):
+async def teardown_mq(context: BDSContext, sbclient: ServiceBusClient, sbreceiver: ServiceBusReceiver):
     await sbreceiver.close()
     await sbclient.close()
 
 
-async def clear_messages_from_subscription(context: dict, sbreceiver: ServiceBusReceiver):
+async def clear_messages_from_subscription(context: BDSContext, sbreceiver: ServiceBusReceiver):
     messages = await sbreceiver.receive_messages(50, max_wait_time=0.1)
     for message in messages:
         await sbreceiver.complete_message(message)
 
 
 async def send_dataset_created_message(
-    context: dict, sbclient: ServiceBusClient, dataset_id: UUID, reporting_org_id: UUID
+    context: BDSContext, sbclient: ServiceBusClient, dataset_id: UUID, reporting_org_id: UUID
 ):
 
     dataset_db_record = {
@@ -68,7 +69,7 @@ async def send_dataset_created_message(
     return await generate_and_send_message(context, sbclient, "dataset", "created", dataset_db_record)
 
 
-async def send_reporting_org_created_message(context: dict, sbclient: ServiceBusClient, reporting_org_id: UUID):
+async def send_reporting_org_created_message(context: BDSContext, sbclient: ServiceBusClient, reporting_org_id: UUID):
 
     reporting_org_db_record = {
         "id": reporting_org_id,
@@ -83,7 +84,7 @@ async def send_reporting_org_created_message(context: dict, sbclient: ServiceBus
 
 
 async def generate_and_send_message(
-    context: dict,
+    context: BDSContext,
     sbclient: ServiceBusClient,
     record_type: str,
     update_type: str,
@@ -98,7 +99,7 @@ async def generate_and_send_message(
 
 
 async def send_reporting_org_message(
-    context: dict,
+    context: BDSContext,
     sbclient: ServiceBusClient,
     reporting_org: dict,
     update_type: str,
@@ -109,7 +110,7 @@ async def send_reporting_org_message(
     return await send_message(context, sbclient, msg_payload)
 
 
-async def send_message(context: dict, sbclient: ServiceBusClient, payload: dict) -> dict:
+async def send_message(context: BDSContext, sbclient: ServiceBusClient, payload: dict) -> dict:
 
     payload_str = json.dumps(payload, indent=2)
 
