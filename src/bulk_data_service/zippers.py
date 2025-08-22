@@ -50,7 +50,7 @@ class IATIDataZipper(ABC):
         return "iati-data"
 
     def zip(self):
-        self.context["logger"].info("Zipping {} datasets.".format(get_number_xml_files_in_dir(self.zip_working_dir)))
+        self.context.logger.info("Zipping {} datasets.".format(get_number_xml_files_in_dir(self.zip_working_dir)))
         shutil.make_archive(
             self.get_zip_local_pathname_no_extension(),
             "zip",
@@ -59,7 +59,7 @@ class IATIDataZipper(ABC):
         )
 
     def upload(self):
-        self.context["logger"].info(
+        self.context.logger.info(
             "Uploading {} ZIP to Azure with filename: {}.".format(self.zip_type, self.get_zip_local_filename())
         )
         upload_zip_to_azure(self.context, self.get_zip_local_pathname(), self.get_zip_local_filename())

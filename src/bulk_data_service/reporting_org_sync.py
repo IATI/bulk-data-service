@@ -1,9 +1,10 @@
 import uuid
 
+from config.bds_context import BDSContext
 from utilities.db import get_db_connection, insert_or_update_reporting_org, remove_reporting_org_from_db
 
 
-def add_or_update_reporting_orgs(context: dict, registered_reporting_orgs: dict[uuid.UUID, dict]):
+def add_or_update_reporting_orgs(context: BDSContext, registered_reporting_orgs: dict[uuid.UUID, dict]):
 
     db_conn = get_db_connection(context)
 
@@ -14,7 +15,7 @@ def add_or_update_reporting_orgs(context: dict, registered_reporting_orgs: dict[
 
 
 def remove_deleted_reporting_orgs_from_bds(
-    context: dict, reporting_orgs_in_bds: dict[uuid.UUID, dict], registered_reporting_orgs: dict[uuid.UUID, dict]
+    context: BDSContext, reporting_orgs_in_bds: dict[uuid.UUID, dict], registered_reporting_orgs: dict[uuid.UUID, dict]
 ):
 
     db_conn = get_db_connection(context)

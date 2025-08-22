@@ -6,11 +6,12 @@ from typing import Any
 
 import requests
 
+from config.bds_context import BDSContext
 from utilities.http import add_qs_params_to_url, http_get_json
 from utilities.misc import is_str_valid_uuid
 
 
-def fetch_reporting_orgs_metadata(context: dict) -> dict[uuid.UUID, dict]:
+def fetch_reporting_orgs_metadata(context: BDSContext) -> dict[uuid.UUID, dict]:
 
     reporting_org_metadata = {}
 
@@ -25,7 +26,7 @@ def fetch_reporting_orgs_metadata(context: dict) -> dict[uuid.UUID, dict]:
     return reporting_org_metadata
 
 
-def fetch_reporting_orgs_from_iati_registry(context: dict) -> list[dict]:
+def fetch_reporting_orgs_from_iati_registry(context: BDSContext) -> list[dict]:
 
     session = requests.Session()
 
@@ -48,7 +49,7 @@ def fetch_reporting_orgs_from_iati_registry(context: dict) -> list[dict]:
         reporting_orgs_url = add_qs_params_to_url(
             reporting_orgs_base_url, {"limit": batch_size, "offset": reporting_orgs_metadata_downloaded}
         )
-        context["logger"].info("Fetching reporting orgs from URL: {}".format(reporting_orgs_url))
+        context.logger.info("Fetching reporting orgs from URL: {}".format(reporting_orgs_url))
 
         response = http_get_json(session, reporting_orgs_url)
 
@@ -56,7 +57,7 @@ def fetch_reporting_orgs_from_iati_registry(context: dict) -> list[dict]:
 
         reporting_orgs_metadata_downloaded += len(response["result"])
 
-    context["logger"].info("Fetched metadata for {} reporting orgs".format(len(reporting_orgs_metadata)))
+    context.logger.info("Fetched metadata for {} reporting orgs".format(len(reporting_orgs_metadata)))
 
     return reporting_orgs_metadata
 
@@ -71,14 +72,14 @@ def convert_ckan_reporting_org_metadata(reporting_org: dict):
     }
 
 
-def fetch_datasets_metadata(context: dict, reporting_orgs: dict) -> dict[uuid.UUID, dict]:
+def fetch_datasets_metadata(context: BDSContext, reporting_orgs: dict) -> dict[uuid.UUID, dict]:
     session = requests.Session()
 
     datasets_list_from_registry = fetch_datasets_metadata_from_iati_registry(context, session)
 
     random.shuffle(datasets_list_from_registry)
 
-    cleaned_datasets_metadata = clean_datasets_metadata(context["logger"], datasets_list_from_registry)
+    cleaned_datasets_metadata = clean_datasets_metadata(context.logger, datasets_list_from_registry)
 
     augmented_datasets_metadata = add_publisher_metadata(cleaned_datasets_metadata, reporting_orgs)
 
@@ -87,7 +88,7 @@ def fetch_datasets_metadata(context: dict, reporting_orgs: dict) -> dict[uuid.UU
     return datasets_metadata
 
 
-def fetch_datasets_metadata_from_iati_registry(context: dict, session: requests.Session) -> list[dict]:
+def fetch_datasets_metadata_from_iati_registry(context: BDSContext, session: requests.Session) -> list[dict]:
 
     api_url = context["DATA_REGISTRY_BASE_URL"]
 

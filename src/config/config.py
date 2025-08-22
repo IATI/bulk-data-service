@@ -32,14 +32,14 @@ _config_variables = [
 ]
 
 
-def get_config() -> dict[str, str | float]:
-    config: dict[str, str | float] = {env_var: os.getenv(env_var, "") for env_var in _config_variables}
+def get_basic_config() -> dict:
+    config = {env_var: os.getenv(env_var, "") for env_var in _config_variables}
 
-    config["WEB_BASE_URL"] = config["WEB_BASE_URL"].strip("/")  # type: ignore[union-attr]
+    config["WEB_BASE_URL"] = config["WEB_BASE_URL"].strip("/")
 
     config["BULK_DATA_SERVICE_VERSION"] = get_app_version()
 
-    config["AZURE_SERVICE_BUS_WAIT_TIME"] = float(config["AZURE_SERVICE_BUS_WAIT_TIME"])
+    config["AZURE_SERVICE_BUS_WAIT_TIME"] = float(config["AZURE_SERVICE_BUS_WAIT_TIME"])  # type: ignore
 
     return config
 

@@ -7,6 +7,7 @@ from azure.servicebus import ServiceBusReceivedMessage
 from azure.servicebus.aio import ServiceBusClient, ServiceBusReceiver
 from azure.servicebus.exceptions import MessagingEntityNotFoundError, ServiceBusConnectionError
 
+from config.bds_context import BDSContext
 from utilities.dataset_reporting_org_utils import (
     get_new_dataset_db_record_from_mq_dataset,
     get_reporting_org_db_record_from_mq_reporting_org,
@@ -26,7 +27,7 @@ from utilities.exceptions import BulkDataServiceRuntimeError
 from utilities.misc import get_timestamp_as_str
 
 
-def registry_changes_processor_start(context: dict):
+def registry_changes_processor_start(context: BDSContext):
     try:
         asyncio.run(registry_changes_service_loop(context))
     except KeyboardInterrupt:
@@ -34,13 +35,13 @@ def registry_changes_processor_start(context: dict):
         print("User pressed Ctrl-C. Exiting")
 
 
-async def registry_changes_service_loop(context: dict):
+async def registry_changes_service_loop(context: BDSContext):
 
     sb_client = None
 
     while True:
         try:
-            context["logger"].debug(f"registry_changes_service_loop - mark - {get_timestamp_as_str()}")
+            context.logger.debug(f"registry_changes_service_loop - mark - {get_timestamp_as_str()}")
 
             if sb_client is None:
                 sb_client = ServiceBusClient.from_connection_string(context["AZURE_SERVICE_BUS_CONNECTION_STRING"])
@@ -50,7 +51,7 @@ async def registry_changes_service_loop(context: dict):
 
                 await asyncio.sleep(3)
             except MessagingEntityNotFoundError as e:
-                context["logger"].warning(
+                context.logger.warning(
                     f"registry_changes_service_loop - Connected to Azure Service Bus "
                     f"but could not find topic or subscription - {e}"
                 )
@@ -59,10 +60,10 @@ async def registry_changes_service_loop(context: dict):
                 await receiver.close()
 
         except ServiceBusConnectionError as e:
-            context["logger"].warning(f"registry_changes_service_loop - Could not connect to Azure Service Bus - {e}")
+            context.logger.warning(f"registry_changes_service_loop - Could not connect to Azure Service Bus - {e}")
             await asyncio.sleep(15)
         except Exception as e:
-            context["logger"].warning(f"registry_changes_service_loop - Unexpected Error - {e}")
+            context.logger.warning(f"registry_changes_service_loop - Unexpected Error - {e}")
             print(traceback.format_exc())
             await asyncio.sleep(15)
         finally:
@@ -71,7 +72,7 @@ async def registry_changes_service_loop(context: dict):
                 sb_client = None
 
 
-def get_sb_receiver(context: dict, sb_client: ServiceBusClient) -> ServiceBusReceiver:
+def get_sb_receiver(context: BDSContext, sb_client: ServiceBusClient) -> ServiceBusReceiver:
 
     topic = context["AZURE_SERVICE_BUS_REGISTRY_TOPIC_NAME"]
     subscription = context["AZURE_SERVICE_BUS_REGISTRY_SUB_NAME"]
@@ -80,7 +81,7 @@ def get_sb_receiver(context: dict, sb_client: ServiceBusClient) -> ServiceBusRec
     return sb_client.get_subscription_receiver(topic, subscription, max_wait_time=wait_time)
 
 
-async def fetch_and_process_messages(context: dict, sb_client: ServiceBusClient) -> ServiceBusReceiver:
+async def fetch_and_process_messages(context: BDSContext, sb_client: ServiceBusClient) -> ServiceBusReceiver:
 
     receiver = get_sb_receiver(context, sb_client)
 
@@ -90,7 +91,7 @@ async def fetch_and_process_messages(context: dict, sb_client: ServiceBusClient)
         try:
             await process_message(context, message)
         except BulkDataServiceRuntimeError as e:
-            context["logger"].error(f"process_message - Error processing message: {e}")
+            context.logger.error(f"process_message - Error processing message: {e}")
         finally:
             await receiver.complete_message(message)
 
@@ -98,7 +99,7 @@ async def fetch_and_process_messages(context: dict, sb_client: ServiceBusClient)
 
 
 async def fetch_messages(
-    context: dict, receiver: ServiceBusReceiver, num_messages: int = 5
+    context: BDSContext, receiver: ServiceBusReceiver, num_messages: int = 5
 ) -> list[ServiceBusReceivedMessage]:
 
     wait_time = context["AZURE_SERVICE_BUS_WAIT_TIME"]
@@ -106,7 +107,7 @@ async def fetch_messages(
     return await receiver.receive_messages(max_wait_time=wait_time, max_message_count=num_messages)
 
 
-async def process_message(context: dict, msg: ServiceBusReceivedMessage):
+async def process_message(context: BDSContext, msg: ServiceBusReceivedMessage):
     if msg.application_properties is not None and b"message_type" in msg.application_properties:
         message_type = msg.application_properties[b"message_type"].decode("utf-8")  # type: ignore[union-attr]
         await dispatch_message(context, message_type, json.loads(str(msg)))
@@ -116,7 +117,7 @@ async def process_message(context: dict, msg: ServiceBusReceivedMessage):
         )
 
 
-async def dispatch_message(context: dict, message_type: str, message_payload: dict):
+async def dispatch_message(context: BDSContext, message_type: str, message_payload: dict):
     match message_type:
         case "DATASET_CREATED":
             create_new_dataset(context, message_payload)
@@ -141,7 +142,7 @@ async def dispatch_message(context: dict, message_type: str, message_payload: di
             print(json.dumps(message_payload))
 
 
-def create_new_reporting_org(context: dict, message_payload: dict):
+def create_new_reporting_org(context: BDSContext, message_payload: dict):
     reporting_org_db_record = get_reporting_org_in_bds(context, uuid.UUID(message_payload["reporting_org"]["id"]))
 
     if reporting_org_db_record is not None:
@@ -154,10 +155,10 @@ def create_new_reporting_org(context: dict, message_payload: dict):
     new_reporting_org_db_record = get_reporting_org_db_record_from_mq_reporting_org(message_payload["reporting_org"])
     with get_db_connection(context) as connection:
         insert_or_update_reporting_org(connection, new_reporting_org_db_record)
-    context["logger"].info(f"Created reporting org with ID {new_reporting_org_db_record["id"]}")
+    context.logger.info(f"Created reporting org with ID {new_reporting_org_db_record["id"]}")
 
 
-def update_reporting_org(context: dict, message_payload: dict):
+def update_reporting_org(context: BDSContext, message_payload: dict):
     reporting_org_db_record = get_reporting_org_in_bds(context, uuid.UUID(message_payload["reporting_org"]["id"]))
 
     if reporting_org_db_record is None:
@@ -171,10 +172,10 @@ def update_reporting_org(context: dict, message_payload: dict):
 
     with get_db_connection(context) as connection:
         insert_or_update_reporting_org(connection, reporting_org_db_record)
-    context["logger"].info(f"Updated metadata for reporting org ID {reporting_org_db_record["id"]}")
+    context.logger.info(f"Updated metadata for reporting org ID {reporting_org_db_record["id"]}")
 
 
-def delete_reporting_org(context: dict, message_payload: dict):
+def delete_reporting_org(context: BDSContext, message_payload: dict):
 
     reporting_org_db_record = get_reporting_org_in_bds(context, uuid.UUID(message_payload["reporting_org"]["id"]))
 
@@ -188,10 +189,10 @@ def delete_reporting_org(context: dict, message_payload: dict):
     with get_db_connection(context) as connection:
         remove_reporting_org_from_db(connection, message_payload["reporting_org"]["id"])
 
-    context["logger"].info(f"Deleted reporting org with ID {message_payload["reporting_org"]["id"]}")
+    context.logger.info(f"Deleted reporting org with ID {message_payload["reporting_org"]["id"]}")
 
 
-def create_new_dataset(context: dict, message_payload: dict):
+def create_new_dataset(context: BDSContext, message_payload: dict):
     dataset_db_record = get_dataset_in_bds(context, uuid.UUID(message_payload["dataset"]["id"]))
 
     if dataset_db_record is not None:
@@ -215,10 +216,10 @@ def create_new_dataset(context: dict, message_payload: dict):
     new_dataset_db_record = get_new_dataset_db_record_from_mq_dataset(message_payload["dataset"])
     with get_db_connection(context) as connection:
         insert_or_update_dataset(connection, new_dataset_db_record)
-    context["logger"].info(f"Created dataset with ID {new_dataset_db_record["id"]}")
+    context.logger.info(f"Created dataset with ID {new_dataset_db_record["id"]}")
 
 
-def update_dataset(context: dict, message_payload: dict):
+def update_dataset(context: BDSContext, message_payload: dict):
     dataset_db_record = get_dataset_in_bds(context, uuid.UUID(message_payload["dataset"]["id"]))
 
     if dataset_db_record is None:
@@ -254,10 +255,10 @@ def update_dataset(context: dict, message_payload: dict):
 
     with get_db_connection(context) as connection:
         update_dataset_registration_data(connection, dataset_db_record)
-    context["logger"].info(f"Updated metadata for dataset ID {dataset_db_record["id"]}")
+    context.logger.info(f"Updated metadata for dataset ID {dataset_db_record["id"]}")
 
 
-def delete_dataset(context: dict, message_payload: dict):
+def delete_dataset(context: BDSContext, message_payload: dict):
 
     dataset_db_record = get_dataset_in_bds(context, uuid.UUID(message_payload["dataset"]["id"]))
 
@@ -271,4 +272,4 @@ def delete_dataset(context: dict, message_payload: dict):
     with get_db_connection(context) as connection:
         remove_dataset_from_db(connection, message_payload["dataset"]["id"])
 
-    context["logger"].info(f"Deleted dataset with ID {message_payload["dataset"]["id"]}")
+    context.logger.info(f"Deleted dataset with ID {message_payload["dataset"]["id"]}")

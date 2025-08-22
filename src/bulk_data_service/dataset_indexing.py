@@ -5,14 +5,17 @@ from typing import Any
 
 from azure.storage.blob import BlobServiceClient
 
+from config.bds_context import BDSContext
 from utilities.azure import azure_upload_to_blob, get_azure_blob_public_url
 from utilities.misc import dataset_has_iati_xml_download, filter_dict_by_structure, get_timestamp
 
 
-def create_and_upload_indices(context: dict, datasets: dict[uuid.UUID, dict], reporting_orgs: dict[uuid.UUID, dict]):
+def create_and_upload_indices(
+    context: BDSContext, datasets: dict[uuid.UUID, dict], reporting_orgs: dict[uuid.UUID, dict]
+):
     index_creation_time = get_timestamp()
 
-    context["logger"].info("Creating indices")
+    context.logger.info("Creating indices")
 
     dataset_index_minimal = create_dataset_index_json(context, index_creation_time, datasets, "minimal")
 
@@ -26,10 +29,10 @@ def create_and_upload_indices(context: dict, datasets: dict[uuid.UUID, dict], re
 
     upload_index_json_to_azure(context, get_reporting_org_index_name(context), reporting_org_index)
 
-    context["logger"].info("Creation of indices finished")
+    context.logger.info("Creation of indices finished")
 
 
-def upload_index_json_to_azure(context: dict, index_name: str, index_json: str):
+def upload_index_json_to_azure(context: BDSContext, index_name: str, index_json: str):
 
     az_blob_service = BlobServiceClient.from_connection_string(context["AZURE_STORAGE_CONNECTION_STRING"])
 
@@ -41,7 +44,7 @@ def upload_index_json_to_azure(context: dict, index_name: str, index_json: str):
 
 
 def create_dataset_index_json(
-    context: dict,
+    context: BDSContext,
     created_time: datetime,
     datasets_in_bds: dict[uuid.UUID, dict],
     index_type: str,
@@ -55,7 +58,7 @@ def create_dataset_index_json(
 
 
 def create_reporting_org_index_json(
-    context: dict,
+    context: BDSContext,
     created_time: datetime,
     datasets_in_bds: dict[uuid.UUID, dict],
     reporting_orgs_in_bds: dict[uuid.UUID, dict],
@@ -73,7 +76,7 @@ def create_index_created_entries(created_time: datetime) -> dict[str, Any]:
 
 
 def get_reporting_orgs_for_datasets(
-    context: dict, datasets: dict[uuid.UUID, dict], reporting_orgs: dict[uuid.UUID, dict]
+    context: BDSContext, datasets: dict[uuid.UUID, dict], reporting_orgs: dict[uuid.UUID, dict]
 ) -> list:
     reporting_org_names_w_datasets = set([dataset["reporting_org_short_name"] for dataset in datasets.values()])
 
@@ -91,11 +94,11 @@ def get_reporting_orgs_for_datasets(
     return orgs_w_datasets
 
 
-def get_index_all_datasets(context: dict, datasets: dict[uuid.UUID, dict], index_type: str) -> list:
+def get_index_all_datasets(context: BDSContext, datasets: dict[uuid.UUID, dict], index_type: str) -> list:
     return [get_dataset_index_entry(context, dataset, index_type) for _, dataset in datasets.items()]
 
 
-def get_dataset_index_entry(context: dict, dataset: dict, index_type: str) -> dict[str, Any]:
+def get_dataset_index_entry(context: BDSContext, dataset: dict, index_type: str) -> dict[str, Any]:
 
     minimal_index_structure = {
         "id": None,
@@ -123,22 +126,22 @@ def get_dataset_index_entry(context: dict, dataset: dict, index_type: str) -> di
     return index_entry
 
 
-def get_dataset_index_name(context: dict, index_type: str) -> str:
+def get_dataset_index_name(context: BDSContext, index_type: str) -> str:
     if index_type not in ["minimal", "full"]:
         raise ValueError("Unknown type for dataset index")
 
     return "datasets-{}".format(index_type)
 
 
-def get_reporting_org_index_name(context: dict) -> str:
+def get_reporting_org_index_name(context: BDSContext) -> str:
     return "reporting-orgs"
 
 
-def get_minimal_index_entry_from_dataset(context: dict, dataset: dict) -> dict:
+def get_minimal_index_entry_from_dataset(context: BDSContext, dataset: dict) -> dict:
     return get_full_index_entry_from_dataset(context, dataset)
 
 
-def get_full_index_entry_from_dataset(context: dict, dataset: dict) -> dict:
+def get_full_index_entry_from_dataset(context: BDSContext, dataset: dict) -> dict:
 
     index_field_structure = get_full_index_structured_fields(context)
 
@@ -163,7 +166,7 @@ def get_object_from_json_str(json_str: str | None):
     return json.loads(json_str if json_str is not None and json_str != "" else "{}")
 
 
-def get_full_index_structured_fields(context: dict) -> list[Any]:
+def get_full_index_structured_fields(context: BDSContext) -> list[Any]:
 
     def convert_to_object_from_json(dataset, db_field, index_prefix, index_field):
         return get_object_from_json_str(dataset[db_field])
@@ -223,7 +226,7 @@ def get_full_index_structured_fields(context: dict) -> list[Any]:
     ]
 
 
-def get_minimal_index_dataset_fields(context: dict) -> list[str]:
+def get_minimal_index_dataset_fields(context: BDSContext) -> list[str]:
     return [
         "id",
         "short_name",
