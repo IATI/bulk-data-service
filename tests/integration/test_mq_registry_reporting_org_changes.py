@@ -2,10 +2,12 @@ import uuid
 
 import pytest
 
+from utilities.misc import get_timestamp
+
 from bulk_data_service.checker import checker_run
 from helpers.assert_helpers import (
     assert_reporting_org_db_record_content_differs_reporting_org_mq_object,
-    assert_reporting_org_db_record_equal_reporting_org_mq_object,
+    assert_reporting_org_plain_record_equal_db_record,
 )
 from helpers.azure_service_bus_helpers import (  # noqa: F401
     generate_and_send_message,
@@ -40,8 +42,8 @@ async def test_reporting_org_created_message_01_success(get_and_clear_up_context
 
     assert reporting_org_id in reporting_orgs_in_bds
 
-    assert_reporting_org_db_record_equal_reporting_org_mq_object(
-        reporting_orgs_in_bds[reporting_org_id], reporting_org_msg_payload["reporting_org"]
+    assert_reporting_org_plain_record_equal_db_record(
+        reporting_org_msg_payload["reporting_org"], reporting_orgs_in_bds[reporting_org_id]
     )
 
 
@@ -84,12 +86,25 @@ async def test_reporting_org_updated_message_01_success(get_and_clear_up_context
 
     reporting_orgs_in_bds = get_reporting_orgs_in_bds(context)
 
-    reporting_orgs_in_bds[reporting_org_id]["short_name"] = "test_foundation_b_new_name_from_mq"
+    # update fields on the DB record, and use that to generate MQ REPORTING_ORG_UPDATED message
+    reporting_orgs_in_bds[reporting_org_id]["created_date"] = get_timestamp()
+    reporting_orgs_in_bds[reporting_org_id]["default_licence_id"] = "other-at"
+    reporting_orgs_in_bds[reporting_org_id]["data_portal_url"] = "http://www.example.org/updated"
+    reporting_orgs_in_bds[reporting_org_id][
+        "description"
+    ] = "Quisquam voluptas laboriosam tempora porro suscipit quia reiciendis modi."
+    reporting_orgs_in_bds[reporting_org_id]["first_publication_date"] = get_timestamp()
+    reporting_orgs_in_bds[reporting_org_id]["hq_country"] = "DK"
     reporting_orgs_in_bds[reporting_org_id]["human_readable_name"] = "Test Foundation B - Updated Name"
-    reporting_orgs_in_bds[reporting_org_id]["iati_identifier"] = "TEST-GOV-2-NEW"
+    reporting_orgs_in_bds[reporting_org_id]["iati_identifier"] = "TEST-GOV-2-UPDATED-FROM-MQ"
+    reporting_orgs_in_bds[reporting_org_id]["organisation_type"] = "72"
+    reporting_orgs_in_bds[reporting_org_id]["region"] = "619"
+    reporting_orgs_in_bds[reporting_org_id]["reporting_source_type"] = "secondary-source"
+    reporting_orgs_in_bds[reporting_org_id]["short_name"] = "test_foundation_b_new_name_from_mq"
+    reporting_orgs_in_bds[reporting_org_id]["website"] = "https://www.example.org/updated-from-mq"
 
     # send test message
-    reporting_org_msg_payload = await generate_and_send_message(
+    msg_payload = await generate_and_send_message(
         context, sbclient, "reporting_org", "updated", reporting_orgs_in_bds[reporting_org_id]
     )
 
@@ -100,9 +115,7 @@ async def test_reporting_org_updated_message_01_success(get_and_clear_up_context
 
     assert reporting_org_from_db is not None
 
-    assert_reporting_org_db_record_equal_reporting_org_mq_object(
-        reporting_org_from_db, reporting_org_msg_payload["reporting_org"]
-    )
+    assert_reporting_org_plain_record_equal_db_record(msg_payload["reporting_org"], reporting_org_from_db)
 
 
 @pytest.mark.asyncio

@@ -6,11 +6,12 @@ import shutil
 import zipfile
 from typing import Any
 from unittest import mock
-from config.bds_context import BDSContext
+
 import pytest
 from azure.storage.blob import BlobServiceClient
 from dotenv import dotenv_values
 
+from config.bds_context import BDSContext
 from config.config import get_app_version
 from utilities.azure import (
     create_azure_blob_containers,
@@ -31,9 +32,7 @@ def unzip_from_buffer(filename: str, buffer: bytes) -> bytes:
 
 
 def get_number_xml_files_in_working_dir(context):
-    return len(glob.glob("**/*.xml",
-                         root_dir=context["ZIP_WORKING_DIR"],
-                         recursive=True))
+    return len(glob.glob("**/*.xml", root_dir=context["ZIP_WORKING_DIR"], recursive=True))
 
 
 def truncate_db_tables(context: BDSContext):
@@ -46,7 +45,7 @@ def truncate_db_tables(context: BDSContext):
 
 
 def get_file_contents(filename: str) -> bytes:
-    with open("{}".format(filename), 'rb') as f:
+    with open("{}".format(filename), "rb") as f:
         return f.read()
 
 
@@ -73,11 +72,11 @@ def download_index_from_azure(context: BDSContext, index_name: str) -> Any:
 def get_and_clear_up_context():
     logger = mock.Mock()
     config = dotenv_values("tests-local-environment/.env") | {
-            "logger" : logger,
-            "single_run": True,
-            "run_for_n_datasets": None,
-            "prom_metrics": {}
-        }
+        "logger": logger,
+        "single_run": True,
+        "run_for_n_datasets": None,
+        "prom_metrics": {},
+    }
 
     config["BULK_DATA_SERVICE_VERSION"] = get_app_version()
     config["AZURE_SERVICE_BUS_WAIT_TIME"] = 0.1  # type: ignore
