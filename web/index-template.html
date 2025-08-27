@@ -1,27 +1,62 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 
 <head>
+  <meta charset="UTF-8">
   <title>IATI Bulk Data Service</title>
-  <link href="https://cdn.jsdelivr.net/npm/iati-design-system@1.2.0/dist/css/iati.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/iati-design-system@4.0.0/dist/css/iati.min.css" rel="stylesheet" />
 </head>
 
-<body>
+<body class="iati-design-system--enabled">
   <div class="iati-title-bar">
     <header class="iati-header">
-      <div>
-        <a href="https://iatistandard.org/">
-          <img src="http://styles.iatistandard.org/assets/svg/source/logo-colour.svg" class="iati-header__logo" />
-        </a>
+
+      <div class="iati-header__section iati-header__section--first">
+        <div class="iati-header__container">
+
+          <a href="https://iatistandard.org/" aria-label="Go to IATI homepage">
+            <img class="iati-header__logo" alt=""
+              src="http://styles.iatistandard.org/assets/svg/source/logo-colour.svg" />
+          </a>
+
+          <nav class="iati-header__general-nav">
+            <ul class="iati-piped-list">
+              <li><a href="https://iatistandard.org/en/about/">About IATI</a></li>
+              <li><a href="https://iatistandard.org/en/using-data/">Use Data</a></li>
+              <li><a href="https://iatistandard.org/en/guidance/publishing-data/">Publish Data</a></li>
+              <li><a href="https://iatistandard.org/guidance/get-support/">Contact</a></li>
+            </ul>
+          </nav>
+        </div>
       </div>
-      <ul class="iati-header__nav">
-        <li class="iati-header__nav-item">
-          <a href="search/">Search</a>
-        </li>
-      </ul>
+
+      <div class="iati-header__section iati-header__section--last iati-brand-background">
+        <div class="iati-header__container iati-brand-background__content">
+
+          <div class="iati-header__actions">
+            <div class="iati-country-switcher">
+              <label for="iati-country-switcher" class="iati-country-switcher__label">Choose your language</label>
+              <select id="iati-country-switcher" class="iati-country-switcher__control">
+                <option>English</option>
+              </select>
+            </div>
+            <a href="https://github.com/IATI/iati-unified-platform-docs">
+              <button class="iati-button iati-button--light hide--mobile-nav">
+                <span>Help Docs</span>
+                <i class="iati-icon iati-icon--info"></i>
+              </button>
+            </a>
+          </div>
+
+          <div class="iati-header-title">
+            <p class="iati-header-title__eyebrow">IATI Tools</p>
+            <p class="iati-header-title__heading">IATI Bulk Data Download</p>
+          </div>
+
+        </div>
+      </div>
     </header>
-    <div class="iati-title-bar__title">
-      IATI Bulk Data Download
-    </div>
+
   </div>
 
   <main class="iati-main">
@@ -32,35 +67,41 @@
     <p><a href="/iati-data.zip">IATI Bulk Data Download ZIP</a></p>
   </main>
 
-  <footer class="iati-footer" role="contentinfo">
-    <div>
-      <a href="https://iatistandard.org/">
-        <img src="http://styles.iatistandard.org/assets/svg/source/logo-white.svg" class="iati-footer__logo" />
-      </a>
-      <div class="iati-footer__list">
-        <span class="iati-footer__list-title">Useful Links</span>
-        <ul>
-          <li><a href="https://iatistandard.org/en/contact/">Contact</a></li>
-          <li><a href="https://iatistandard.org/en/privacy-policy/">Privacy Policy</a></li>
-        </ul>
-      </div>
-    </div>
-    <hr />
-    <div>
-      <div>
-        &#169; Copyright 2024 United Nations Development Programme, on behalf of the IATI Secretariat.Created using <a
-          href="https://www.sphinx-doc.org/">Sphinx</a> 7.3.7.
-      </div>
-      <div class="iati-footer__social-icons">
-        <a href="https://twitter.com/IATI_aid" aria-label="Twitter">
-          <i class="iati-icon iati-icon--twitter"></i>
-        </a>
-        <a href="https://www.youtube.com/channel/UCAVH1gcgJXElsj8ENC-bDQQ" aria-label="YouTube">
-          <i class="iati-icon iati-icon--youtube"></i>
-        </a>
-        <a href="https://www.linkedin.com/company/international-aid-transparency-initiative/" aria-label="LinkedIn">
-          <i class="iati-icon iati-icon--linkedin"></i>
-        </a>
+  <footer class="iati-footer iati-brand-background">
+    <div class="iati-brand-background__content">
+
+      <div class="iati-footer__section iati-footer__section--last">
+        <div class="iati-footer__container">
+          <nav>
+            <ul class="iati-piped-list iati-footer__legal-nav">
+              <li><a href="https://iatistandard.org/en/privacy-policy/">Privacy</a></li>
+              <li><a href="https://iatistandard.org/en/data-removal/">Data removal</a></li>
+              <li><span>&copy; Copyright IATI 2025</span></li>
+            </ul>
+          </nav>
+
+          <div class="iati-country-switcher">
+            <label for="iati-country-switcher-footer" class="iati-country-switcher__label">Choose your language</label>
+            <select id="iati-country-switcher-footer" class="iati-country-switcher__control">
+              <option>English</option>
+            </select>
+          </div>
+
+          <div class="iati-footer__social">
+            <a href="https://www.linkedin.com/company/international-aid-transparency-initiative/" aria-label="LinkedIn">
+              <i class="iati-icon iati-icon--linkedin"></i>
+            </a>
+            <a href="https://x.com/IATI_aid" aria-label="X">
+              <i class="iati-icon iati-icon--x"></i>
+            </a>
+            <a href="https://www.youtube.com/channel/UCAVH1gcgJXElsj8ENC-bDQQ" aria-label="YouTube">
+              <i class="iati-icon iati-icon--youtube"></i>
+            </a>
+            <a href="https://www.facebook.com/IATIaid" aria-label="Facebook">
+              <i class="iati-icon iati-icon--facebook"></i>
+            </a>
+          </div>
+        </div>
       </div>
     </div>
   </footer>
