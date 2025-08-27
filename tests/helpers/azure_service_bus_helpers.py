@@ -83,7 +83,7 @@ async def send_reporting_org_created_message(context: BDSContext, sbclient: Serv
         "hq_country": "GB",
         "human_readable_name": "New MQ Test Foundation B",
         "id": reporting_org_id,
-        "iati_identifier": "TEST-GOV-CH-A-0123456",
+        "organisation_identifier": "TEST-GOV-CH-A-0123456",
         "organisation_type": "23",
         "region": "789",
         "registration_service_reporting_org_metadata": "",

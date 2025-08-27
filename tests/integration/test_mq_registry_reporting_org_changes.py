@@ -2,8 +2,6 @@ import uuid
 
 import pytest
 
-from utilities.misc import get_timestamp
-
 from bulk_data_service.checker import checker_run
 from helpers.assert_helpers import (
     assert_reporting_org_db_record_content_differs_reporting_org_mq_object,
@@ -17,6 +15,7 @@ from helpers.azure_service_bus_helpers import (  # noqa: F401
 )
 from helpers.helpers import get_and_clear_up_context  # noqa: F401
 from utilities.db import get_reporting_org_in_bds, get_reporting_orgs_in_bds
+from utilities.misc import get_timestamp
 
 
 @pytest.mark.asyncio
@@ -96,7 +95,7 @@ async def test_reporting_org_updated_message_01_success(get_and_clear_up_context
     reporting_orgs_in_bds[reporting_org_id]["first_publication_date"] = get_timestamp()
     reporting_orgs_in_bds[reporting_org_id]["hq_country"] = "DK"
     reporting_orgs_in_bds[reporting_org_id]["human_readable_name"] = "Test Foundation B - Updated Name"
-    reporting_orgs_in_bds[reporting_org_id]["iati_identifier"] = "TEST-GOV-2-UPDATED-FROM-MQ"
+    reporting_orgs_in_bds[reporting_org_id]["organisation_identifier"] = "TEST-GOV-2-UPDATED-FROM-MQ"
     reporting_orgs_in_bds[reporting_org_id]["organisation_type"] = "72"
     reporting_orgs_in_bds[reporting_org_id]["region"] = "619"
     reporting_orgs_in_bds[reporting_org_id]["reporting_source_type"] = "secondary-source"

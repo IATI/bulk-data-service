@@ -45,7 +45,7 @@ def assert_reporting_org_plain_record_equal_db_record(
     assert reporting_org_plain_record["hq_country"] == reporting_org_db_record["hq_country"]
     assert reporting_org_plain_record["human_readable_name"] == reporting_org_db_record["human_readable_name"]
     assert reporting_org_plain_record["id"] == str(reporting_org_db_record["id"])
-    assert reporting_org_plain_record["organisation_identifier"] == reporting_org_db_record["iati_identifier"]
+    assert reporting_org_plain_record["organisation_identifier"] == reporting_org_db_record["organisation_identifier"]
     assert reporting_org_plain_record["organisation_type"] == reporting_org_db_record["organisation_type"]
     assert reporting_org_plain_record["region"] == reporting_org_db_record["region"]
     assert reporting_org_plain_record["reporting_source_type"] == reporting_org_db_record["reporting_source_type"]
@@ -58,4 +58,4 @@ def assert_reporting_org_db_record_content_differs_reporting_org_mq_object(
 ):
     assert reporting_org_db_record["short_name"] != reporting_org_mq_object["short_name"]
     assert reporting_org_db_record["human_readable_name"] != reporting_org_mq_object["human_readable_name"]
-    assert reporting_org_db_record["iati_identifier"] != reporting_org_mq_object["organisation_identifier"]
+    assert reporting_org_db_record["organisation_identifier"] != reporting_org_mq_object["organisation_identifier"]

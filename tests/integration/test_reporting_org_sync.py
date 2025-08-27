@@ -40,7 +40,7 @@ def test_add_reporting_org_to_db(get_and_clear_up_context):  # noqa: F811
     assert reporting_org["first_publication_date"] == datetime.datetime.fromisoformat("2022-02-04T13:51:36+00:00")
     assert reporting_org["hq_country"] == "GB"
     assert reporting_org["human_readable_name"] == "Test Foundation A"
-    assert reporting_org["iati_identifier"] == "TEST-A-JHG-0123456"
+    assert reporting_org["organisation_identifier"] == "TEST-A-JHG-0123456"
     assert reporting_org["organisation_type"] == "23"
     assert reporting_org["region"] is None
     assert reporting_org["reporting_source_type"] == "primary-source"
@@ -102,7 +102,7 @@ def test_update_reporting_org_in_db(get_and_clear_up_context):  # noqa: F811
     assert reporting_org["first_publication_date"] == datetime.datetime.fromisoformat("2022-02-05T13:51:36+00:00")
     assert reporting_org["hq_country"] == "DE"
     assert reporting_org["human_readable_name"] == "Test Foundation A Mod"
-    assert reporting_org["iati_identifier"] == "TEST-A-JHG-0123456-MOD"
+    assert reporting_org["organisation_identifier"] == "TEST-A-JHG-0123456-MOD"
     assert reporting_org["organisation_type"] == "60"
     assert reporting_org["reporting_source_type"] == "secondary-source"
     assert reporting_org["short_name"] == "test_foundation_a_mod"
