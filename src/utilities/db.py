@@ -169,7 +169,7 @@ def insert_or_update_reporting_org(connection: psycopg.Connection, data):
                         first_publication_date = %(first_publication_date)s,
                         hq_country = %(hq_country)s,
                         human_readable_name = %(human_readable_name)s,
-                        iati_identifier = %(iati_identifier)s,
+                        organisation_identifier = %(organisation_identifier)s,
                         organisation_type = %(organisation_type)s,
                         region = %(region)s,
                         reporting_source_type = %(reporting_source_type)s,
