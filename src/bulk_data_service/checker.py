@@ -69,7 +69,7 @@ def checker_run(context: BDSContext, datasets_in_bds: dict[uuid.UUID, dict]):
 
     remove_expired_downloads(context, datasets_in_bds)
 
-    create_and_upload_indices(context, datasets_in_bds, registered_reporting_orgs)
+    create_and_upload_indices(context, datasets_in_bds, get_reporting_orgs_in_bds(context))
 
     update_metrics_from_db(context)
 

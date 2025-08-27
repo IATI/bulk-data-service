@@ -161,10 +161,21 @@ def insert_or_update_reporting_org(connection: psycopg.Connection, data):
                         VALUES ({})
                  ON CONFLICT (id) DO
                     UPDATE SET
-                        short_name = %(short_name)s,
-                        iati_identifier = %(iati_identifier)s,
+                        created_date = %(created_date)s,
+                        data_portal_url = %(data_portal_url)s,
+                        default_licence_id = %(default_licence_id)s,
+                        description = %(description)s,
+                        exclusions_policy_url = %(exclusions_policy_url)s,
+                        first_publication_date = %(first_publication_date)s,
+                        hq_country = %(hq_country)s,
                         human_readable_name = %(human_readable_name)s,
-                        registration_service_reporting_org_metadata = %(registration_service_reporting_org_metadata)s
+                        iati_identifier = %(iati_identifier)s,
+                        organisation_type = %(organisation_type)s,
+                        region = %(region)s,
+                        reporting_source_type = %(reporting_source_type)s,
+                        registration_service_reporting_org_metadata = %(registration_service_reporting_org_metadata)s,
+                        short_name = %(short_name)s,
+                        website = %(website)s
                     WHERE
                         iati_reporting_orgs.id = %(id)s
         """.format(
