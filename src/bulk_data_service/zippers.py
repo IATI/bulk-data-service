@@ -10,8 +10,8 @@ from bulk_data_service.dataset_indexing import get_dataset_index_name, get_repor
 from utilities.azure import azure_download_blob, get_azure_container_name, upload_zip_to_azure
 from utilities.misc import (
     dataset_has_iati_xml_download,
+    get_current_timestamp_as_str,
     get_number_xml_files_in_dir,
-    get_timestamp_as_str_z,
     lookup_licence_title_from_id,
 )
 
@@ -246,4 +246,7 @@ class CodeforIATILegacyZipper(IATIDataZipper):
         with open(
             "{}/{}/{}".format(self.zip_working_dir, self.zip_internal_directory_name, "metadata.json"), "w"
         ) as metadata_file:
-            json.dump({"created_at": get_timestamp_as_str_z(), "updated_at": get_timestamp_as_str_z()}, metadata_file)
+            json.dump(
+                {"created_at": get_current_timestamp_as_str(True), "updated_at": get_current_timestamp_as_str(True)},
+                metadata_file,
+            )

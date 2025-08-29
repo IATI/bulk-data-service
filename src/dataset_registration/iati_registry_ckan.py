@@ -8,7 +8,7 @@ import requests
 
 from config.bds_context import BDSContext
 from utilities.http import add_qs_params_to_url, http_get_json
-from utilities.misc import is_str_valid_uuid
+from utilities.misc import get_timestamp, is_str_valid_uuid
 
 
 def fetch_reporting_orgs_metadata(context: BDSContext) -> dict[uuid.UUID, dict]:
@@ -20,7 +20,8 @@ def fetch_reporting_orgs_metadata(context: BDSContext) -> dict[uuid.UUID, dict]:
     reporting_orgs_w_valid_ids = [org for org in reporting_orgs_metadata if is_str_valid_uuid(org["id"])]
 
     reporting_org_metadata = {
-        uuid.UUID(org["id"]): convert_ckan_reporting_org_metadata(org) for org in reporting_orgs_w_valid_ids
+        uuid.UUID(org["id"]): convert_reporting_org_ckan_record_to_bds_record(org)
+        for org in reporting_orgs_w_valid_ids
     }
 
     return reporting_org_metadata
@@ -62,13 +63,42 @@ def fetch_reporting_orgs_from_iati_registry(context: BDSContext) -> list[dict]:
     return reporting_orgs_metadata
 
 
-def convert_ckan_reporting_org_metadata(reporting_org: dict):
+def convert_reporting_org_ckan_record_to_bds_record(reporting_org_ckan_record: dict):
+
+    # most dates in the CKAN Registry are ISO8601 formatted, but some are
+    # formatted like this "18.01.2018", some are empty strings, some are nulls
+    first_publication_date = None
+    try:
+        if reporting_org_ckan_record.get("publisher_first_publish_date", None) is not None:
+            first_publication_date = get_timestamp(reporting_org_ckan_record["publisher_first_publish_date"])
+    except ValueError:
+        first_publication_date = None
+
+    # to ensure that bad data is handled
+    reporting_source_type = None
+    if reporting_org_ckan_record.get("publisher_source_type", "") == "primary_source":
+        reporting_source_type = "primary-source"
+    elif reporting_org_ckan_record.get("publisher_source_type", "") == "secondary_source":
+        reporting_source_type = "secondary-source"
+
     return {
-        "id": reporting_org["id"],
-        "short_name": reporting_org["name"],
-        "iati_identifier": reporting_org["publisher_iati_id"],
-        "human_readable_name": reporting_org["title"],
-        "registration_service_reporting_org_metadata": json.dumps(reporting_org),
+        "created_date": None,
+        "data_portal_url": reporting_org_ckan_record.get("publisher_ui_url", None),
+        "default_licence_id": reporting_org_ckan_record.get("license_id", None),
+        "description": reporting_org_ckan_record.get("publisher_description", None),
+        "exclusions_policy_url": None,
+        "first_publication_date": first_publication_date,
+        "hq_country": reporting_org_ckan_record.get("publisher_country", None),
+        "human_readable_name": reporting_org_ckan_record["title"],
+        "id": uuid.UUID(reporting_org_ckan_record["id"]),
+        "number_of_published_datasets": reporting_org_ckan_record.get("package_count", 0),
+        "organisation_identifier": reporting_org_ckan_record.get("publisher_iati_id", None),
+        "organisation_type": reporting_org_ckan_record.get("publisher_organization_type", None),
+        "region": None,
+        "reporting_source_type": reporting_source_type,
+        "short_name": reporting_org_ckan_record["name"],
+        "registration_service_reporting_org_metadata": json.dumps(reporting_org_ckan_record),
+        "website": reporting_org_ckan_record.get("publisher_url", None),
     }
 
 

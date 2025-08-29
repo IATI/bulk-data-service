@@ -24,7 +24,7 @@ from utilities.db import (
     update_dataset_registration_data,
 )
 from utilities.exceptions import BulkDataServiceRuntimeError
-from utilities.misc import get_timestamp_as_str
+from utilities.misc import get_current_timestamp_as_str
 
 
 def registry_changes_processor_start(context: BDSContext):
@@ -41,7 +41,7 @@ async def registry_changes_service_loop(context: BDSContext):
 
     while True:
         try:
-            context.logger.debug(f"registry_changes_service_loop - mark - {get_timestamp_as_str()}")
+            context.logger.debug(f"registry_changes_service_loop - mark - {get_current_timestamp_as_str()}")
 
             if sb_client is None:
                 sb_client = ServiceBusClient.from_connection_string(context["AZURE_SERVICE_BUS_CONNECTION_STRING"])

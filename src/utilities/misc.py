@@ -68,28 +68,55 @@ def is_str_valid_uuid(uuid_str_to_check: str) -> bool:
     return str(uuid_object) == uuid_str_to_check
 
 
-def get_timestamp(isodate: str = "") -> datetime.datetime:
-    if isodate != "":
-        return datetime.datetime.fromisoformat(isodate).astimezone()
+def format_timestamp_as_utc_str(timestamp: datetime.datetime | None) -> str | None:
+    """Formats an existing timestamp as an ISO8601 string using UTC timezone.
+
+    If timestamp is None, returns None"""
+
+    if timestamp is not None:
+        return timestamp.replace(microsecond=0).astimezone(tz=datetime.timezone.utc).isoformat()
+    return None
+
+
+def get_timestamp_or_none(isodate: str | None = None) -> datetime.datetime | None:
+    """Gets a datetime object in UTC timezone from 'isodate', or None if isodate is None.
+
+    Microseconds are zeroed."""
+
+    if isodate is None:
+        return None
+
+    return datetime.datetime.fromisoformat(isodate).astimezone(tz=datetime.timezone.utc).replace(microsecond=0)
+
+
+def get_timestamp(isodate: str | None = None) -> datetime.datetime:
+    """Gets a datetime object in UTC timezone from 'isodate', or from the current time if isodate is None.
+
+    Microseconds are zeroed."""
+
+    if isodate is not None:
+        dt = datetime.datetime.fromisoformat(isodate).astimezone(tz=datetime.timezone.utc)
     else:
-        return datetime.datetime.now(tz=datetime.timezone.utc)
+        dt = datetime.datetime.now(tz=datetime.timezone.utc)
+
+    return dt.replace(microsecond=0)
 
 
-def get_timestamp_as_str(isodate: str = "") -> str:
-    if isodate != "":
-        return datetime.datetime.fromisoformat(isodate).astimezone().isoformat()
-    else:
-        return datetime.datetime.now(tz=datetime.timezone.utc).isoformat()
+def get_current_timestamp_as_str(format_with_z: bool = False) -> str:
+    """Gets the current UTC timestamp in IS8601 format.
 
+    Microseconds are zeroed.
 
-def get_timestamp_as_str_z(isodate: str = "") -> str:
-    dt = (
-        datetime.datetime.fromisoformat(isodate).astimezone()
-        if isodate != ""
-        else datetime.datetime.now(tz=datetime.timezone.utc)
-    )
-    dt = dt.replace(microsecond=0)
-    return dt.isoformat().replace("+00:00", "Z")
+    Keyword arguments:
+    format_with_z -- If True, the standard '+00:00' for UTC is replaced with a Z.
+        This is used for the CKAN metadata in the backwards compatible ZIP"""
+
+    s = datetime.datetime.now(tz=datetime.timezone.utc).replace(microsecond=0).isoformat()
+
+    if format_with_z:
+        return s.replace("+00:00", "Z")
+
+    return s
 
 
 def set_timestamp_tz_utc(date: datetime.datetime) -> datetime.datetime:

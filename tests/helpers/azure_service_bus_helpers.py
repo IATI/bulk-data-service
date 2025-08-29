@@ -1,15 +1,17 @@
 import json
+from datetime import datetime
 from uuid import UUID
 
 import pytest
 import pytest_asyncio
 from azure.servicebus import ServiceBusMessage
 from azure.servicebus.aio import ServiceBusClient, ServiceBusReceiver
-from config.bds_context import BDSContext
 
 from bulk_data_service.registry_changes_processor import fetch_messages, get_sb_receiver, process_message
+from config.bds_context import BDSContext
 from helpers.mq_data_helpers import get_dataset_message_payload, get_reporting_org_message_payload
 from utilities.exceptions import BulkDataServiceRuntimeError
+from utilities.misc import get_timestamp
 
 
 @pytest_asyncio.fixture
@@ -72,11 +74,22 @@ async def send_dataset_created_message(
 async def send_reporting_org_created_message(context: BDSContext, sbclient: ServiceBusClient, reporting_org_id: UUID):
 
     reporting_org_db_record = {
-        "id": reporting_org_id,
-        "short_name": "new_mq_test_foundation_b",
+        "created_date": get_timestamp(),
+        "default_licence_id": "cc-by",
+        "data_portal_url": "https://www.example.org/data-portal",
+        "description": "Eos ex saepe accusamus enim magnam omnis placeat doloremque qui.",
+        "exclusions_policy_url": "https://www.example.org/exclusions-policy",
+        "first_publication_date": get_timestamp(),
+        "hq_country": "GB",
         "human_readable_name": "New MQ Test Foundation B",
-        "iati_identifier": "TEST-GOV-CH-A-0123456",
+        "id": reporting_org_id,
+        "organisation_identifier": "TEST-GOV-CH-A-0123456",
+        "organisation_type": "23",
+        "region": "789",
         "registration_service_reporting_org_metadata": "",
+        "reporting_source_type": "primary-source",
+        "short_name": "new_mq_test_foundation_b",
+        "website": "https://www.example.org",
     }
 
     # send and return test message
@@ -94,18 +107,6 @@ async def generate_and_send_message(
         msg_payload = get_dataset_message_payload(data, update_type)
     else:
         msg_payload = get_reporting_org_message_payload(data, update_type)
-
-    return await send_message(context, sbclient, msg_payload)
-
-
-async def send_reporting_org_message(
-    context: BDSContext,
-    sbclient: ServiceBusClient,
-    reporting_org: dict,
-    update_type: str,
-) -> dict:
-
-    msg_payload = get_reporting_org_message_payload(reporting_org, update_type)
 
     return await send_message(context, sbclient, msg_payload)
 

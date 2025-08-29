@@ -2,6 +2,8 @@ import json
 import uuid
 from typing import Any
 
+from utilities.misc import format_timestamp_as_utc_str, get_timestamp_or_none
+
 
 def get_new_dataset_db_record_from_mq_dataset(mq_dataset: dict[str, Any]) -> dict[str, Any]:
     dataset_db_record = translate_mq_dataset_to_dataset_db_record_metadata(mq_dataset)
@@ -10,7 +12,7 @@ def get_new_dataset_db_record_from_mq_dataset(mq_dataset: dict[str, Any]) -> dic
 
 
 def get_reporting_org_db_record_from_mq_reporting_org(mq_reporting_org: dict[str, Any]) -> dict[str, Any]:
-    return translate_mq_reporting_org_to_reporting_org_db_record(mq_reporting_org)
+    return convert_mq_reporting_org_to_reporting_org_bds_record(mq_reporting_org)
 
 
 def get_updated_dataset_db_record_from_mq_dataset(
@@ -19,13 +21,46 @@ def get_updated_dataset_db_record_from_mq_dataset(
     return dataset_db_record | translate_mq_dataset_to_dataset_db_record_metadata(mq_dataset)
 
 
-def translate_mq_reporting_org_to_reporting_org_db_record(mq_reporting_org: dict[str, Any]) -> dict[str, Any]:
+def convert_reporting_org_bds_record_to_index_record(reporting_org: dict[str, Any]) -> dict:
     return {
-        "id": uuid.UUID(mq_reporting_org["id"]),
-        "short_name": mq_reporting_org["short_name"],
+        "created_date": format_timestamp_as_utc_str(reporting_org["created_date"]),
+        "data_portal_url": reporting_org["data_portal_url"],
+        "default_licence_id": reporting_org["default_licence_id"],
+        "description": reporting_org["description"],
+        "exclusions_policy_url": reporting_org["exclusions_policy_url"],
+        "first_publication_date": format_timestamp_as_utc_str(reporting_org["first_publication_date"]),
+        "hq_country": reporting_org["hq_country"],
+        "human_readable_name": reporting_org["human_readable_name"],
+        "id": str(reporting_org["id"]),
+        "iati_identifier": reporting_org["organisation_identifier"],
+        "organisation_identifier": reporting_org["organisation_identifier"],
+        "organisation_type": reporting_org["organisation_type"],
+        "region": reporting_org["region"],
+        "reporting_source_type": reporting_org["reporting_source_type"],
+        "short_name": reporting_org["short_name"],
+        "website": reporting_org["website"],
+    }
+
+
+def convert_mq_reporting_org_to_reporting_org_bds_record(mq_reporting_org: dict[str, Any]) -> dict[str, Any]:
+
+    return {
+        "created_date": get_timestamp_or_none(mq_reporting_org["created_date"]),
+        "data_portal_url": mq_reporting_org["data_portal_url"],
+        "default_licence_id": mq_reporting_org["default_licence_id"],
+        "description": mq_reporting_org["description"],
+        "exclusions_policy_url": mq_reporting_org["exclusions_policy_url"],
+        "first_publication_date": get_timestamp_or_none(mq_reporting_org["first_publication_date"]),
+        "hq_country": mq_reporting_org["hq_country"],
         "human_readable_name": mq_reporting_org["human_readable_name"],
-        "iati_identifier": mq_reporting_org["iati_organisation_identifier"],
+        "id": uuid.UUID(mq_reporting_org["id"]),
+        "organisation_identifier": mq_reporting_org["organisation_identifier"],
+        "organisation_type": mq_reporting_org["organisation_type"],
+        "region": mq_reporting_org["region"],
+        "reporting_source_type": mq_reporting_org["reporting_source_type"],
         "registration_service_reporting_org_metadata": json.dumps(mq_reporting_org),
+        "short_name": mq_reporting_org["short_name"],
+        "website": mq_reporting_org["website"],
     }
 
 

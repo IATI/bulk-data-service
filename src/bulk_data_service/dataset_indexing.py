@@ -7,6 +7,7 @@ from azure.storage.blob import BlobServiceClient
 
 from config.bds_context import BDSContext
 from utilities.azure import azure_upload_to_blob, get_azure_blob_public_url
+from utilities.dataset_reporting_org_utils import convert_reporting_org_bds_record_to_index_record
 from utilities.misc import dataset_has_iati_xml_download, filter_dict_by_structure, get_timestamp
 
 
@@ -81,12 +82,7 @@ def get_reporting_orgs_for_datasets(
     reporting_org_names_w_datasets = set([dataset["reporting_org_short_name"] for dataset in datasets.values()])
 
     orgs_w_datasets = [
-        {
-            "id": org["id"],
-            "short_name": org["short_name"],
-            "human_readable_name": org["human_readable_name"],
-            "iati_identifier": org["iati_identifier"],
-        }
+        convert_reporting_org_bds_record_to_index_record(org)
         for org in reporting_orgs.values()
         if org["short_name"] in reporting_org_names_w_datasets
     ]

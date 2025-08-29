@@ -1,10 +1,12 @@
 import uuid
+from unittest.mock import Mock
 
 import pytest
 from azure.storage.blob import BlobServiceClient
 
 from bulk_data_service.checker import checker_run
 from bulk_data_service.dataset_indexing import get_dataset_index_name, get_reporting_org_index_name
+from helpers.assert_helpers import assert_reporting_org_plain_record_equal_db_record
 from helpers.data_helpers import (
     check_index_last_known_good_fields,
     check_index_most_recent_fields,
@@ -13,7 +15,7 @@ from helpers.data_helpers import (
 from helpers.helpers import download_index_from_azure, get_and_clear_up_context  # noqa: F401
 from utilities.azure import get_azure_container_name
 from utilities.db import get_reporting_orgs_in_bds
-from utilities.misc import find_object_by_key
+from utilities.misc import find_object_by_key, format_timestamp_as_utc_str
 
 
 def test_indices_uploaded_to_blob_storage(get_and_clear_up_context):  # noqa: F811
@@ -43,11 +45,14 @@ def test_indices_uploaded_to_blob_storage(get_and_clear_up_context):  # noqa: F8
     blob_service_client.close()
 
 
-@pytest.mark.parametrize("index_name",[
-    get_dataset_index_name({}, "minimal"),
-    get_dataset_index_name({}, "full"),
-    get_reporting_org_index_name({})
-])
+@pytest.mark.parametrize(
+    "index_name",
+    [
+        get_dataset_index_name(Mock(), "minimal"),
+        get_dataset_index_name(Mock(), "full"),
+        get_reporting_org_index_name(Mock()),
+    ],
+)
 def test_index_created_field_is_generated_for_indices(get_and_clear_up_context, index_name):  # noqa: F811
     context = get_and_clear_up_context
 
@@ -89,6 +94,9 @@ def test_index_created_fields_in_dataset_reporting_org_indices_have_same_value(g
 def test_creation_of_entry_in_reporting_org_index(get_and_clear_up_context):  # noqa: F811
     context = get_and_clear_up_context
 
+    context["DATA_REGISTRY_PUBLISHER_METADATA_URL"] = (
+        "http://localhost:3000/ckan-registration/reporting-orgs-01-four-orgs"
+    )
     context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-01-1-dataset"
     datasets_in_bds = {}
     checker_run(context, datasets_in_bds)
@@ -99,26 +107,32 @@ def test_creation_of_entry_in_reporting_org_index(get_and_clear_up_context):  # 
 
     reporting_org = reporting_orgs_in_bds[uuid.UUID("ea055d99-f7e9-456f-9f99-963e95493c1b")]
 
-    reporting_org_index_item = find_object_by_key(reporting_org_index["reporting_orgs"], "short_name", reporting_org["short_name"])
+    reporting_org_index_item = find_object_by_key(
+        reporting_org_index["reporting_orgs"], "short_name", reporting_org["short_name"]
+    )
 
     assert reporting_org_index_item is not None
 
-    assert reporting_org_index_item["human_readable_name"] == reporting_org["human_readable_name"]
-    assert reporting_org_index_item["id"] == str(reporting_org["id"])
+    assert_reporting_org_plain_record_equal_db_record(reporting_org_index_item, reporting_org)
 
 
-@pytest.mark.parametrize("dataset_filename", [
-    ("test_foundation_a-dataset-001.xml"),
-    ("test_foundation_a-dataset-empty.xml"),
-    ("test_foundation_a-dataset-html.xml"),
-    ("test_foundation_a-dataset.pdf"),
-    ("test_foundation_a-dataset-404.xml"),
-])
+@pytest.mark.parametrize(
+    "dataset_filename",
+    [
+        ("test_foundation_a-dataset-001.xml"),
+        ("test_foundation_a-dataset-empty.xml"),
+        ("test_foundation_a-dataset-html.xml"),
+        ("test_foundation_a-dataset.pdf"),
+        ("test_foundation_a-dataset-404.xml"),
+    ],
+)
 def test_creation_of_dataset_entry_in_full_index(get_and_clear_up_context, dataset_filename):  # noqa: F811
     context = get_and_clear_up_context
 
-    context["DATA_REGISTRY_BASE_URL"] = ("http://localhost:3000/ckan-registration/datasets-01-1-dataset/"
-                                         "http%3A%2F%2Flocalhost%3A3000%2Fdata%2F{}".format(dataset_filename))
+    context["DATA_REGISTRY_BASE_URL"] = (
+        "http://localhost:3000/ckan-registration/datasets-01-1-dataset/"
+        "http%3A%2F%2Flocalhost%3A3000%2Fdata%2F{}".format(dataset_filename)
+    )
     datasets_in_bds = {}
     checker_run(context, datasets_in_bds)
 
@@ -139,18 +153,23 @@ def test_creation_of_dataset_entry_in_full_index(get_and_clear_up_context, datas
     check_index_last_known_good_fields(context, dataset, dataset_index_item)
 
 
-@pytest.mark.parametrize("dataset_filename", [
-    ("test_foundation_a-dataset-001.xml"),
-    ("test_foundation_a-dataset-empty.xml"),
-    ("test_foundation_a-dataset-html.xml"),
-    ("test_foundation_a-dataset.pdf"),
-    ("test_foundation_a-dataset-404.xml"),
-])
+@pytest.mark.parametrize(
+    "dataset_filename",
+    [
+        ("test_foundation_a-dataset-001.xml"),
+        ("test_foundation_a-dataset-empty.xml"),
+        ("test_foundation_a-dataset-html.xml"),
+        ("test_foundation_a-dataset.pdf"),
+        ("test_foundation_a-dataset-404.xml"),
+    ],
+)
 def test_creation_of_dataset_entry_in_minimal_index(get_and_clear_up_context, dataset_filename):  # noqa: F811
     context = get_and_clear_up_context
 
-    context["DATA_REGISTRY_BASE_URL"] = ("http://localhost:3000/ckan-registration/datasets-01-1-dataset/"
-                                         "http%3A%2F%2Flocalhost%3A3000%2Fdata%2F{}".format(dataset_filename))
+    context["DATA_REGISTRY_BASE_URL"] = (
+        "http://localhost:3000/ckan-registration/datasets-01-1-dataset/"
+        "http%3A%2F%2Flocalhost%3A3000%2Fdata%2F{}".format(dataset_filename)
+    )
     datasets_in_bds = {}
     checker_run(context, datasets_in_bds)
 
