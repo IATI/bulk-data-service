@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from utilities.dataset_reporting_org_utils import convert_reporting_org_bds_record_to_index_record
+from utilities.dataset_reporting_org_utils import convert_reporting_org_bds_record_to_plain_record
 from utilities.misc import get_current_timestamp_as_str
 
 
@@ -54,5 +54,5 @@ def generate_reporting_org_created_updated_payload(reporting_org_db_record: dict
     return {
         "message_type": f"REPORTING_ORG_{update_type.upper()}",
         "message_date": get_current_timestamp_as_str(),
-        "reporting_org": convert_reporting_org_bds_record_to_index_record(reporting_org_db_record),
+        "reporting_org": convert_reporting_org_bds_record_to_plain_record(reporting_org_db_record),
     }

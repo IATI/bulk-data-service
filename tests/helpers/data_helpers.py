@@ -8,19 +8,52 @@ from utilities.azure import get_azure_blob_public_url
 from utilities.misc import dataset_has_iati_xml_download
 
 
+def check_most_recent_get_attempt_http_error(dataset: dict):
+    assert dataset["most_recent_get_attempt_datetime"] is not None
+    assert dataset["most_recent_get_attempt_error_occurred"] is True
+    assert dataset["most_recent_get_attempt_http_status"] is not None
+
+    # When an HTTP error is encountered, all the following should be filled in
+    error_details = json.loads(dataset["most_recent_get_attempt_error_details"])
+    assert error_details["error_type"] is not None
+    assert len(error_details["http_headers"].keys()) > 0
+    assert error_details["http_method"] is not None
+    assert error_details["http_reason"] is not None
+    assert error_details["http_status"] is not None
+    assert error_details["summary_message"] is not None
+    assert error_details["url"] is not None
+
+
 def check_most_recent_get_attempt_downloaded_but_non_iati(dataset: dict):
     assert dataset["most_recent_get_attempt_datetime"] is not None
+    assert dataset["most_recent_get_attempt_error_occurred"] is True
     assert dataset["most_recent_get_attempt_http_status"] == 200
+
     error_details = json.loads(dataset["most_recent_get_attempt_error_details"])
-    assert error_details["message"] == "File does not appear to be IATI XML"
+    assert error_details["error_type"] == "not_iati_content"
 
 
-def check_most_recent_get_attempt_for_success(dataset: dict):
-    assert dataset["most_recent_get_attempt_error_details"] is None
-    assert dataset["most_recent_get_attempt_http_status"] == 200
+def check_most_recent_http_attempt_for_success(http_method: str, dataset: dict):
+    assert dataset[f"most_recent_{http_method}_attempt_datetime"] is not None
+    assert dataset[f"most_recent_{http_method}_attempt_error_occurred"] is False
+    assert dataset[f"most_recent_{http_method}_attempt_http_status"] == 200
+
+    error_details = json.loads(dataset[f"most_recent_{http_method}_attempt_error_details"])
+    assert error_details["detailed_message"] is None
+    assert error_details["error_type"] is None
+    assert error_details["http_headers"] == {}
+    assert error_details["http_method"] is None
+    assert error_details["http_reason"] is None
+    assert error_details["http_status"] is None
+    assert error_details["summary_message"] is None
+    assert error_details["url"] is None
 
 
 def check_last_known_good_dataset_values_are_set(dataset: dict):
+    assert dataset["last_known_good_dataset_cached_dataset_xml_url"] is not None
+    assert dataset["last_known_good_dataset_cached_dataset_xml_etag"] is not None
+    assert dataset["last_known_good_dataset_cached_dataset_zip_url"] is not None
+    assert dataset["last_known_good_dataset_cached_dataset_zip_etag"] is not None
     assert dataset["last_known_good_dataset_downloaded"] is not None
     assert dataset["last_known_good_dataset_downloaded"] == dataset["last_known_good_dataset_verified_on_server"]
     assert dataset["last_known_good_dataset_hash"] is not None
@@ -33,6 +66,10 @@ def check_last_known_good_dataset_values_are_set(dataset: dict):
 
 
 def check_last_known_good_dataset_values_are_unset(dataset: dict):
+    assert dataset["last_known_good_dataset_cached_dataset_xml_url"] is None
+    assert dataset["last_known_good_dataset_cached_dataset_xml_etag"] is None
+    assert dataset["last_known_good_dataset_cached_dataset_zip_url"] is None
+    assert dataset["last_known_good_dataset_cached_dataset_zip_etag"] is None
     assert dataset["last_known_good_dataset_downloaded"] is None
     assert dataset["last_known_good_dataset_verified_on_server"] is None
     assert dataset["last_known_good_dataset_hash"] is None
@@ -65,7 +102,7 @@ def check_index_most_recent_fields(context: BDSContext, field_grouping: str, dat
     )
 
 
-def check_index_last_known_good_fields(context: BDSContext, dataset: dict, dataset_index_item: dict):
+def check_index_common_last_known_good_fields(context: BDSContext, dataset: dict, dataset_index_item: dict):
     assert "last_known_good_dataset" in dataset_index_item
     assert dataset_index_item["last_known_good_dataset"]["downloaded"] == get_datetime_as_str_or_none(
         dataset["last_known_good_dataset_downloaded"]
@@ -73,17 +110,8 @@ def check_index_last_known_good_fields(context: BDSContext, dataset: dict, datas
     assert dataset_index_item["last_known_good_dataset"]["verified_on_server"] == get_datetime_as_str_or_none(
         dataset["last_known_good_dataset_verified_on_server"]
     )
-    assert dataset_index_item["last_known_good_dataset"]["hash"] == dataset["last_known_good_dataset_hash"]
-    assert (
-        dataset_index_item["last_known_good_dataset"]["hash_excluding_generated_timestamp"]
-        == dataset["last_known_good_dataset_hash_excluding_generated_timestamp"]
-    )
-    assert dataset_index_item["last_known_good_dataset"]["cached_dataset_url_xml"] == (
-        get_azure_blob_public_url(context, dataset, "xml") if dataset_has_iati_xml_download(dataset) else None
-    )
-    assert dataset_index_item["last_known_good_dataset"]["cached_dataset_url_zip"] == (
-        get_azure_blob_public_url(context, dataset, "zip") if dataset_has_iati_xml_download(dataset) else None
-    )
+    for f in ["hash", "hash_excluding_generated_timestamp", "cached_dataset_xml_url", "cached_dataset_zip_url"]:
+        assert dataset_index_item["last_known_good_dataset"][f] == dataset[f"last_known_good_dataset_{f}"]
 
 
 def get_datetime_as_str_or_none(date: datetime.datetime | None) -> str | None:
