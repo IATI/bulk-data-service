@@ -97,6 +97,7 @@ def insert_or_update_dataset(connection: psycopg.Connection, data):
                         reporting_org_short_name = %(reporting_org_short_name)s,
                         source_url = %(source_url)s,
                         licence_id = %(licence_id)s,
+                        registration_service_metadata_refreshed_datetime = %(registration_service_metadata_refreshed_datetime)s,
                         registration_service_dataset_metadata = %(registration_service_dataset_metadata)s,
                         registration_service_name = %(registration_service_name)s,
 
@@ -115,14 +116,14 @@ def insert_or_update_dataset(connection: psycopg.Connection, data):
                         last_known_good_dataset_source_url = %(last_known_good_dataset_source_url)s,
 
                         most_recent_head_attempt_datetime = %(most_recent_head_attempt_datetime)s,
-                        most_recent_head_attempt_http_status = %(most_recent_head_attempt_http_status)s,
                         most_recent_head_attempt_error_details = %(most_recent_head_attempt_error_details)s,
-                        most_recent_head_attempt_server_headers = %(most_recent_head_attempt_server_headers)s,
+                        most_recent_head_attempt_error_occurred = %(most_recent_head_attempt_error_occurred)s,
+                        most_recent_head_attempt_http_status = %(most_recent_head_attempt_http_status)s,
 
                         most_recent_get_attempt_datetime = %(most_recent_get_attempt_datetime)s,
-                        most_recent_get_attempt_http_status = %(most_recent_get_attempt_http_status)s,
                         most_recent_get_attempt_error_details = %(most_recent_get_attempt_error_details)s,
-                        most_recent_get_attempt_server_headers = %(most_recent_get_attempt_server_headers)s
+                        most_recent_get_attempt_error_occurred = %(most_recent_get_attempt_error_occurred)s,
+                        most_recent_get_attempt_http_status = %(most_recent_get_attempt_http_status)s
 
                     WHERE
                         iati_datasets.id = %(id)s
@@ -143,6 +144,7 @@ def update_dataset_registration_data(connection: psycopg.Connection, data):
                         source_url = %(source_url)s,
                         licence_id = %(licence_id)s,
                         registration_service_dataset_metadata = %(registration_service_dataset_metadata)s,
+                        registration_service_metadata_refreshed_datetime = %(registration_service_metadata_refreshed_datetime)s,
                         registration_service_name = %(registration_service_name)s
                     WHERE
                         iati_datasets.id = %(id)s
@@ -173,6 +175,7 @@ def insert_or_update_reporting_org(connection: psycopg.Connection, data):
                         organisation_type = %(organisation_type)s,
                         region = %(region)s,
                         reporting_source_type = %(reporting_source_type)s,
+                        registration_service_metadata_refreshed_datetime = %(registration_service_metadata_refreshed_datetime)s,
                         registration_service_reporting_org_metadata = %(registration_service_reporting_org_metadata)s,
                         short_name = %(short_name)s,
                         website = %(website)s

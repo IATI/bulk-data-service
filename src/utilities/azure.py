@@ -1,9 +1,14 @@
+import json
 from typing import Any
 
 import azure
+import azure.core.exceptions
+import azure.servicebus.exceptions
+from azure.servicebus import ServiceBusMessage
 from azure.storage.blob import BlobServiceClient, ContentSettings
 
 from config.bds_context import BDSContext
+from utilities.misc import UUIDDatetimeJSONEncoder
 
 
 def azure_blob_exists(az_blob_service: BlobServiceClient, container_name: str, blob_name: str) -> bool:
@@ -20,6 +25,39 @@ def azure_download_blob(az_blob_service: BlobServiceClient, container_name: str,
         xml_output.write(download_stream.readall())
 
     blob_client.close()
+
+
+def azure_upload_to_blob_and_verify(
+    context: BDSContext,
+    bds_dataset: dict,
+    az_blob_service: BlobServiceClient,
+    container_name: str,
+    blob_name: str,
+    content: Any,
+    content_type: str,
+    encoding: None | str = None,
+):
+
+    url = None
+    etag = None
+
+    response = azure_upload_to_blob(
+        az_blob_service,
+        container_name,
+        blob_name,
+        content,
+        content_type,
+        encoding=encoding,
+    )
+
+    if azure_blob_exists(az_blob_service, container_name, blob_name):
+        url = get_azure_blob_public_url(context, bds_dataset, "xml" if content_type == "application/xml" else "zip")
+        etag = response["etag"]
+    else:
+        context.logger.error("dataset id: {} - Azure XML upload failed".format(bds_dataset["id"]))
+        context.logger.debug("dataset id: {} - Azure response: {}".format(bds_dataset["id"], response))
+
+    return (url, etag)
 
 
 def azure_upload_to_blob(
@@ -120,6 +158,38 @@ def get_azure_blob_public_url(context: BDSContext, dataset: dict, iati_blob_type
         blob_name_for_url,
         get_azure_blob_name(dataset, iati_blob_type),
     )
+
+
+def send_dataset_check_result_message(context: BDSContext, msg_payload: dict, retries: int = 1):
+
+    topic_name = context["AZURE_SERVICE_BUS_DATASET_CHECK_RESULTS_TOPIC_NAME"]
+
+    for retry_number in range(1, retries + 1):
+        try:
+            send_message_to_iati_mq(context, topic_name, msg_payload)
+            break
+        except azure.servicebus.exceptions.ServiceBusConnectionError as e:
+            if retry_number == retries:
+                raise RuntimeError("{}".format(e))
+
+
+def send_message_to_iati_mq(context: BDSContext, topic_name, msg_payload):
+
+    conn_str = context["AZURE_SERVICE_BUS_CONNECTION_STRING"]
+
+    payload = json.dumps(msg_payload, cls=UUIDDatetimeJSONEncoder, indent=2)
+
+    servicebus_client = context.service_factory.get_service_bus_client(conn_str)
+
+    sender = servicebus_client.get_topic_sender(topic_name)
+
+    message = ServiceBusMessage(body=payload, application_properties={"message_type": msg_payload["message_type"]})
+
+    sender.send_messages(message)
+
+    sender.close()
+
+    servicebus_client.close()
 
 
 def upload_zip_to_azure(context: BDSContext, zip_local_pathname: str, zip_azure_filename: str):

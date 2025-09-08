@@ -2,6 +2,7 @@ import datetime
 import glob
 import hashlib
 import io
+import json
 import re
 import uuid
 import zipfile
@@ -117,6 +118,10 @@ def get_current_timestamp_as_str(format_with_z: bool = False) -> str:
         return s.replace("+00:00", "Z")
 
     return s
+
+
+def get_object_from_json_str(json_str: str | None) -> Any:
+    return json.loads(json_str if json_str is not None and json_str != "" else "{}")
 
 
 def set_timestamp_tz_utc(date: datetime.datetime) -> datetime.datetime:
@@ -254,3 +259,12 @@ def lookup_licence_title_from_id(licence_id: str) -> str:
         "zlib-license": "zlib/libpng license",
     }
     return LICENCE_TITLE_LOOKUP[licence_id] if licence_id in LICENCE_TITLE_LOOKUP else "Unknown License"
+
+
+class UUIDDatetimeJSONEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, uuid.UUID):
+            return str(obj)
+        if isinstance(obj, datetime.datetime):
+            return obj.isoformat()
+        return json.JSONEncoder.default(self, obj)
