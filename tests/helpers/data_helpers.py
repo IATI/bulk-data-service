@@ -2,10 +2,9 @@ import datetime
 import json
 import uuid
 
-from bulk_data_service.dataset_indexing import get_object_from_json_str
 from config.bds_context import BDSContext
 from utilities.azure import get_azure_blob_public_url
-from utilities.misc import dataset_has_iati_xml_download
+from utilities.misc import dataset_has_iati_xml_download, get_object_from_json_str, get_timestamp
 
 
 def check_most_recent_get_attempt_http_error(dataset: dict):
@@ -21,7 +20,7 @@ def check_most_recent_get_attempt_http_error(dataset: dict):
     assert error_details["http_reason"] is not None
     assert error_details["http_status"] is not None
     assert error_details["summary_message"] is not None
-    assert error_details["url"] is not None
+    assert error_details["source_url"] is not None
 
 
 def check_most_recent_get_attempt_downloaded_but_non_iati(dataset: dict):
@@ -46,7 +45,7 @@ def check_most_recent_http_attempt_for_success(http_method: str, dataset: dict):
     assert error_details["http_reason"] is None
     assert error_details["http_status"] is None
     assert error_details["summary_message"] is None
-    assert error_details["url"] is None
+    assert error_details["source_url"] is None
 
 
 def check_last_known_good_dataset_values_are_set(dataset: dict):
@@ -120,7 +119,7 @@ def get_datetime_as_str_or_none(date: datetime.datetime | None) -> str | None:
 
 def check_dataset_fields(expected_fields: list, dataset: dict):
     for field, expected_value in expected_fields:
-        assert dataset[field] == expected_value
+        assert dataset[field] == expected_value, f"field: {field}, val: {dataset[field]}, expected: {expected_value}"
 
 
 def check_dataset_registration_fields(source_url: str, dataset: dict):
@@ -217,3 +216,8 @@ def expected_values_for_dataset_registration_fields(source_url: str) -> list:
     ]
 
     return dataset_fields_and_expected_values
+
+
+def check_registration_service_refreshed_datetime(data_record: dict):
+    assert data_record["registration_service_metadata_refreshed_datetime"] is not None
+    assert data_record["registration_service_metadata_refreshed_datetime"] > (get_timestamp() - datetime.timedelta(minutes=1))

@@ -5,6 +5,7 @@ import pytest
 from bulk_data_service.checker import checker_run
 from dataset_registration.iati_registry_ckan import fetch_reporting_orgs_metadata, get_publisher_metadata_as_str
 from helpers.helpers import get_and_clear_up_context  # noqa: F401
+from utilities.misc import get_timestamp
 
 
 @pytest.mark.parametrize("http_status_code", ["400", "404", "500"])
@@ -76,7 +77,7 @@ def test_ckan_registry_get_metadata_known_publisher(get_and_clear_up_context):  
 
     context["DATA_REGISTRY_PUBLISHER_METADATA_URL"] = "http://localhost:3000/registration/ckan-publishers"
 
-    reporting_orgs = fetch_reporting_orgs_metadata(context)
+    reporting_orgs = fetch_reporting_orgs_metadata(context, get_timestamp())
 
     publisher_metadata_str = get_publisher_metadata_as_str(reporting_orgs, "1a3e3f42-6704-4adf-897a-9bdf5b854a00")
 
@@ -89,7 +90,7 @@ def test_ckan_registry_get_metadata_unknown_publisher(get_and_clear_up_context):
 
     context["DATA_REGISTRY_PUBLISHER_METADATA_URL"] = "http://localhost:3000/registration/ckan-publishers"
 
-    reporting_orgs = fetch_reporting_orgs_metadata(context)
+    reporting_orgs = fetch_reporting_orgs_metadata(context, get_timestamp())
 
     # this is an unknown organisation id
     publisher_metadata_str = get_publisher_metadata_as_str(reporting_orgs, "12345678-9000-4adf-897a-9bdf5b854a00")

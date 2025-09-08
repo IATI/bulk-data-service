@@ -1,6 +1,6 @@
+import json
 import urllib.parse
 import uuid
-import json
 
 import pytest
 
@@ -13,6 +13,7 @@ from helpers.data_helpers import (
     check_most_recent_get_attempt_downloaded_but_non_iati,
     check_most_recent_get_attempt_http_error,
     check_most_recent_http_attempt_for_success,
+    check_registration_service_refreshed_datetime,
 )
 from helpers.helpers import get_and_clear_up_context  # noqa: F401
 
@@ -38,6 +39,8 @@ def test_add_new_undownloadable_dataset(get_and_clear_up_context, source_url, ex
     checker_run(context, datasets_in_bds)
 
     check_dataset_registration_fields(source_url, datasets_in_bds[dataset_id])
+
+    check_registration_service_refreshed_datetime(datasets_in_bds[dataset_id])
 
     check_last_known_good_dataset_values_are_unset(datasets_in_bds[dataset_id])
 
@@ -91,6 +94,8 @@ def test_add_downloadable_dataset_for_various_encodings(
 
     check_dataset_registration_fields(dataset_url, datasets_in_bds[dataset_id])
 
+    check_registration_service_refreshed_datetime(datasets_in_bds[dataset_id])
+
     check_most_recent_http_attempt_for_success("get", datasets_in_bds[dataset_id])
 
     check_last_known_good_dataset_values_are_set(datasets_in_bds[dataset_id])
@@ -129,6 +134,8 @@ def test_add_downloadable_file_that_is_not_iati_dataset(get_and_clear_up_context
     checker_run(context, datasets_in_bds)
 
     check_dataset_registration_fields(source_url, datasets_in_bds[dataset_id])
+
+    check_registration_service_refreshed_datetime(datasets_in_bds[dataset_id])
 
     check_last_known_good_dataset_values_are_unset(datasets_in_bds[dataset_id])
 

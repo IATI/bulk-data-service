@@ -13,6 +13,7 @@ from dotenv import dotenv_values
 
 from config.bds_context import BDSContext
 from config.config import get_app_version
+from config.service_factory_interface import IServiceFactory
 from utilities.azure import (
     create_azure_blob_containers,
     delete_azure_blob_containers,
@@ -79,12 +80,11 @@ def get_and_clear_up_context():
     }
 
     config["BULK_DATA_SERVICE_VERSION"] = get_app_version()
-    config["AZURE_SERVICE_BUS_WAIT_TIME"] = 0.1  # type: ignore
 
     for metric in get_metrics_definitions():
         config["prom_metrics"][metric[0]] = mock.Mock()  # type: ignore
 
-    context = BDSContext(config, logger)
+    context = BDSContext(config, logger, mock.create_autospec(IServiceFactory))
 
     create_azure_blob_containers(context)
     apply_db_migrations(context)

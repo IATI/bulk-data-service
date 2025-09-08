@@ -35,6 +35,7 @@ def test_save_reporting_org_db_record(get_and_clear_up_context):
         "region": "789",
         "reporting_source_type": "primary-source",
         "registration_service_reporting_org_metadata": "content",
+        "registration_service_metadata_refreshed_datetime": dt,
         "short_name": "aidagency",
         "website": "https://little-licensing.name",
     }
@@ -74,6 +75,7 @@ def test_save_dataset_db_record(get_and_clear_up_context):
         "region": "789",
         "reporting_source_type": "primary-source",
         "registration_service_reporting_org_metadata": "content",
+        "registration_service_metadata_refreshed_datetime": dt,
         "short_name": "aidagency",
         "website": "https://little-licensing.name",
     }
@@ -109,6 +111,7 @@ def test_save_dataset_db_record(get_and_clear_up_context):
         "short_name": "aidagency-culpa",
         "source_url": "http://jaunty-kick.net",
         "registration_service_dataset_metadata": "",
+        "registration_service_metadata_refreshed_datetime": dt,
         "registration_service_name": "ckan-registry",
         "reporting_org_id": reporting_org_id,
         "reporting_org_short_name": "aidagency",

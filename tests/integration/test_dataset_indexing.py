@@ -173,11 +173,11 @@ def test_creation_of_dataset_entry_in_minimal_index(get_and_clear_up_context, da
     datasets_in_bds = {}
     checker_run(context, datasets_in_bds)
 
-    full_index = download_index_from_azure(context, get_dataset_index_name(context, "minimal"))
+    minimal_index = download_index_from_azure(context, get_dataset_index_name(context, "minimal"))
 
     dataset = datasets_in_bds[uuid.UUID("c8a40aa5-9f31-4bcf-a36f-51c1fc2cc159")]
 
-    dataset_index_item = find_object_by_key(full_index["datasets"], "short_name", dataset["short_name"])
+    dataset_index_item = find_object_by_key(minimal_index["datasets"], "short_name", dataset["short_name"])
 
     assert dataset_index_item is not None
 
