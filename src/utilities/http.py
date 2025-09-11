@@ -68,12 +68,12 @@ def http_head_dataset(session: requests.Session, url: str, timeout: int = 10, re
     if response.status_code != 200:
         raise RuntimeError(
             {
-                "message": "HEAD request failed with non-200 status",
-                "url": response.url,
-                "http_method": "HEAD",
-                "http_status_code": response.status_code,
-                "http_reason": response.reason,
+                "summary_message": "HEAD request failed with non-200 status",
                 "http_headers": dict(response.headers),
+                "http_method": "HEAD",
+                "http_reason": response.reason,
+                "http_status": response.status_code,
+                "url": response.url,
             }
         )
 
@@ -89,12 +89,12 @@ def http_download_dataset(
     if response.status_code != 200:
         raise RuntimeError(
             {
-                "message": "HTTP GET request failed with non-200 status",
-                "url": response.url,
-                "http_method": "GET",
-                "http_status_code": response.status_code,
-                "http_reason": response.reason,
+                "summary_message": "HTTP GET request failed with non-200 status",
                 "http_headers": dict(response.headers),
+                "http_method": "GET",
+                "http_status": response.status_code,
+                "http_reason": response.reason,
+                "url": response.url,
             }
         )
 

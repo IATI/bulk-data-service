@@ -2,6 +2,7 @@ import datetime
 import uuid
 
 from bulk_data_service.checker import checker_run
+from helpers.data_helpers import check_registration_service_refreshed_datetime
 from helpers.helpers import get_and_clear_up_context  # noqa: F401
 from utilities.db import get_datasets_in_bds, get_reporting_orgs_in_bds
 
@@ -47,6 +48,8 @@ def test_add_reporting_org_to_db(get_and_clear_up_context):  # noqa: F811
     assert reporting_org["short_name"] == "test_foundation_a"
     assert reporting_org["website"] == "http://www.example.com/foundation_a"
 
+    check_registration_service_refreshed_datetime(reporting_org)
+
 
 def test_add_reporting_org_to_db_org_with_missing_fields(get_and_clear_up_context):  # noqa: F811
     """Tests creation of a reporting_org for CKAN Registry missing fields entry
@@ -73,6 +76,8 @@ def test_add_reporting_org_to_db_org_with_missing_fields(get_and_clear_up_contex
     assert reporting_org["first_publication_date"] is None
     assert reporting_org["reporting_source_type"] is None
     assert reporting_org["website"] is None
+
+    check_registration_service_refreshed_datetime(reporting_org)
 
 
 def test_update_reporting_org_in_db(get_and_clear_up_context):  # noqa: F811

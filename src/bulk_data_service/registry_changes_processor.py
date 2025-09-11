@@ -7,12 +7,12 @@ from azure.servicebus import ServiceBusReceivedMessage
 from azure.servicebus.aio import ServiceBusClient, ServiceBusReceiver
 from azure.servicebus.exceptions import MessagingEntityNotFoundError, ServiceBusConnectionError
 
-from config.bds_context import BDSContext
-from utilities.dataset_reporting_org_utils import (
-    get_new_dataset_db_record_from_mq_dataset,
-    get_reporting_org_db_record_from_mq_reporting_org,
-    get_updated_dataset_db_record_from_mq_dataset,
+from bulk_data_service.data_converters import (
+    convert_reporting_org_dto_to_reporting_org,
+    get_new_dataset_from_dataset_registration_dto,
+    update_dataset_from_dataset_registration_dto,
 )
+from config.bds_context import BDSContext
 from utilities.db import (
     get_dataset_in_bds,
     get_db_connection,
@@ -24,7 +24,7 @@ from utilities.db import (
     update_dataset_registration_data,
 )
 from utilities.exceptions import BulkDataServiceRuntimeError
-from utilities.misc import get_current_timestamp_as_str
+from utilities.misc import get_current_timestamp_as_str, get_timestamp_or_none
 
 
 def registry_changes_processor_start(context: BDSContext):
@@ -76,7 +76,7 @@ def get_sb_receiver(context: BDSContext, sb_client: ServiceBusClient) -> Service
 
     topic = context["AZURE_SERVICE_BUS_REGISTRY_TOPIC_NAME"]
     subscription = context["AZURE_SERVICE_BUS_REGISTRY_SUB_NAME"]
-    wait_time = context["AZURE_SERVICE_BUS_WAIT_TIME"]
+    wait_time = context.AZURE_SERVICE_BUS_WAIT_TIME
 
     return sb_client.get_subscription_receiver(topic, subscription, max_wait_time=wait_time)
 
@@ -102,7 +102,7 @@ async def fetch_messages(
     context: BDSContext, receiver: ServiceBusReceiver, num_messages: int = 5
 ) -> list[ServiceBusReceivedMessage]:
 
-    wait_time = context["AZURE_SERVICE_BUS_WAIT_TIME"]
+    wait_time = context.AZURE_SERVICE_BUS_WAIT_TIME
 
     return await receiver.receive_messages(max_wait_time=wait_time, max_message_count=num_messages)
 
@@ -118,6 +118,15 @@ async def process_message(context: BDSContext, msg: ServiceBusReceivedMessage):
 
 
 async def dispatch_message(context: BDSContext, message_type: str, message_payload: dict):
+
+    message_date = get_timestamp_or_none(message_payload["message_date"])
+
+    if message_date is None:
+        raise BulkDataServiceRuntimeError(
+            f"Recevied {message_type} message but 'message_date' is empty or badly formatted. "
+            f"Message received: {json.dumps(message_payload)}"
+        )
+
     match message_type:
         case "DATASET_CREATED":
             create_new_dataset(context, message_payload)
@@ -152,7 +161,12 @@ def create_new_reporting_org(context: BDSContext, message_payload: dict):
             f"Message received: {json.dumps(message_payload)}"
         )
 
-    new_reporting_org_db_record = get_reporting_org_db_record_from_mq_reporting_org(message_payload["reporting_org"])
+    new_reporting_org_db_record = convert_reporting_org_dto_to_reporting_org(message_payload["reporting_org"])
+
+    new_reporting_org_db_record["registration_service_metadata_refreshed_datetime"] = get_timestamp_or_none(
+        message_payload["message_date"]
+    )
+
     with get_db_connection(context) as connection:
         insert_or_update_reporting_org(connection, new_reporting_org_db_record)
     context.logger.info(f"Created reporting org with ID {new_reporting_org_db_record["id"]}")
@@ -168,7 +182,11 @@ def update_reporting_org(context: BDSContext, message_payload: dict):
             f"Message received: {json.dumps(message_payload)}"
         )
 
-    reporting_org_db_record = get_reporting_org_db_record_from_mq_reporting_org(message_payload["reporting_org"])
+    reporting_org_db_record = convert_reporting_org_dto_to_reporting_org(message_payload["reporting_org"])
+
+    reporting_org_db_record["registration_service_metadata_refreshed_datetime"] = get_timestamp_or_none(
+        message_payload["message_date"]
+    )
 
     with get_db_connection(context) as connection:
         insert_or_update_reporting_org(connection, reporting_org_db_record)
@@ -213,7 +231,12 @@ def create_new_dataset(context: BDSContext, message_payload: dict):
             f"Message received: {json.dumps(message_payload)}"
         )
 
-    new_dataset_db_record = get_new_dataset_db_record_from_mq_dataset(message_payload["dataset"])
+    new_dataset_db_record = get_new_dataset_from_dataset_registration_dto("suitecrm-mq", message_payload["dataset"])
+
+    new_dataset_db_record["registration_service_metadata_refreshed_datetime"] = get_timestamp_or_none(
+        message_payload["message_date"]
+    )
+
     with get_db_connection(context) as connection:
         insert_or_update_dataset(connection, new_dataset_db_record)
     context.logger.info(f"Created dataset with ID {new_dataset_db_record["id"]}")
@@ -251,7 +274,11 @@ def update_dataset(context: BDSContext, message_payload: dict):
 
     # get an updated dataset db record. we can't use the dataset MQ payload alone because
     # it only contains the registration fields (and those are the only ones we want to update)
-    dataset_db_record = get_updated_dataset_db_record_from_mq_dataset(dataset_db_record, message_payload["dataset"])
+    update_dataset_from_dataset_registration_dto("suitecrm-mq", dataset_db_record, message_payload["dataset"])
+
+    dataset_db_record["registration_service_metadata_refreshed_datetime"] = get_timestamp_or_none(
+        message_payload["message_date"]
+    )
 
     with get_db_connection(context) as connection:
         update_dataset_registration_data(connection, dataset_db_record)

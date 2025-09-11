@@ -52,7 +52,8 @@ def test_missing_url_from_ckan(resources_value):
     logger = mock.Mock()
 
     ckan_datasets = clean_datasets_metadata(logger, ckan_datasets)
-    bds_datasets = convert_datasets_metadata(ckan_datasets)
 
-    assert(len(bds_datasets) == 1)
-    assert(bds_datasets[uuid.UUID("c8a40aa5-9f31-4bcf-a36f-51c1fc2cc159")]["source_url"] == "")
+    registered_datasets_dtos = convert_datasets_metadata(ckan_datasets)
+
+    assert(len(registered_datasets_dtos) == 1)
+    assert(registered_datasets_dtos[uuid.UUID("c8a40aa5-9f31-4bcf-a36f-51c1fc2cc159")]["source_url"] == "")

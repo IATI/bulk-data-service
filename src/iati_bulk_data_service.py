@@ -6,6 +6,7 @@ from bulk_data_service.zipper import zipper
 from config.bds_context import BDSContext
 from config.config import get_basic_config
 from config.initialisation import misc_global_initialisation
+from config.service_factory_azure import AzureServiceFactory
 from utilities.azure import create_azure_blob_containers
 from utilities.db import apply_db_migrations
 from utilities.logging import initialise_logging
@@ -18,7 +19,7 @@ def main(args: argparse.Namespace):
 
     config = config | {"single_run": args.single_run, "run_for_n_datasets": args.run_for_n_datasets}
 
-    context = BDSContext(config, initialise_logging(config))
+    context = BDSContext(config, initialise_logging(config), AzureServiceFactory())
 
     context.logger.info("Bulk Data Service {} initialising...".format(context["BULK_DATA_SERVICE_VERSION"]))
 

@@ -8,7 +8,7 @@ from bulk_data_service.checker import checker_run
 from bulk_data_service.dataset_indexing import get_dataset_index_name, get_reporting_org_index_name
 from helpers.assert_helpers import assert_reporting_org_plain_record_equal_db_record
 from helpers.data_helpers import (
-    check_index_last_known_good_fields,
+    check_index_common_last_known_good_fields,
     check_index_most_recent_fields,
     check_index_registration_fields,
 )
@@ -150,7 +150,7 @@ def test_creation_of_dataset_entry_in_full_index(get_and_clear_up_context, datas
 
     check_index_most_recent_fields(context, "get", dataset, dataset_index_item)
 
-    check_index_last_known_good_fields(context, dataset, dataset_index_item)
+    check_index_common_last_known_good_fields(context, dataset, dataset_index_item)
 
 
 @pytest.mark.parametrize(
@@ -173,11 +173,11 @@ def test_creation_of_dataset_entry_in_minimal_index(get_and_clear_up_context, da
     datasets_in_bds = {}
     checker_run(context, datasets_in_bds)
 
-    full_index = download_index_from_azure(context, get_dataset_index_name(context, "minimal"))
+    minimal_index = download_index_from_azure(context, get_dataset_index_name(context, "minimal"))
 
     dataset = datasets_in_bds[uuid.UUID("c8a40aa5-9f31-4bcf-a36f-51c1fc2cc159")]
 
-    dataset_index_item = find_object_by_key(full_index["datasets"], "short_name", dataset["short_name"])
+    dataset_index_item = find_object_by_key(minimal_index["datasets"], "short_name", dataset["short_name"])
 
     assert dataset_index_item is not None
 
@@ -187,4 +187,4 @@ def test_creation_of_dataset_entry_in_minimal_index(get_and_clear_up_context, da
 
     assert "most_recent_get_attempt" not in dataset_index_item
 
-    check_index_last_known_good_fields(context, dataset, dataset_index_item)
+    check_index_common_last_known_good_fields(context, dataset, dataset_index_item)
