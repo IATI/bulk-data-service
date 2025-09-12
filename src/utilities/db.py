@@ -103,6 +103,11 @@ def insert_or_update_dataset(connection: psycopg.Connection, data):
 
                         last_update_check = %(last_update_check)s,
 
+                        last_known_good_dataset_cached_dataset_xml_etag = %(last_known_good_dataset_cached_dataset_xml_etag)s,
+                        last_known_good_dataset_cached_dataset_xml_url = %(last_known_good_dataset_cached_dataset_xml_url)s,
+                        last_known_good_dataset_cached_dataset_zip_etag = %(last_known_good_dataset_cached_dataset_zip_etag)s,
+                        last_known_good_dataset_cached_dataset_zip_url = %(last_known_good_dataset_cached_dataset_zip_url)s,
+
                         last_known_good_dataset_hash = %(last_known_good_dataset_hash)s,
                         last_known_good_dataset_hash_excluding_generated_timestamp =
                                                 %(last_known_good_dataset_hash_excluding_generated_timestamp)s,
