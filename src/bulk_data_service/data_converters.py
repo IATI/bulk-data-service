@@ -173,6 +173,7 @@ def get_full_dataset_hierarchical_dto_definition() -> list[tuple[str, str | None
     """
     return [
         ("id", None, "id", str),
+        ("last_known_good_dataset_cached_dataset_xml_url", "last_known_good_dataset", "cached_dataset_url_xml", None),
         ("last_known_good_dataset_cached_dataset_xml_url", "last_known_good_dataset", "cached_dataset_xml_url", None),
         (
             "last_known_good_dataset_cached_dataset_zip_etag",
@@ -181,6 +182,7 @@ def get_full_dataset_hierarchical_dto_definition() -> list[tuple[str, str | None
             None,
         ),
         ("last_known_good_dataset_cached_dataset_zip_url", "last_known_good_dataset", "cached_dataset_zip_url", None),
+        ("last_known_good_dataset_cached_dataset_zip_url", "last_known_good_dataset", "cached_dataset_url_zip", None),
         ("last_known_good_dataset_hash", "last_known_good_dataset", "hash", None),
         (
             "last_known_good_dataset_hash_excluding_generated_timestamp",
@@ -253,6 +255,8 @@ def get_minimal_dataset_hierarchical_dto_definition() -> list[tuple[str, str | N
     return [
         ("id", None, "id", str),
         ("last_update_check", None, "last_update_check", None),
+        ("last_known_good_dataset_cached_dataset_xml_url", "last_known_good_dataset", "cached_dataset_url_xml", None),
+        ("last_known_good_dataset_cached_dataset_zip_url", "last_known_good_dataset", "cached_dataset_url_zip", None),
         ("last_known_good_dataset_cached_dataset_xml_url", "last_known_good_dataset", "cached_dataset_xml_url", None),
         ("last_known_good_dataset_cached_dataset_zip_url", "last_known_good_dataset", "cached_dataset_zip_url", None),
         ("last_known_good_dataset_downloaded", "last_known_good_dataset", "downloaded", None),
