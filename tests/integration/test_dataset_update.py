@@ -312,3 +312,54 @@ def test_dataset_successful_xml_download_then_empty(get_and_clear_up_context):  
     check_most_recent_get_attempt_downloaded_but_non_iati(datasets_in_bds[dataset_id])
 
     check_last_known_good_dataset_values_are_set(datasets_in_bds[dataset_id])
+
+
+def test_dataset_successful_twice_nothing_change(get_and_clear_up_context):  # noqa: F811
+
+    context = get_and_clear_up_context
+
+    dataset_id = uuid.UUID("c8a40aa5-9f31-4bcf-a36f-51c1fc2cc159")
+
+    # dataset c8a40aa5-9f31-... with XML
+    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-01-1-dataset"
+    datasets_in_bds = {}
+    checker_run(context, datasets_in_bds)
+
+    check_last_known_good_dataset_values_are_set(datasets_in_bds[dataset_id])
+    assert datasets_in_bds[dataset_id]["last_known_good_dataset_initial_contents"] == (
+        '<?xml version="1.0" encoding="UTF-8"?><iati-activities version="2.03" '
+        'generated-datetime="2024-05-03T08:47:49+00:00">  <iati-activity>    <iati-identi'
+    )
+
+    # run again
+    checker_run(context, datasets_in_bds)
+
+    check_last_known_good_dataset_values_are_set(datasets_in_bds[dataset_id])
+
+
+def test_dataset_successful_twice_after_url_change(get_and_clear_up_context):  # noqa: F811
+
+    context = get_and_clear_up_context
+
+    dataset_id = uuid.UUID("c8a40aa5-9f31-4bcf-a36f-51c1fc2cc159")
+
+    # dataset c8a40aa5-9f31-... with XML
+    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-01-1-dataset"
+    datasets_in_bds = {}
+    checker_run(context, datasets_in_bds)
+
+    check_last_known_good_dataset_values_are_set(datasets_in_bds[dataset_id])
+    assert datasets_in_bds[dataset_id]["last_known_good_dataset_initial_contents"] == (
+        '<?xml version="1.0" encoding="UTF-8"?><iati-activities version="2.03" '
+        'generated-datetime="2024-05-03T08:47:49+00:00">  <iati-activity>    <iati-identi'
+    )
+
+    context["DATA_REGISTRY_BASE_URL"] = (
+        "http://localhost:3000/ckan-registration/datasets-01-1-dataset/"
+        "http%3A%2F%2Flocalhost%3A3000%2Fdata%2Ftest_foundation_a-dataset-001-copy.xml"
+    )
+
+    # run again
+    checker_run(context, datasets_in_bds)
+
+    check_last_known_good_dataset_values_are_set(datasets_in_bds[dataset_id])
