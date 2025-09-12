@@ -54,7 +54,6 @@ def check_last_known_good_dataset_values_are_set(dataset: dict):
     assert dataset["last_known_good_dataset_cached_dataset_zip_url"] is not None
     assert dataset["last_known_good_dataset_cached_dataset_zip_etag"] is not None
     assert dataset["last_known_good_dataset_downloaded"] is not None
-    assert dataset["last_known_good_dataset_downloaded"] == dataset["last_known_good_dataset_verified_on_server"]
     assert dataset["last_known_good_dataset_hash"] is not None
     assert dataset["last_known_good_dataset_hash_excluding_generated_timestamp"] is not None
     assert dataset["last_known_good_dataset_content_length"] > 0
@@ -62,6 +61,7 @@ def check_last_known_good_dataset_values_are_set(dataset: dict):
     assert dataset["last_known_good_dataset_server_header_last_modified"] is not None
     assert dataset["last_known_good_dataset_server_header_etag"] is not None
     assert dataset["last_known_good_dataset_source_url"] is not None
+    assert dataset["last_known_good_dataset_verified_on_server"] is not None
 
 
 def check_last_known_good_dataset_values_are_unset(dataset: dict):

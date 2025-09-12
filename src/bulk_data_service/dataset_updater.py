@@ -333,11 +333,6 @@ def download_and_save_dataset(
     bds_dataset: dict,
     attempt_datetime: datetime,
 ):
-    cached_xml_url = None
-    cached_xml_etag = None
-    cached_zip_url = None
-    cached_zip_etag = None
-
     download_response = http_download_dataset(session, bds_dataset["source_url"], timeout=context.DATASET_GET_TIMEOUT)
 
     last_modified_header = get_last_modified_header_if_exists(download_response)
@@ -394,15 +389,20 @@ def download_and_save_dataset(
             "application/zip",
         )
 
+        bds_dataset.update(
+            {
+                "last_known_good_dataset_cached_dataset_xml_etag": cached_xml_etag,
+                "last_known_good_dataset_cached_dataset_xml_url": cached_xml_url,
+                "last_known_good_dataset_cached_dataset_zip_etag": cached_zip_etag,
+                "last_known_good_dataset_cached_dataset_zip_url": cached_zip_url,
+            }
+        )
+
     update_dataset_http_attempt_fields_as_success(bds_dataset, attempt_datetime, "get", download_response.status_code)
 
     bds_dataset.update(
         {
             "last_update_check": attempt_datetime,
-            "last_known_good_dataset_cached_dataset_xml_etag": cached_xml_etag,
-            "last_known_good_dataset_cached_dataset_xml_url": cached_xml_url,
-            "last_known_good_dataset_cached_dataset_zip_etag": cached_zip_etag,
-            "last_known_good_dataset_cached_dataset_zip_url": cached_zip_url,
             "last_known_good_dataset_hash": hash,
             "last_known_good_dataset_hash_excluding_generated_timestamp": hash_excluding_generated,
             "last_known_good_dataset_downloaded": attempt_datetime,
