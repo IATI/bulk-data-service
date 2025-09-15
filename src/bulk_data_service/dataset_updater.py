@@ -16,7 +16,7 @@ from bulk_data_service.dataset import (
     update_dataset_http_attempt_fields_as_success,
 )
 from config.bds_context import BDSContext
-from utilities.azure import azure_upload_to_blob_and_verify, send_dataset_check_result_message
+from utilities.azure import azure_get_blob_etag, azure_upload_to_blob_and_verify, send_dataset_check_result_message
 from utilities.db import get_db_connection, insert_or_update_dataset
 from utilities.http import (
     determine_response_encoding,
@@ -354,19 +354,28 @@ def download_and_save_dataset(
         return
 
     hash = get_hash_of_bytes(download_response.content)
+
     hash_excluding_generated = get_hash_excluding_generated_timestamp(download_response.text, encoding)  # type: ignore
 
-    if hash == bds_dataset["last_known_good_dataset_hash"]:
+    xml_blob_name = "{}/{}.xml".format(bds_dataset["reporting_org_short_name"], bds_dataset["short_name"])
+
+    zip_blob_name = "{}/{}.zip".format(bds_dataset["reporting_org_short_name"], bds_dataset["short_name"])
+
+    xml_blob_etag = azure_get_blob_etag(context, az_blob_service, xml_blob_name)
+
+    zip_blob_etag = azure_get_blob_etag(context, az_blob_service, zip_blob_name)
+
+    if (
+        hash == bds_dataset["last_known_good_dataset_hash"]
+        and xml_blob_etag == bds_dataset["last_known_good_dataset_cached_dataset_xml_etag"]
+        and zip_blob_etag == bds_dataset["last_known_good_dataset_cached_dataset_zip_etag"]
+    ):
         context.logger.info(
-            "dataset id: {} - Hash of download is identical to "
-            "previous value, so not re-zipping and re-uploading to Azure".format(bds_dataset["id"])
+            "dataset id: {} - Hash and Azure blob etags are the same"
+            ", so not re-zipping and re-uploading to Azure".format(bds_dataset["id"])
         )
     else:
         iati_xml_zipped = zip_data_as_single_file(bds_dataset["short_name"] + ".xml", download_response.content)
-
-        xml_blob_name = "{}/{}.xml".format(bds_dataset["reporting_org_short_name"], bds_dataset["short_name"])
-
-        zip_blob_name = "{}/{}.zip".format(bds_dataset["reporting_org_short_name"], bds_dataset["short_name"])
 
         cached_xml_url, cached_xml_etag = azure_upload_to_blob_and_verify(
             context,
