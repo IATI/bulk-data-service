@@ -12,8 +12,10 @@ from utilities.misc import UUIDDatetimeJSONEncoder
 
 
 def azure_blob_exists(az_blob_service: BlobServiceClient, container_name: str, blob_name: str) -> bool:
-    blob_client = az_blob_service.get_blob_client(container_name, blob_name)
-    return blob_client.exists()
+    exists = False
+    with az_blob_service.get_blob_client(container_name, blob_name) as blob_client:
+        exists = blob_client.exists()
+    return exists
 
 
 def azure_download_blob(az_blob_service: BlobServiceClient, container_name: str, blob_name: str, filename: str):
@@ -25,6 +27,20 @@ def azure_download_blob(az_blob_service: BlobServiceClient, container_name: str,
         xml_output.write(download_stream.readall())
 
     blob_client.close()
+
+
+def azure_get_blob_etag(
+    context: BDSContext,
+    az_blob_service: BlobServiceClient,
+    blob_name: str,
+) -> str:
+    etag = ""
+
+    with az_blob_service.get_blob_client(context["AZURE_STORAGE_BLOB_CONTAINER_NAME"], blob_name) as blob_client:
+        if blob_client.exists():
+            etag = blob_client.get_blob_properties().etag
+
+    return etag
 
 
 def azure_upload_to_blob_and_verify(
