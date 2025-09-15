@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python Debugger: Bulk Data Service - Checker - Single Run",
+            "name": "Bulk Data Service - Checker - Single Run",
             "type": "debugpy",
             "request": "launch",
             "program": "src/iati_bulk_data_service.py",
@@ -20,7 +20,7 @@
             "envFile": "${workspaceFolder}/.env"
         },
         {
-            "name": "Python Debugger: Bulk Data Service - Zipper - Single Run",
+            "name": "Bulk Data Service - Zipper - Single Run",
             "type": "debugpy",
             "request": "launch",
             "program": "src/iati_bulk_data_service.py",
@@ -33,7 +33,21 @@
             "envFile": "${workspaceFolder}/.env"
         },
         {
-            "name": "Python Debugger: Bulk Data Service - Checker & Zipper Loop",
+            "name": "Bulk Data Service - Checker & Zipper Loop (15 datasets)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "src/iati_bulk_data_service.py",
+            "args": [
+                "--operation",
+                "checker",
+                "--run-for-n-datasets",
+                "15"
+            ],
+            "console": "integratedTerminal",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "name": "Bulk Data Service - Checker & Zipper Loop (75 datasets)",
             "type": "debugpy",
             "request": "launch",
             "program": "src/iati_bulk_data_service.py",
@@ -47,7 +61,19 @@
             "envFile": "${workspaceFolder}/.env"
         },
         {
-            "name": "Python Debugger: Bulk Data Service - Registry Changes Processor",
+            "name": "Bulk Data Service - Checker & Zipper Loop",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "src/iati_bulk_data_service.py",
+            "args": [
+                "--operation",
+                "checker"
+            ],
+            "console": "integratedTerminal",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "name": "Bulk Data Service - Registry Changes Processor",
             "type": "debugpy",
             "request": "launch",
             "program": "src/iati_bulk_data_service.py",
