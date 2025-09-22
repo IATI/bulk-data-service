@@ -8,6 +8,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+### Changed
+
+### Fixed
+
+### Removed
+
+## [1.3.3]
+
+### Added
+
 - Design system has been upgraded to the latest version, thanks to @BibianaC.
 - Environment variables `REDOWNLOAD_FROM_NON_HEAD_SERVERS_AFTER_HOURS`, which
   allows configuration of how long to redownload from servers that don't support
@@ -21,7 +31,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Updated index outputs to match new specs.
 - Refactored much of the code that converts between native DB record format and
-  the data transfer objects that come from the message queue.
+  the data transfer objects that come from/are sent to the message queue.
 
 ### Fixed
 
