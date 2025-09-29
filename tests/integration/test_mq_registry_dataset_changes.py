@@ -14,6 +14,7 @@ from helpers.azure_service_bus_helpers import (  # noqa: F401
     send_dataset_created_message,
     service_bus_context,
 )
+from helpers.data_helpers import check_registration_service_refreshed_datetime
 from helpers.helpers import get_and_clear_up_context  # noqa: F401
 from utilities.db import get_dataset_in_bds, get_datasets_in_bds
 
@@ -43,6 +44,9 @@ async def test_dataset_created_message_01_success(get_and_clear_up_context, serv
     assert dataset_id in datasets_in_bds
 
     assert_dataset_db_record_equal_dataset_mq_object(datasets_in_bds[dataset_id], dataset_msg_payload["dataset"])
+
+    check_registration_service_refreshed_datetime(datasets_in_bds[dataset_id])
+
 
 
 @pytest.mark.asyncio

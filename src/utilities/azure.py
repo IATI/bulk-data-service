@@ -1,12 +1,21 @@
+import json
 from typing import Any
 
 import azure
+import azure.core.exceptions
+import azure.servicebus.exceptions
+from azure.servicebus import ServiceBusMessage
 from azure.storage.blob import BlobServiceClient, ContentSettings
+
+from config.bds_context import BDSContext
+from utilities.misc import UUIDDatetimeJSONEncoder
 
 
 def azure_blob_exists(az_blob_service: BlobServiceClient, container_name: str, blob_name: str) -> bool:
-    blob_client = az_blob_service.get_blob_client(container_name, blob_name)
-    return blob_client.exists()
+    exists = False
+    with az_blob_service.get_blob_client(container_name, blob_name) as blob_client:
+        exists = blob_client.exists()
+    return exists
 
 
 def azure_download_blob(az_blob_service: BlobServiceClient, container_name: str, blob_name: str, filename: str):
@@ -18,6 +27,53 @@ def azure_download_blob(az_blob_service: BlobServiceClient, container_name: str,
         xml_output.write(download_stream.readall())
 
     blob_client.close()
+
+
+def azure_get_blob_etag(
+    context: BDSContext,
+    az_blob_service: BlobServiceClient,
+    blob_name: str,
+) -> str:
+    etag = ""
+
+    with az_blob_service.get_blob_client(context["AZURE_STORAGE_BLOB_CONTAINER_NAME"], blob_name) as blob_client:
+        if blob_client.exists():
+            etag = blob_client.get_blob_properties().etag
+
+    return etag
+
+
+def azure_upload_to_blob_and_verify(
+    context: BDSContext,
+    bds_dataset: dict,
+    az_blob_service: BlobServiceClient,
+    container_name: str,
+    blob_name: str,
+    content: Any,
+    content_type: str,
+    encoding: None | str = None,
+):
+
+    url = None
+    etag = None
+
+    response = azure_upload_to_blob(
+        az_blob_service,
+        container_name,
+        blob_name,
+        content,
+        content_type,
+        encoding=encoding,
+    )
+
+    if azure_blob_exists(az_blob_service, container_name, blob_name):
+        url = get_azure_blob_public_url(context, bds_dataset, "xml" if content_type == "application/xml" else "zip")
+        etag = response["etag"]
+    else:
+        context.logger.error("dataset id: {} - Azure XML upload failed".format(bds_dataset["id"]))
+        context.logger.debug("dataset id: {} - Azure response: {}".format(bds_dataset["id"], response))
+
+    return (url, etag)
 
 
 def azure_upload_to_blob(
@@ -39,7 +95,7 @@ def azure_upload_to_blob(
     return blob_client.upload_blob(content, overwrite=True, content_settings=content_settings)
 
 
-def create_azure_blob_containers(context: dict):
+def create_azure_blob_containers(context: BDSContext):
     blob_service = BlobServiceClient.from_connection_string(context["AZURE_STORAGE_CONNECTION_STRING"])
 
     containers = blob_service.list_containers()
@@ -50,7 +106,7 @@ def create_azure_blob_containers(context: dict):
             blob_service.create_container(context["AZURE_STORAGE_BLOB_CONTAINER_NAME"])
             container_names.append(context["AZURE_STORAGE_BLOB_CONTAINER_NAME"])
     except Exception as e:
-        context["logger"].error(
+        context.logger.error(
             "Could not create Azure blob storage container. "
             "Container name: {}. "
             "Error details: {}".format(
@@ -63,7 +119,7 @@ def create_azure_blob_containers(context: dict):
         blob_service.close()
 
 
-def delete_azure_blob_containers(context: dict):
+def delete_azure_blob_containers(context: BDSContext):
     blob_service = BlobServiceClient.from_connection_string(context["AZURE_STORAGE_CONNECTION_STRING"])
 
     containers = blob_service.list_containers()
@@ -74,13 +130,15 @@ def delete_azure_blob_containers(context: dict):
             blob_service.delete_container(context["AZURE_STORAGE_BLOB_CONTAINER_NAME"])
             container_names.remove(context["AZURE_STORAGE_BLOB_CONTAINER_NAME"])
     except Exception as e:
-        context["logger"].error("Could not delete Azure blob storage container: {}".format(e))
+        context.logger.error("Could not delete Azure blob storage container: {}".format(e))
         raise e
     finally:
         blob_service.close()
 
 
-def delete_azure_iati_blob(context: dict, blob_service_client: BlobServiceClient, dataset: dict, iati_blob_type: str):
+def delete_azure_iati_blob(
+    context: BDSContext, blob_service_client: BlobServiceClient, dataset: dict, iati_blob_type: str
+):
 
     container_name = get_azure_container_name(context, iati_blob_type)
 
@@ -91,7 +149,7 @@ def delete_azure_iati_blob(context: dict, blob_service_client: BlobServiceClient
 
         blob_client.delete_blob()
     except azure.core.exceptions.ResourceNotFoundError as e:
-        context["logger"].error(
+        context.logger.error(
             "dataset id: {} - Problem deleting blob that was "
             "expected to exist: {}".format(dataset["id"], e).replace("\n", "")
         )
@@ -99,7 +157,7 @@ def delete_azure_iati_blob(context: dict, blob_service_client: BlobServiceClient
         blob_client.close()
 
 
-def get_azure_container_name(context: dict, iati_blob_type: str) -> str:
+def get_azure_container_name(context: BDSContext, iati_blob_type: str) -> str:
     return context["AZURE_STORAGE_BLOB_CONTAINER_NAME"]
 
 
@@ -107,7 +165,7 @@ def get_azure_blob_name(dataset: dict, iati_blob_type: str) -> str:
     return "{}/{}.{}".format(dataset["reporting_org_short_name"], dataset["short_name"], iati_blob_type)
 
 
-def get_azure_blob_public_url(context: dict, dataset: dict, iati_blob_type: str) -> str:
+def get_azure_blob_public_url(context: BDSContext, dataset: dict, iati_blob_type: str) -> str:
     blob_name = get_azure_container_name(context, iati_blob_type)
     blob_name_for_url = "{}/".format(blob_name) if blob_name != "$web" else ""
 
@@ -118,7 +176,39 @@ def get_azure_blob_public_url(context: dict, dataset: dict, iati_blob_type: str)
     )
 
 
-def upload_zip_to_azure(context: dict, zip_local_pathname: str, zip_azure_filename: str):
+def send_dataset_check_result_message(context: BDSContext, msg_payload: dict, retries: int = 1):
+
+    topic_name = context["AZURE_SERVICE_BUS_DATASET_CHECK_RESULTS_TOPIC_NAME"]
+
+    for retry_number in range(1, retries + 1):
+        try:
+            send_message_to_iati_mq(context, topic_name, msg_payload)
+            break
+        except azure.servicebus.exceptions.ServiceBusConnectionError as e:
+            if retry_number == retries:
+                raise RuntimeError("{}".format(e))
+
+
+def send_message_to_iati_mq(context: BDSContext, topic_name, msg_payload):
+
+    conn_str = context["AZURE_SERVICE_BUS_CONNECTION_STRING"]
+
+    payload = json.dumps(msg_payload, cls=UUIDDatetimeJSONEncoder, indent=2)
+
+    servicebus_client = context.service_factory.get_service_bus_client(conn_str)
+
+    sender = servicebus_client.get_topic_sender(topic_name)
+
+    message = ServiceBusMessage(body=payload, application_properties={"message_type": msg_payload["message_type"]})
+
+    sender.send_messages(message)
+
+    sender.close()
+
+    servicebus_client.close()
+
+
+def upload_zip_to_azure(context: BDSContext, zip_local_pathname: str, zip_azure_filename: str):
     az_blob_service = BlobServiceClient.from_connection_string(context["AZURE_STORAGE_CONNECTION_STRING"])
 
     blob_client = az_blob_service.get_blob_client(context["AZURE_STORAGE_BLOB_CONTAINER_NAME"], zip_azure_filename)

@@ -11,7 +11,9 @@ import pytest
 from azure.storage.blob import BlobServiceClient
 from dotenv import dotenv_values
 
+from config.bds_context import BDSContext
 from config.config import get_app_version
+from config.service_factory_interface import IServiceFactory
 from utilities.azure import (
     create_azure_blob_containers,
     delete_azure_blob_containers,
@@ -31,12 +33,10 @@ def unzip_from_buffer(filename: str, buffer: bytes) -> bytes:
 
 
 def get_number_xml_files_in_working_dir(context):
-    return len(glob.glob("**/*.xml",
-                         root_dir=context["ZIP_WORKING_DIR"],
-                         recursive=True))
+    return len(glob.glob("**/*.xml", root_dir=context["ZIP_WORKING_DIR"], recursive=True))
 
 
-def truncate_db_tables(context: dict):
+def truncate_db_tables(context: BDSContext):
     connection = get_db_connection(context)
     cursor = connection.cursor()
     cursor.execute("""TRUNCATE table iati_reporting_orgs CASCADE""")
@@ -46,11 +46,11 @@ def truncate_db_tables(context: dict):
 
 
 def get_file_contents(filename: str) -> bytes:
-    with open("{}".format(filename), 'rb') as f:
+    with open("{}".format(filename), "rb") as f:
         return f.read()
 
 
-def download_dataset_from_azure(context: dict, dataset: dict, type: str) -> bytes:
+def download_dataset_from_azure(context: BDSContext, dataset: dict, type: str) -> bytes:
     blob_service_client = BlobServiceClient.from_connection_string(context["AZURE_STORAGE_CONNECTION_STRING"])
     container_name = get_azure_container_name(context, "zip")
     blob_name = get_azure_blob_name(dataset, type)
@@ -60,7 +60,7 @@ def download_dataset_from_azure(context: dict, dataset: dict, type: str) -> byte
     return blob_as_bytes
 
 
-def download_index_from_azure(context: dict, index_name: str) -> Any:
+def download_index_from_azure(context: BDSContext, index_name: str) -> Any:
     blob_service_client = BlobServiceClient.from_connection_string(context["AZURE_STORAGE_CONNECTION_STRING"])
     zip_container_name = get_azure_container_name(context, "zip")
     index_blob = blob_service_client.get_blob_client(zip_container_name, index_name)
@@ -72,18 +72,19 @@ def download_index_from_azure(context: dict, index_name: str) -> Any:
 @pytest.fixture
 def get_and_clear_up_context():
     logger = mock.Mock()
-    context = dotenv_values("tests-local-environment/.env") | {
-            "logger" : logger,
-            "single_run": True,
-            "run_for_n_datasets": None,
-            "prom_metrics": {}
-        }
+    config = dotenv_values("tests-local-environment/.env") | {
+        "logger": logger,
+        "single_run": True,
+        "run_for_n_datasets": None,
+        "prom_metrics": {},
+    }
 
-    context["BULK_DATA_SERVICE_VERSION"] = get_app_version()
-    context["AZURE_SERVICE_BUS_WAIT_TIME"] = 0.1  # type: ignore
+    config["BULK_DATA_SERVICE_VERSION"] = get_app_version()
 
     for metric in get_metrics_definitions():
-        context["prom_metrics"][metric[0]] = mock.Mock()  # type: ignore
+        config["prom_metrics"][metric[0]] = mock.Mock()  # type: ignore
+
+    context = BDSContext(config, logger, mock.create_autospec(IServiceFactory))
 
     create_azure_blob_containers(context)
     apply_db_migrations(context)

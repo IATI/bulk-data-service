@@ -9,10 +9,10 @@ _config_variables = [
     "DATA_REGISTRY_PUBLISHER_PLAIN_LIST_URL",
     "DATA_REGISTRY_PUBLISHER_METADATA_URL",
     "DATA_REGISTRY_PUBLISHER_METADATA_BATCH_SIZE",
-    "DATA_REGISTRY_PUBLISHER_METADATA_REFRESH_AFTER_HOURS",
     "WEB_BASE_URL",
     "NUMBER_DOWNLOADER_THREADS",
     "FORCE_REDOWNLOAD_AFTER_HOURS",
+    "REDOWNLOAD_FROM_NON_HEAD_SERVERS_AFTER_HOURS",
     "REMOVE_LAST_GOOD_DOWNLOAD_AFTER_FAILING_HOURS",
     "ZIP_WORKING_DIR",
     "DB_NAME",
@@ -29,17 +29,19 @@ _config_variables = [
     "AZURE_SERVICE_BUS_REGISTRY_TOPIC_NAME",
     "AZURE_SERVICE_BUS_REGISTRY_SUB_NAME",
     "AZURE_SERVICE_BUS_WAIT_TIME",
+    "AZURE_SERVICE_BUS_DATASET_CHECK_RESULTS_TOPIC_NAME",
+    "SEND_DATASET_CHECK_RESULT_MESSAGES",
+    "DATASET_HEAD_TIMEOUT",
+    "DATASET_GET_TIMEOUT",
 ]
 
 
-def get_config() -> dict[str, str | float]:
-    config: dict[str, str | float] = {env_var: os.getenv(env_var, "") for env_var in _config_variables}
+def get_basic_config() -> dict:
+    config = {env_var: os.getenv(env_var, "") for env_var in _config_variables}
 
-    config["WEB_BASE_URL"] = config["WEB_BASE_URL"].strip("/")  # type: ignore[union-attr]
+    config["WEB_BASE_URL"] = config["WEB_BASE_URL"].strip("/")
 
     config["BULK_DATA_SERVICE_VERSION"] = get_app_version()
-
-    config["AZURE_SERVICE_BUS_WAIT_TIME"] = float(config["AZURE_SERVICE_BUS_WAIT_TIME"])
 
     return config
 

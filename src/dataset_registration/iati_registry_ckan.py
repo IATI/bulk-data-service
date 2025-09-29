@@ -1,16 +1,18 @@
 import json
 import random
 import uuid
+from datetime import datetime
 from logging import Logger
 from typing import Any
 
 import requests
 
+from config.bds_context import BDSContext
 from utilities.http import add_qs_params_to_url, http_get_json
-from utilities.misc import is_str_valid_uuid
+from utilities.misc import get_timestamp, is_str_valid_uuid
 
 
-def fetch_reporting_orgs_metadata(context: dict) -> dict[uuid.UUID, dict]:
+def fetch_reporting_orgs_metadata(context: BDSContext, refresh_timestamp: datetime) -> dict[uuid.UUID, dict]:
 
     reporting_org_metadata = {}
 
@@ -19,13 +21,14 @@ def fetch_reporting_orgs_metadata(context: dict) -> dict[uuid.UUID, dict]:
     reporting_orgs_w_valid_ids = [org for org in reporting_orgs_metadata if is_str_valid_uuid(org["id"])]
 
     reporting_org_metadata = {
-        uuid.UUID(org["id"]): convert_ckan_reporting_org_metadata(org) for org in reporting_orgs_w_valid_ids
+        uuid.UUID(org["id"]): convert_reporting_org_ckan_record_to_bds_record(org, refresh_timestamp)
+        for org in reporting_orgs_w_valid_ids
     }
 
     return reporting_org_metadata
 
 
-def fetch_reporting_orgs_from_iati_registry(context: dict) -> list[dict]:
+def fetch_reporting_orgs_from_iati_registry(context: BDSContext) -> list[dict]:
 
     session = requests.Session()
 
@@ -48,7 +51,7 @@ def fetch_reporting_orgs_from_iati_registry(context: dict) -> list[dict]:
         reporting_orgs_url = add_qs_params_to_url(
             reporting_orgs_base_url, {"limit": batch_size, "offset": reporting_orgs_metadata_downloaded}
         )
-        context["logger"].info("Fetching reporting orgs from URL: {}".format(reporting_orgs_url))
+        context.logger.info("Fetching reporting orgs from URL: {}".format(reporting_orgs_url))
 
         response = http_get_json(session, reporting_orgs_url)
 
@@ -56,29 +59,58 @@ def fetch_reporting_orgs_from_iati_registry(context: dict) -> list[dict]:
 
         reporting_orgs_metadata_downloaded += len(response["result"])
 
-    context["logger"].info("Fetched metadata for {} reporting orgs".format(len(reporting_orgs_metadata)))
+    context.logger.info("Fetched metadata for {} reporting orgs".format(len(reporting_orgs_metadata)))
 
     return reporting_orgs_metadata
 
 
-def convert_ckan_reporting_org_metadata(reporting_org: dict):
+def convert_reporting_org_ckan_record_to_bds_record(reporting_org_ckan_record: dict, refresh_timestamp: datetime):
+
+    # most dates in the CKAN Registry are ISO8601 formatted, but some are
+    # formatted like this "18.01.2018", some are empty strings, some are nulls
+    first_publication_date = None
+    try:
+        if reporting_org_ckan_record.get("publisher_first_publish_date", None) is not None:
+            first_publication_date = get_timestamp(reporting_org_ckan_record["publisher_first_publish_date"])
+    except ValueError:
+        first_publication_date = None
+
+    # to ensure that bad data is handled
+    reporting_source_type = None
+    if reporting_org_ckan_record.get("publisher_source_type", "") == "primary_source":
+        reporting_source_type = "primary-source"
+    elif reporting_org_ckan_record.get("publisher_source_type", "") == "secondary_source":
+        reporting_source_type = "secondary-source"
+
     return {
-        "id": reporting_org["id"],
-        "short_name": reporting_org["name"],
-        "iati_identifier": reporting_org["publisher_iati_id"],
-        "human_readable_name": reporting_org["title"],
-        "registration_service_reporting_org_metadata": json.dumps(reporting_org),
+        "created_date": None,
+        "data_portal_url": reporting_org_ckan_record.get("publisher_ui_url", None),
+        "default_licence_id": reporting_org_ckan_record.get("license_id", None),
+        "description": reporting_org_ckan_record.get("publisher_description", None),
+        "exclusions_policy_url": None,
+        "first_publication_date": first_publication_date,
+        "hq_country": reporting_org_ckan_record.get("publisher_country", None),
+        "human_readable_name": reporting_org_ckan_record["title"],
+        "id": uuid.UUID(reporting_org_ckan_record["id"]),
+        "organisation_identifier": reporting_org_ckan_record.get("publisher_iati_id", None),
+        "organisation_type": reporting_org_ckan_record.get("publisher_organization_type", None),
+        "region": None,
+        "reporting_source_type": reporting_source_type,
+        "short_name": reporting_org_ckan_record["name"],
+        "registration_service_reporting_org_metadata": json.dumps(reporting_org_ckan_record),
+        "registration_service_metadata_refreshed_datetime": refresh_timestamp,
+        "website": reporting_org_ckan_record.get("publisher_url", None),
     }
 
 
-def fetch_datasets_metadata(context: dict, reporting_orgs: dict) -> dict[uuid.UUID, dict]:
+def fetch_datasets_metadata(context: BDSContext, reporting_orgs: dict) -> dict[uuid.UUID, dict]:
     session = requests.Session()
 
     datasets_list_from_registry = fetch_datasets_metadata_from_iati_registry(context, session)
 
     random.shuffle(datasets_list_from_registry)
 
-    cleaned_datasets_metadata = clean_datasets_metadata(context["logger"], datasets_list_from_registry)
+    cleaned_datasets_metadata = clean_datasets_metadata(context.logger, datasets_list_from_registry)
 
     augmented_datasets_metadata = add_publisher_metadata(cleaned_datasets_metadata, reporting_orgs)
 
@@ -87,7 +119,7 @@ def fetch_datasets_metadata(context: dict, reporting_orgs: dict) -> dict[uuid.UU
     return datasets_metadata
 
 
-def fetch_datasets_metadata_from_iati_registry(context: dict, session: requests.Session) -> list[dict]:
+def fetch_datasets_metadata_from_iati_registry(context: BDSContext, session: requests.Session) -> list[dict]:
 
     api_url = context["DATA_REGISTRY_BASE_URL"]
 
@@ -208,7 +240,6 @@ def convert_datasets_metadata(datasets_from_registry: list[dict]) -> dict[uuid.U
             "short_name": dataset["name"],
             "reporting_org_id": uuid.UUID(dataset["organization"]["id"]),
             "reporting_org_short_name": dataset["organization"]["name"],
-            "source_url": get_source_url(dataset),
             "licence_id": dataset["license_id"],
             "registration_service_dataset_metadata": json.dumps(
                 {k: dataset[k] for k in dataset if k != "registration_service_publisher_metadata"}
@@ -219,6 +250,7 @@ def convert_datasets_metadata(datasets_from_registry: list[dict]) -> dict[uuid.U
                 else ""
             ),
             "registration_service_name": "ckan-registry",
+            "source_url": get_source_url(dataset),
         }
         for dataset in datasets_from_registry
     }

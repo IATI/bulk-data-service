@@ -7,6 +7,8 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util import Retry
 
+from config.bds_context import BDSContext
+
 
 def add_qs_params_to_url(url: str, qs_params: dict) -> str:
     scheme, netloc, path, qs, fragment = urlsplit(url)
@@ -38,7 +40,7 @@ def parse_last_modified_header(last_modified_header: str) -> Optional[datetime.d
     return last_modified_header_parsed
 
 
-def get_requests_session(context: dict) -> requests.Session:
+def get_requests_session(context: BDSContext) -> requests.Session:
     session = requests.Session()
     session.headers.update({"User-Agent": "IATI Bulk Data Service {}".format(context["BULK_DATA_SERVICE_VERSION"])})
     retries = Retry(total=2, backoff_factor=0.1)
@@ -66,12 +68,12 @@ def http_head_dataset(session: requests.Session, url: str, timeout: int = 10, re
     if response.status_code != 200:
         raise RuntimeError(
             {
-                "message": "HEAD request failed with non-200 status",
-                "url": response.url,
-                "http_method": "HEAD",
-                "http_status_code": response.status_code,
-                "http_reason": response.reason,
+                "summary_message": "HEAD request failed with non-200 status",
                 "http_headers": dict(response.headers),
+                "http_method": "HEAD",
+                "http_reason": response.reason,
+                "http_status": response.status_code,
+                "url": response.url,
             }
         )
 
@@ -87,12 +89,12 @@ def http_download_dataset(
     if response.status_code != 200:
         raise RuntimeError(
             {
-                "message": "HTTP GET request failed with non-200 status",
-                "url": response.url,
-                "http_method": "GET",
-                "http_status_code": response.status_code,
-                "http_reason": response.reason,
+                "summary_message": "HTTP GET request failed with non-200 status",
                 "http_headers": dict(response.headers),
+                "http_method": "GET",
+                "http_status": response.status_code,
+                "http_reason": response.reason,
+                "url": response.url,
             }
         )
 

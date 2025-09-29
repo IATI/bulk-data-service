@@ -5,8 +5,10 @@ import psycopg
 from psycopg.rows import dict_row
 from yoyo import get_backend, read_migrations  # type: ignore
 
+from config.bds_context import BDSContext
 
-def apply_db_migrations(context: dict):
+
+def apply_db_migrations(context: BDSContext):
 
     backend = get_backend(
         "postgresql+psycopg://{}:{}@{}:{}/{}".format(
@@ -22,7 +24,7 @@ def apply_db_migrations(context: dict):
         backend.apply_migrations(backend.to_apply(migrations))
 
 
-def get_db_connection(context: dict) -> psycopg.Connection:
+def get_db_connection(context: BDSContext) -> psycopg.Connection:
     connection = psycopg.connect(
         dbname=context["DB_NAME"],
         user=context["DB_USER"],
@@ -35,7 +37,7 @@ def get_db_connection(context: dict) -> psycopg.Connection:
     return connection
 
 
-def get_datasets_in_bds(context: dict) -> dict[uuid.UUID, dict]:
+def get_datasets_in_bds(context: BDSContext) -> dict[uuid.UUID, dict]:
 
     connection = get_db_connection(context)
     cursor = connection.cursor(row_factory=dict_row)
@@ -48,7 +50,7 @@ def get_datasets_in_bds(context: dict) -> dict[uuid.UUID, dict]:
     return results
 
 
-def get_dataset_in_bds(context: dict, dataset_id: uuid.UUID) -> dict | None:
+def get_dataset_in_bds(context: BDSContext, dataset_id: uuid.UUID) -> dict | None:
 
     connection = get_db_connection(context)
     cursor = connection.cursor(row_factory=dict_row)
@@ -59,7 +61,7 @@ def get_dataset_in_bds(context: dict, dataset_id: uuid.UUID) -> dict | None:
     return result
 
 
-def get_reporting_org_in_bds(context: dict, reporting_org_id: uuid.UUID) -> dict | None:
+def get_reporting_org_in_bds(context: BDSContext, reporting_org_id: uuid.UUID) -> dict | None:
 
     connection = get_db_connection(context)
     cursor = connection.cursor(row_factory=dict_row)
@@ -70,7 +72,7 @@ def get_reporting_org_in_bds(context: dict, reporting_org_id: uuid.UUID) -> dict
     return result
 
 
-def get_reporting_orgs_in_bds(context: dict) -> dict[uuid.UUID, dict]:
+def get_reporting_orgs_in_bds(context: BDSContext) -> dict[uuid.UUID, dict]:
 
     connection = get_db_connection(context)
     cursor = connection.cursor(row_factory=dict_row)
@@ -95,10 +97,16 @@ def insert_or_update_dataset(connection: psycopg.Connection, data):
                         reporting_org_short_name = %(reporting_org_short_name)s,
                         source_url = %(source_url)s,
                         licence_id = %(licence_id)s,
+                        registration_service_metadata_refreshed_datetime = %(registration_service_metadata_refreshed_datetime)s,
                         registration_service_dataset_metadata = %(registration_service_dataset_metadata)s,
                         registration_service_name = %(registration_service_name)s,
 
                         last_update_check = %(last_update_check)s,
+
+                        last_known_good_dataset_cached_dataset_xml_etag = %(last_known_good_dataset_cached_dataset_xml_etag)s,
+                        last_known_good_dataset_cached_dataset_xml_url = %(last_known_good_dataset_cached_dataset_xml_url)s,
+                        last_known_good_dataset_cached_dataset_zip_etag = %(last_known_good_dataset_cached_dataset_zip_etag)s,
+                        last_known_good_dataset_cached_dataset_zip_url = %(last_known_good_dataset_cached_dataset_zip_url)s,
 
                         last_known_good_dataset_hash = %(last_known_good_dataset_hash)s,
                         last_known_good_dataset_hash_excluding_generated_timestamp =
@@ -113,14 +121,14 @@ def insert_or_update_dataset(connection: psycopg.Connection, data):
                         last_known_good_dataset_source_url = %(last_known_good_dataset_source_url)s,
 
                         most_recent_head_attempt_datetime = %(most_recent_head_attempt_datetime)s,
-                        most_recent_head_attempt_http_status = %(most_recent_head_attempt_http_status)s,
                         most_recent_head_attempt_error_details = %(most_recent_head_attempt_error_details)s,
-                        most_recent_head_attempt_server_headers = %(most_recent_head_attempt_server_headers)s,
+                        most_recent_head_attempt_error_occurred = %(most_recent_head_attempt_error_occurred)s,
+                        most_recent_head_attempt_http_status = %(most_recent_head_attempt_http_status)s,
 
                         most_recent_get_attempt_datetime = %(most_recent_get_attempt_datetime)s,
-                        most_recent_get_attempt_http_status = %(most_recent_get_attempt_http_status)s,
                         most_recent_get_attempt_error_details = %(most_recent_get_attempt_error_details)s,
-                        most_recent_get_attempt_server_headers = %(most_recent_get_attempt_server_headers)s
+                        most_recent_get_attempt_error_occurred = %(most_recent_get_attempt_error_occurred)s,
+                        most_recent_get_attempt_http_status = %(most_recent_get_attempt_http_status)s
 
                     WHERE
                         iati_datasets.id = %(id)s
@@ -141,6 +149,7 @@ def update_dataset_registration_data(connection: psycopg.Connection, data):
                         source_url = %(source_url)s,
                         licence_id = %(licence_id)s,
                         registration_service_dataset_metadata = %(registration_service_dataset_metadata)s,
+                        registration_service_metadata_refreshed_datetime = %(registration_service_metadata_refreshed_datetime)s,
                         registration_service_name = %(registration_service_name)s
                     WHERE
                         iati_datasets.id = %(id)s
@@ -159,10 +168,22 @@ def insert_or_update_reporting_org(connection: psycopg.Connection, data):
                         VALUES ({})
                  ON CONFLICT (id) DO
                     UPDATE SET
-                        short_name = %(short_name)s,
-                        iati_identifier = %(iati_identifier)s,
+                        created_date = %(created_date)s,
+                        data_portal_url = %(data_portal_url)s,
+                        default_licence_id = %(default_licence_id)s,
+                        description = %(description)s,
+                        exclusions_policy_url = %(exclusions_policy_url)s,
+                        first_publication_date = %(first_publication_date)s,
+                        hq_country = %(hq_country)s,
                         human_readable_name = %(human_readable_name)s,
-                        registration_service_reporting_org_metadata = %(registration_service_reporting_org_metadata)s
+                        organisation_identifier = %(organisation_identifier)s,
+                        organisation_type = %(organisation_type)s,
+                        region = %(region)s,
+                        reporting_source_type = %(reporting_source_type)s,
+                        registration_service_metadata_refreshed_datetime = %(registration_service_metadata_refreshed_datetime)s,
+                        registration_service_reporting_org_metadata = %(registration_service_reporting_org_metadata)s,
+                        short_name = %(short_name)s,
+                        website = %(website)s
                     WHERE
                         iati_reporting_orgs.id = %(id)s
         """.format(
@@ -190,7 +211,7 @@ def remove_dataset_from_db(connection: psycopg.Connection, dataset_id):
     connection.commit()
 
 
-def execute_scalar_db_query(context: dict, sql: str) -> Any:
+def execute_scalar_db_query(context: BDSContext, sql: str) -> Any:
     connection = get_db_connection(context)
     value = execute_scalar_db_query_with_conn(connection, sql)
     connection.close()

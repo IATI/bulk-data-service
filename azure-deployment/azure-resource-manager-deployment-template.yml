@@ -38,8 +38,6 @@ properties: # Properties of container group
             value: "#DATA_REGISTRY_PUBLISHER_METADATA_URL#"
           - name: DATA_REGISTRY_PUBLISHER_METADATA_BATCH_SIZE
             value: "#DATA_REGISTRY_PUBLISHER_METADATA_BATCH_SIZE#"
-          - name: DATA_REGISTRY_PUBLISHER_METADATA_REFRESH_AFTER_HOURS
-            value: "#DATA_REGISTRY_PUBLISHER_METADATA_REFRESH_AFTER_HOURS#"
           - name: WEB_BASE_URL
             value: "#WEB_BASE_URL#"
           - name: CHECKER_LOOP_WAIT_MINS
@@ -58,8 +56,18 @@ properties: # Properties of container group
             value: "#AZURE_SERVICE_BUS_REGISTRY_TOPIC_NAME#"
           - name: AZURE_SERVICE_BUS_REGISTRY_SUB_NAME
             value: "#AZURE_SERVICE_BUS_REGISTRY_SUB_NAME#"
+          - name: AZURE_SERVICE_BUS_DATASET_CHECK_RESULTS_TOPIC_NAME
+            value: "#AZURE_SERVICE_BUS_DATASET_CHECK_RESULTS_TOPIC_NAME#"
           - name: AZURE_SERVICE_BUS_WAIT_TIME
             value: "#AZURE_SERVICE_BUS_WAIT_TIME#"
+          - name: REDOWNLOAD_FROM_NON_HEAD_SERVERS_AFTER_HOURS
+            value: "#REDOWNLOAD_FROM_NON_HEAD_SERVERS_AFTER_HOURS#"
+          - name: DATASET_HEAD_TIMEOUT
+            value: "#DATASET_HEAD_TIMEOUT#"
+          - name: DATASET_GET_TIMEOUT
+            value: "#DATASET_GET_TIMEOUT#"
+          - name: SEND_DATASET_CHECK_RESULT_MESSAGES
+            value: "#SEND_DATASET_CHECK_RESULT_MESSAGES#"
 
           - name: AZURE_STORAGE_CONNECTION_STRING
             secureValue: "#AZURE_STORAGE_CONNECTION_STRING#"
