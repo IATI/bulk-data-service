@@ -2,6 +2,7 @@ import json
 import os
 import shutil
 import uuid
+import zipfile
 from abc import ABC, abstractmethod
 
 from azure.storage.blob import BlobServiceClient
@@ -49,6 +50,10 @@ class IATIDataZipper(ABC):
     def zip_local_filename_no_extension(self) -> str:
         return "iati-data"
 
+    def clean_working_dir(self):
+        if os.path.exists(self.zip_working_dir):
+            shutil.rmtree(self.zip_working_dir)
+
     def zip(self):
         self.context.logger.info("Zipping {} datasets.".format(get_number_xml_files_in_dir(self.zip_working_dir)))
         shutil.make_archive(
@@ -57,6 +62,17 @@ class IATIDataZipper(ABC):
             root_dir=self.zip_working_dir,
             base_dir=self.zip_internal_directory_name,
         )
+
+    def valid_zip_created(self) -> bool:
+        self.context.logger.info("Verifying ZIP file {}.zip".format(self.get_zip_local_pathname_no_extension()))
+        with zipfile.ZipFile(self.get_zip_local_pathname(), "r") as zf:
+            try:
+                zf.extractall(os.path.join(self.zip_working_dir, "verifyzip"))
+            except zipfile.BadZipFile:
+                shutil.rmtree(os.path.join(self.zip_working_dir, "verifyzip"))
+                return False
+        shutil.rmtree(os.path.join(self.zip_working_dir, "verifyzip"))
+        return True
 
     def upload(self):
         self.context.logger.info(
