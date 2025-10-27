@@ -86,6 +86,13 @@ def get_and_clear_up_context():
 
     context = BDSContext(config, logger, mock.create_autospec(IServiceFactory))
 
+    context["TEST_TMP_ZIP_UNPACK"] = "tests/tmp_zip_unpack"
+
+    if os.path.exists(context["TEST_TMP_ZIP_UNPACK"]):
+        shutil.rmtree(context["TEST_TMP_ZIP_UNPACK"])
+
+    os.makedirs(context["TEST_TMP_ZIP_UNPACK"], exist_ok=True)
+
     create_azure_blob_containers(context)
     apply_db_migrations(context)
     yield context
@@ -97,3 +104,6 @@ def get_and_clear_up_context():
         for zip_dir in zip_dirs:
             if os.path.exists(zip_dir):
                 shutil.rmtree(zip_dir)
+
+    if os.path.exists(context["TEST_TMP_ZIP_UNPACK"]):
+        shutil.rmtree(context["TEST_TMP_ZIP_UNPACK"])
