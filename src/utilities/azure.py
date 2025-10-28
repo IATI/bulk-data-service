@@ -103,7 +103,7 @@ def create_azure_blob_containers(context: BDSContext):
 
     try:
         if context["AZURE_STORAGE_BLOB_CONTAINER_NAME"] not in container_names:
-            blob_service.create_container(context["AZURE_STORAGE_BLOB_CONTAINER_NAME"])
+            blob_service.create_container(context["AZURE_STORAGE_BLOB_CONTAINER_NAME"], public_access="blob")
             container_names.append(context["AZURE_STORAGE_BLOB_CONTAINER_NAME"])
     except Exception as e:
         context.logger.error(

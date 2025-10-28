@@ -1,5 +1,6 @@
 import datetime
 import os
+import pathlib
 import shutil
 import time
 import uuid
@@ -50,7 +51,7 @@ def zipper_run(
     run_start = datetime.datetime.now(datetime.UTC)
     context.logger.info("Zipper run starting")
 
-    setup_working_dir_with_downloaded_datasets(context, datasets_in_working_dir, datasets_in_bds)
+    setup_working_dir_with_downloaded_datasets(context, False, datasets_in_working_dir, datasets_in_bds)
 
     zip_creators = [
         IATIBulkDataServiceZipper(
@@ -71,15 +72,26 @@ def zipper_run(
 
     for zip_creator in zip_creators:
 
-        if os.path.exists(zip_creator.zip_working_dir):
-            shutil.rmtree(zip_creator.zip_working_dir)
-        shutil.copytree(context["ZIP_WORKING_DIR"], zip_creator.zip_working_dir)
+        for _ in range(2):
+            zip_creator.clean_working_dir()
 
-        zip_creator.prepare()
+            shutil.copytree(context["ZIP_WORKING_DIR"], zip_creator.zip_working_dir)
 
-        zip_creator.zip()
+            zip_creator.prepare()
 
-        zip_creator.upload()
+            zip_creator.zip()
+
+            if zip_creator.valid_zip_created():
+                zip_creator.upload()
+                break
+            else:
+                context.logger.error("Zip validation failed so resetting working directory and re-trying")
+                setup_working_dir_with_downloaded_datasets(context, True, datasets_in_working_dir, datasets_in_bds)
+
+        # Whether ZIP was successfully created and uploaded or not, we wipe the working dir for this ZIP format
+        # We have to do this because now that we verify the ZIP by unpacking it, more storage is needed, but ACI
+        # temporary disks are not configurable and max out at 50 Gb.
+        zip_creator.clean_working_dir()
 
     run_end = datetime.datetime.now(datetime.UTC)
     context.logger.info("Zipper run finished in {}.".format(run_end - run_start))
@@ -87,10 +99,13 @@ def zipper_run(
 
 
 def setup_working_dir_with_downloaded_datasets(
-    context: BDSContext, datasets_in_working_dir: dict[uuid.UUID, dict], datasets_in_bds: dict[uuid.UUID, dict]
+    context: BDSContext,
+    force_full_clean: bool,
+    datasets_in_working_dir: dict[uuid.UUID, dict],
+    datasets_in_bds: dict[uuid.UUID, dict],
 ):
 
-    clean_working_dir(context, datasets_in_working_dir)
+    clean_working_dir(context, force_full_clean, datasets_in_working_dir, datasets_in_bds)
 
     datasets_with_downloads = {k: v for k, v in datasets_in_bds.items() if dataset_has_iati_xml_download(v)}
 
@@ -102,6 +117,7 @@ def setup_working_dir_with_downloaded_datasets(
         if k not in datasets_in_working_dir
         or datasets_in_working_dir[k]["last_known_good_dataset_hash"]
         != datasets_with_downloads[k]["last_known_good_dataset_hash"]
+        or datasets_in_working_dir[k]["short_name"] != datasets_with_downloads[k]["short_name"]
     }
 
     context.logger.info(
@@ -114,13 +130,38 @@ def setup_working_dir_with_downloaded_datasets(
     download_new_or_updated_to_working_dir(context, new_or_updated_datasets)
 
     datasets_in_working_dir.clear()
-    datasets_in_working_dir.update(datasets_with_downloads)
+    for k, dataset in datasets_with_downloads.items():
+        datasets_in_working_dir[k] = dataset.copy()
 
 
-def clean_working_dir(context: BDSContext, datasets_in_zip: dict[uuid.UUID, dict]):
-    if len(datasets_in_zip) == 0:
-        context.logger.info("First zip run of session, so deleting all XML " "files in the ZIP working dir.")
+def clean_working_dir(
+    context: BDSContext,
+    force_full_clean: bool,
+    datasets_in_zip: dict[uuid.UUID, dict],
+    datasets_in_bds: dict[uuid.UUID, dict],
+) -> None:
+    if len(datasets_in_zip) == 0 or force_full_clean:
+        if len(datasets_in_zip) == 0:
+            context.logger.info("First zip run of session, so deleting all XML files in the ZIP working dir.")
+        else:
+            context.logger.info("Force clean requested, so deleting all XML files in the ZIP working dir.")
         shutil.rmtree("{}/{}".format(context["ZIP_WORKING_DIR"], "iati-data"), ignore_errors=True)
+    else:
+        context.logger.info("Zipper: removing deleted or renamed datasets from working directory")
+
+        ds_partial_paths = [
+            dataset["reporting_org_short_name"] + "/" + dataset["short_name"] for dataset in datasets_in_bds.values()
+        ]
+
+        path_datasets = pathlib.Path(os.path.join(context["ZIP_WORKING_DIR"], "iati-data", "datasets"))
+
+        for file in path_datasets.glob("**/*.xml"):
+            dataset_partial_path = file.parts[-2] + "/" + file.stem
+            if dataset_partial_path not in ds_partial_paths:
+                try:
+                    os.remove(str(file))
+                except (FileNotFoundError, PermissionError, IsADirectoryError, OSError) as e:
+                    context.logger.error(f"Zipper: error removing XML file {file} from working directory: {e}")
 
 
 def remove_datasets_without_dls_from_working_dir(

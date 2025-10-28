@@ -8,9 +8,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Added a verify ZIP stage which attempts to unzip the entire ZIP file, and if
+  that fails, it forces a full re-download of all the XML files and then
+  re-attempts the creation of the ZIP.
+
 ### Changed
 
+- To verify the ZIP we have to extract it all. This requires a lot of space, and
+  it means we can no longer just leave the XML files for building the ZIP on
+  disk in between runs, because Azure Container Instances only give ~50 Gb of
+  disk space, and it's not configurable. So, the XML files for each of the ZIP
+  files and the ZIP files themselves are now removed from disk after being
+  uploaded to Azure. But this has meant the automated tests can't just inspect
+  these folders to check they contain the correct content - the automated tests
+  now need to download the appropriate ZIP and unpack it. This is why there are
+  changes to all the ZIP tests.
+
 ### Fixed
+
+- Fixed an issue whereby when an update was made to the dataset's shortname,
+  the dataset was not being updated in the ZIP with the new name.
 
 ### Removed
 
