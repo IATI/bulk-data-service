@@ -8,6 +8,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+### Changed
+
+### Fixed
+
+### Removed
+
+## [1.3.4]
+
+### Added
+
 - Added a verify ZIP stage which attempts to unzip the entire ZIP file, and if
   that fails, it forces a full re-download of all the XML files and then
   re-attempts the creation of the ZIP.
