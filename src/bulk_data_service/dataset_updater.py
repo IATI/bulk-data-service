@@ -109,9 +109,11 @@ def add_or_update_registered_dataset(
         bds_dataset = create_dataset_from_registered_dataset(registered_datasets[registered_dataset_id])
         old_source_url = ""
         datasets_in_bds[registered_dataset_id] = bds_dataset
+        operation = "Added"
     else:
         bds_dataset = datasets_in_bds[registered_dataset_id]
         old_source_url = bds_dataset["source_url"]
+        operation = "Updated"
         update_dataset_from_registered_dataset(bds_dataset, registered_datasets[registered_dataset_id])
 
     check_time = get_timestamp()
@@ -135,7 +137,7 @@ def add_or_update_registered_dataset(
 
             datasets_in_bds[registered_dataset_id] = bds_dataset
 
-            context.logger.info("dataset id: {} - Added/updated dataset".format(bds_dataset["id"]))
+            context.logger.info("dataset id: {} - {} dataset".format(bds_dataset["id"], operation))
 
         except RuntimeError as e:
             summary_message = "Download of IATI XML failed with non-200 HTTP status"

@@ -62,7 +62,7 @@ The `.env` file is used when running things locally to store environment variabl
 Running the app successfully requires a Postgres database and a connection to an Azure blob storage account. There is a docker compose setup which can be used to start an instance of each service locally, that can be run with:
 
 ```
-docker compose up
+docker compose up -d
 ```
 
 The example `.env` file (`.env-example`) is configured to use the above docker compose setup. If you don't use the docker compose setup, then you will need to change the values in the `.env` file accordingly.
@@ -80,6 +80,15 @@ dotenv run python src/iati_bulk_data_service.py -- --operation zipper --single-r
 ```
 
 It will store the ZIP files in the directory defined in the `ZIP_WORKING_DIR` environment variable.
+
+To shutdown the docker compose setup, use (the Azure Service Bus emulator
+appears to be a bit sensitive to Ctrl-C shutdowns, so always best to shutdown
+with `docker compose down`):
+
+```
+docker compose down
+```
+
 
 _Note: not all versions of `dotenv` require a `run` subcommand._
 
