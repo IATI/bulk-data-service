@@ -84,7 +84,7 @@ def get_timestamp_or_none(isodate: str | None = None) -> datetime.datetime | Non
 
     Microseconds are zeroed."""
 
-    if isodate is None:
+    if isodate is None or isodate == "":
         return None
 
     return datetime.datetime.fromisoformat(isodate).astimezone(tz=datetime.timezone.utc).replace(microsecond=0)
