@@ -119,7 +119,7 @@ async def send_message(context: BDSContext, sbclient: ServiceBusClient, payload:
 
     topic_sender = sbclient.get_topic_sender(topic_name=context["AZURE_SERVICE_BUS_REGISTRY_TOPIC_NAME"])
 
-    await topic_sender.send_messages(message, timeout=0.1)
+    await topic_sender.send_messages(message, timeout=2)
 
     await topic_sender.close()
 

@@ -44,7 +44,7 @@ services:
       - 3000:3000
     volumes:
       - type: bind
-        source: mockoon-registration-and-data-server-config.json
+        source: mockoon-ckan-registration-and-data-server-config.json
         target: /server-config.json
       - type: bind
         source: ../tests/artifacts
