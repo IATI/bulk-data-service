@@ -4,8 +4,6 @@
 #
 #    pip-compile --output-file=requirements.txt --strip-extras pyproject.toml
 #
-asyncio==3.4.3
-    # via bulk-data-service (pyproject.toml)
 azure-core==1.35.0
     # via
     #   azure-servicebus
@@ -32,6 +30,12 @@ isodate==0.7.2
     # via
     #   azure-servicebus
     #   azure-storage-blob
+libsuitecrm @ git+https://github.com/IATI/iati-registry-libsuitecrm.git
+    # via bulk-data-service (pyproject.toml)
+oauthlib==3.3.1
+    # via
+    #   libsuitecrm
+    #   requests-oauthlib
 prometheus-client==0.22.1
     # via bulk-data-service (pyproject.toml)
 psycopg==3.2.9
@@ -46,6 +50,10 @@ requests==2.32.4
     # via
     #   azure-core
     #   bulk-data-service (pyproject.toml)
+    #   libsuitecrm
+    #   requests-oauthlib
+requests-oauthlib==2.0.0
+    # via libsuitecrm
 six==1.17.0
     # via azure-core
 sqlparse==0.5.3

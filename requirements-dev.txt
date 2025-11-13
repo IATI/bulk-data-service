@@ -4,8 +4,10 @@
 #
 #    pip-compile --extra=dev --output-file=requirements-dev.txt --strip-extras pyproject.toml
 #
-asyncio==3.4.3
-    # via bulk-data-service (pyproject.toml)
+attrs==25.4.0
+    # via
+    #   jsonschema
+    #   referencing
 azure-core==1.35.0
     # via
     #   azure-servicebus
@@ -50,6 +52,12 @@ isodate==0.7.2
     #   azure-storage-blob
 isort==6.0.1
     # via bulk-data-service (pyproject.toml)
+jsonschema==4.25.1
+    # via bulk-data-service (pyproject.toml)
+jsonschema-specifications==2025.9.1
+    # via jsonschema
+libsuitecrm @ git+https://github.com/IATI/iati-registry-libsuitecrm.git
+    # via bulk-data-service (pyproject.toml)
 mccabe==0.7.0
     # via flake8
 mypy==1.17.0
@@ -58,6 +66,10 @@ mypy-extensions==1.1.0
     # via
     #   black
     #   mypy
+oauthlib==3.3.1
+    # via
+    #   libsuitecrm
+    #   requests-oauthlib
 packaging==25.0
     # via
     #   black
@@ -103,10 +115,27 @@ pytest-watcher==0.4.3
     # via bulk-data-service (pyproject.toml)
 python-dotenv==1.1.1
     # via bulk-data-service (pyproject.toml)
+pyyaml==6.0.3
+    # via responses
+referencing==0.37.0
+    # via
+    #   jsonschema
+    #   jsonschema-specifications
 requests==2.32.4
     # via
     #   azure-core
     #   bulk-data-service (pyproject.toml)
+    #   libsuitecrm
+    #   requests-oauthlib
+    #   responses
+requests-oauthlib==2.0.0
+    # via libsuitecrm
+responses==0.25.8
+    # via bulk-data-service (pyproject.toml)
+rpds-py==0.28.0
+    # via
+    #   jsonschema
+    #   referencing
 six==1.17.0
     # via azure-core
 sqlparse==0.5.3
@@ -127,9 +156,11 @@ typing-extensions==4.14.1
     #   mypy
     #   psycopg
     #   psycopg-pool
+    #   referencing
 urllib3==2.5.0
     # via
     #   requests
+    #   responses
     #   types-requests
 watchdog==6.0.0
     # via pytest-watcher
