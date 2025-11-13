@@ -38,6 +38,10 @@ properties: # Properties of container group
             value: "#DATA_REGISTRY_PUBLISHER_METADATA_URL#"
           - name: DATA_REGISTRY_PUBLISHER_METADATA_BATCH_SIZE
             value: "#DATA_REGISTRY_PUBLISHER_METADATA_BATCH_SIZE#"
+          - name: DATA_REGISTRY_SUITECRM_API_URL
+            value: "#DATA_REGISTRY_SUITECRM_API_URL#"
+          - name: DATA_REGISTRY_SUITECRM_SECURE
+            value: "#DATA_REGISTRY_SUITECRM_SECURE#"
           - name: WEB_BASE_URL
             value: "#WEB_BASE_URL#"
           - name: CHECKER_LOOP_WAIT_MINS
@@ -71,6 +75,10 @@ properties: # Properties of container group
 
           - name: AZURE_STORAGE_CONNECTION_STRING
             secureValue: "#AZURE_STORAGE_CONNECTION_STRING#"
+          - name: DATA_REGISTRY_SUITECRM_CLIENT_ID
+            secureValue: "#DATA_REGISTRY_SUITECRM_CLIENT_ID#"
+          - name: DATA_REGISTRY_SUITECRM_CLIENT_SECRET
+            secureValue: "#DATA_REGISTRY_SUITECRM_CLIENT_SECRET#"
           - name: DB_HOST
             secureValue: "#DB_HOST#"
           - name: DB_PORT

@@ -46,6 +46,12 @@ sed -i ''s^#DATA_REGISTRY_BASE_URL#^$DATA_REGISTRY_BASE_URL^g'' ./azure-deployme
 sed -i ''s^#DATA_REGISTRY_PUBLISHER_PLAIN_LIST_URL#^$DATA_REGISTRY_PUBLISHER_PLAIN_LIST_URL^g'' ./azure-deployment/azure-resource-manager-deployment-manifest.yml
 sed -i ''s^#DATA_REGISTRY_PUBLISHER_METADATA_URL#^$DATA_REGISTRY_PUBLISHER_METADATA_URL^g'' ./azure-deployment/azure-resource-manager-deployment-manifest.yml
 sed -i ''s^#DATA_REGISTRY_PUBLISHER_METADATA_BATCH_SIZE#^$DATA_REGISTRY_PUBLISHER_METADATA_BATCH_SIZE^g'' ./azure-deployment/azure-resource-manager-deployment-manifest.yml
+
+sed -i ''s^#DATA_REGISTRY_SUITECRM_API_URL#^$DATA_REGISTRY_SUITECRM_API_URL^g'' ./azure-deployment/azure-resource-manager-deployment-manifest.yml
+sed -i ''s^#DATA_REGISTRY_SUITECRM_CLIENT_ID#^$DATA_REGISTRY_SUITECRM_CLIENT_ID^g'' ./azure-deployment/azure-resource-manager-deployment-manifest.yml
+sed -i ''s^#DATA_REGISTRY_SUITECRM_CLIENT_SECRET#^$DATA_REGISTRY_SUITECRM_CLIENT_SECRET^g'' ./azure-deployment/azure-resource-manager-deployment-manifest.yml
+sed -i ''s^#DATA_REGISTRY_SUITECRM_SECURE#^$DATA_REGISTRY_SUITECRM_SECURE^g'' ./azure-deployment/azure-resource-manager-deployment-manifest.yml
+
 sed -i ''s^#NUMBER_DOWNLOADER_THREADS#^$NUMBER_DOWNLOADER_THREADS^g'' ./azure-deployment/azure-resource-manager-deployment-manifest.yml
 sed -i ''s^#FORCE_REDOWNLOAD_AFTER_HOURS#^$FORCE_REDOWNLOAD_AFTER_HOURS^g'' ./azure-deployment/azure-resource-manager-deployment-manifest.yml
 sed -i ''s^#REMOVE_LAST_GOOD_DOWNLOAD_AFTER_FAILING_HOURS#^$REMOVE_LAST_GOOD_DOWNLOAD_AFTER_FAILING_HOURS^g'' ./azure-deployment/azure-resource-manager-deployment-manifest.yml
