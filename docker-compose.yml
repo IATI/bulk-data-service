@@ -30,6 +30,27 @@ services:
     networks:
       bds-local-dev-net:
 
+  bds-local-dev-mockoon:
+    image: mockoon/cli:9.1.0
+    ports:
+      - 1443:1443
+    volumes:
+      - type: bind
+        source: tests-local-environment/mockoon-suitecrm-registration-and-data-server-config.json
+        target: /server-config.json
+      - type: bind
+        source: tests/artifacts
+        target: /tests/artifacts
+        read_only: true
+    command: ["--data", "server-config.json", "-p", "1443"]
+    healthcheck:
+      test: curl -k -s -o /dev/null 'https://localhost:1443/data/test_foundation_a-dataset-001.xml'
+      interval: 10s
+      timeout: 10s
+      retries: 1
+    networks:
+      bds-local-dev-net:
+
   bds-local-dev-mq-emulator:
     image: mcr.microsoft.com/azure-messaging/servicebus-emulator:latest
     pull_policy: always
