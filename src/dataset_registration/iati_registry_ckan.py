@@ -76,11 +76,9 @@ def convert_reporting_org_ckan_record_to_bds_record(reporting_org_ckan_record: d
         first_publication_date = None
 
     # to ensure that bad data is handled
-    reporting_source_type = None
-    if reporting_org_ckan_record.get("publisher_source_type", "") == "primary_source":
-        reporting_source_type = "primary-source"
-    elif reporting_org_ckan_record.get("publisher_source_type", "") == "secondary_source":
-        reporting_source_type = "secondary-source"
+    reporting_source_type = reporting_org_ckan_record.get("publisher_source_type", "")
+    if reporting_source_type not in ["primary_source", "secondary_source"]:
+        reporting_source_type = None
 
     return {
         "created_date": None,
