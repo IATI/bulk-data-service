@@ -23,7 +23,7 @@ properties: # Properties of container group
         ports:
           - port: 9090
         command:
-          - "/usr/local/bin/python"
+          - "python"
           - "src/iati_bulk_data_service.py"
           - "--operation"
           - "checker"
