@@ -32,9 +32,11 @@ def remove_deleted_datasets_from_bds(
 
         remove_dataset_from_db(db_conn, id)
 
-        delete_azure_iati_blob(context, az_blob_service, datasets_in_bds[id], "xml")
+        if datasets_in_bds[id]["last_known_good_dataset_cached_dataset_xml_url"] is not None:
+            delete_azure_iati_blob(context, az_blob_service, datasets_in_bds[id], "xml")
 
-        delete_azure_iati_blob(context, az_blob_service, datasets_in_bds[id], "zip")
+        if datasets_in_bds[id]["last_known_good_dataset_cached_dataset_zip_url"] is not None:
+            delete_azure_iati_blob(context, az_blob_service, datasets_in_bds[id], "zip")
 
         del datasets_in_bds[id]
 

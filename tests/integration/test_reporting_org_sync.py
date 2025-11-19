@@ -44,7 +44,7 @@ def test_add_reporting_org_to_db(get_and_clear_up_context):  # noqa: F811
     assert reporting_org["organisation_identifier"] == "TEST-A-JHG-0123456"
     assert reporting_org["organisation_type"] == "23"
     assert reporting_org["region"] is None
-    assert reporting_org["reporting_source_type"] == "primary-source"
+    assert reporting_org["reporting_source_type"] == "primary_source"
     assert reporting_org["short_name"] == "test_foundation_a"
     assert reporting_org["website"] == "http://www.example.com/foundation_a"
 
@@ -109,7 +109,7 @@ def test_update_reporting_org_in_db(get_and_clear_up_context):  # noqa: F811
     assert reporting_org["human_readable_name"] == "Test Foundation A Mod"
     assert reporting_org["organisation_identifier"] == "TEST-A-JHG-0123456-MOD"
     assert reporting_org["organisation_type"] == "60"
-    assert reporting_org["reporting_source_type"] == "secondary-source"
+    assert reporting_org["reporting_source_type"] == "secondary_source"
     assert reporting_org["short_name"] == "test_foundation_a_mod"
     assert reporting_org["website"] == "http://www.example.com/foundation_a/mod"
 

@@ -1,6 +1,7 @@
+---
 name: Generic build and deploy (called by other workflows)
 
-on:
+on:  # yamllint disable-line rule:truthy
   workflow_call:
     inputs:
       APP_NAME:
@@ -90,7 +91,8 @@ jobs:
           # Secrets / credentials for the app's resources
           AZURE_SERVICE_BUS_CONNECTION_STRING: ${{ secrets[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'AZURE_SERVICE_BUS_CONNECTION_STRING')] }}
           AZURE_STORAGE_CONNECTION_STRING: ${{ secrets[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'AZURE_STORAGE_CONNECTION_STRING')] }}
-
+          DATA_REGISTRY_SUITECRM_CLIENT_ID: ${{ secrets[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'DATA_REGISTRY_SUITECRM_CLIENT_ID')] }}
+          DATA_REGISTRY_SUITECRM_CLIENT_SECRET: ${{ secrets[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'DATA_REGISTRY_SUITECRM_CLIENT_SECRET')] }}
           DB_CONNECTION_TIMEOUT: ${{ secrets[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'DB_CONNECTION_TIMEOUT')] }}
           DB_HOST: ${{ secrets[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'DB_HOST')] }}
           DB_NAME: ${{ secrets[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'DB_NAME')] }}
@@ -115,6 +117,8 @@ jobs:
           DATA_REGISTRY_PUBLISHER_METADATA_BATCH_SIZE: ${{ vars[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'DATA_REGISTRY_PUBLISHER_METADATA_BATCH_SIZE')] }}
           DATA_REGISTRY_PUBLISHER_METADATA_URL: ${{ vars[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'DATA_REGISTRY_PUBLISHER_METADATA_URL')] }}
           DATA_REGISTRY_PUBLISHER_PLAIN_LIST_URL: ${{ vars[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'DATA_REGISTRY_PUBLISHER_PLAIN_LIST_URL')] }}
+          DATA_REGISTRY_SUITECRM_API_URL: ${{ vars[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'DATA_REGISTRY_SUITECRM_API_URL')] }}
+          DATA_REGISTRY_SUITECRM_SECURE: ${{ vars[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'DATA_REGISTRY_SUITECRM_SECURE')] }}
           FORCE_REDOWNLOAD_AFTER_HOURS: ${{ vars[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'FORCE_REDOWNLOAD_AFTER_HOURS')] }}
           NUMBER_DOWNLOADER_THREADS: ${{ vars[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'NUMBER_DOWNLOADER_THREADS')] }}
           REDOWNLOAD_FROM_NON_HEAD_SERVERS_AFTER_HOURS: ${{ vars[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'REDOWNLOAD_FROM_NON_HEAD_SERVERS_AFTER_HOURS')] }}
