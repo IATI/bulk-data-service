@@ -8,18 +8,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+### Changed
+
+### Fixed
+
+### Removed
+
+## [1.4.0]
+
+### Added
+
 - Test infrastructure, setup, and new tests for pulling dataset, reporting org
   lists from SuiteCRM.
 - Code to pull the dataset and reporting org lists from SuiteCRM.
-
-### Changed
 
 ### Fixed
 
 - Deleted datasets are only deleteed from Azure blob storage if there is a
   cached copy stored.
-
-### Removed
 
 ## [1.3.4]
 
