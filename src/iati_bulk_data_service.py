@@ -6,7 +6,7 @@ from bulk_data_service.zipper import zipper
 from config.bds_context import BDSContext
 from config.config import get_basic_config
 from config.initialisation import misc_global_initialisation
-from config.service_factory_azure import AzureServiceFactory
+from config.service_factory import ServiceFactory
 from utilities.azure import create_azure_blob_containers
 from utilities.db import apply_db_migrations
 from utilities.logging import initialise_logging
@@ -17,9 +17,13 @@ def main(args: argparse.Namespace):
 
     config = get_basic_config()
 
-    config = config | {"single_run": args.single_run, "run_for_n_datasets": args.run_for_n_datasets}
+    config = config | {
+        "single_run": args.single_run,
+        "run_for_n_datasets": args.run_for_n_datasets,
+        "skip_safety": args.skip_safety,
+    }
 
-    context = BDSContext(config, initialise_logging(config), AzureServiceFactory())
+    context = BDSContext(config, initialise_logging(config), ServiceFactory(config))
 
     context.logger.info("Bulk Data Service {} initialising...".format(context["BULK_DATA_SERVICE_VERSION"]))
 
@@ -58,5 +62,10 @@ if __name__ == "__main__":
         "--run-for-n-datasets",
         type=int,
         help="Run on the first N datasets from registration service (useful for testing)",
+    )
+    parser.add_argument(
+        "--skip-safety",
+        action="store_true",
+        help="Skip safety checks during the run (useful for testing)",
     )
     main(parser.parse_args())

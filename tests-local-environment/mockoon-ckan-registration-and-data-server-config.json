@@ -1,7 +1,7 @@
 {
   "uuid": "f2cf8a6c-fb05-4fd1-b810-b7e675f4fa9b",
   "lastMigration": 33,
-  "name": "Mock registration and data servers",
+  "name": "Mock CKAN registration and data servers",
   "endpointPrefix": "",
   "latency": 0,
   "port": 3001,

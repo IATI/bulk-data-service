@@ -83,12 +83,12 @@ def create_index_created_entries(created_time: datetime) -> dict[str, Any]:
 def get_reporting_orgs_for_datasets(
     context: BDSContext, datasets: dict[uuid.UUID, dict], reporting_orgs: dict[uuid.UUID, dict]
 ) -> list:
-    reporting_org_names_w_datasets = set([dataset["reporting_org_short_name"] for dataset in datasets.values()])
+    reporting_org_ids_w_datasets = set([dataset["reporting_org_id"] for dataset in datasets.values()])
 
     orgs_w_datasets = [
         convert_reporting_org_to_reporting_org_dto(org)
         for org in reporting_orgs.values()
-        if org["short_name"] in reporting_org_names_w_datasets
+        if org["id"] in reporting_org_ids_w_datasets
     ]
 
     return orgs_w_datasets
