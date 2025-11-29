@@ -3,7 +3,7 @@ import random
 import uuid
 from datetime import datetime
 
-from libsuitecrm import SuiteCRM  # type: ignore
+from libsuitecrm import Filter, SuiteCRM  # type: ignore
 
 from bulk_data_service.data_validators import (
     validate_suitecrm_record_structure,
@@ -52,8 +52,8 @@ def fetch_datasets_metadata(
         if owning_org is None:
             context.logger.error(
                 f"SuiteCRM dataset id: {record['id']} has reporting org id: "
-                f"{record['attributes'].get('iati_dataset_owner_org_id', '')} but there is no such reporting org. "
-                "Skipping."
+                f"{record['attributes'].get('iati_dataset_owner_org_id', '')} but that reporting org does not exist "
+                "or is not discoverable. Skipping."
             )
             continue
 
@@ -72,7 +72,8 @@ def fetch_reporting_orgs_metadata(context: BDSContext, refresh_timestamp: dateti
 
     context.logger.info("Fetching all reporting orgs using the libsuitecrm library...")
 
-    suitecrm_reporting_org_records = [r for r in crm.get_all_records("Accounts")]
+    filters = Filter().equal("iati_registry_discoverable", "1")
+    suitecrm_reporting_org_records = [r for r in crm.get_all_records("Accounts", filters=filters)]
 
     crm.logout()
 
