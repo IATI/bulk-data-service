@@ -14,6 +14,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Removed
 
+## [1.4.1]
+
+### Changed
+
+- Modified so that the BDS only pulls reporting orgs marked as discoverable on
+  the Registry.
+
 ## [1.4.0]
 
 ### Added
