@@ -21,7 +21,9 @@ def fetch_datasets_metadata(
 
     crm.fetch_access_token()
 
-    suitecrm_dataset_records = [r for r in crm.get_all_records("IATI_Datasets")]
+    filters = Filter().equal("iati_visibility", "public")
+
+    suitecrm_dataset_records = [r for r in crm.get_all_records("IATI_Datasets", filters=filters)]
 
     crm.logout()
 
