@@ -78,7 +78,8 @@ services:
       ACCEPT_EULA: "Y"
       SQL_WAIT_INTERVAL: 3
     depends_on:
-      - bds-test-env-mq-db
+      bds-test-env-mq-db:
+        condition: service_healthy
     networks:
       bds-local-test-net:
         aliases:
@@ -91,6 +92,11 @@ services:
     environment:
       ACCEPT_EULA: "Y"
       MSSQL_SA_PASSWORD: "${AZURE_SERVICE_BUS_DB_PASS}"
+    healthcheck:
+      test: ["CMD-SHELL", '/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "$$MSSQL_SA_PASSWORD" -Q ''SELECT 1''']
+      interval: 5s
+      timeout: 5s
+      retries: 10
     networks:
       bds-local-test-net:
         aliases:
