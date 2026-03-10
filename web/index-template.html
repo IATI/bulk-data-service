@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <title>IATI Bulk Data Service</title>
-  <link href="https://cdn.jsdelivr.net/npm/iati-design-system@3.14.0/dist/css/iati.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/iati-design-system@4.6.0/dist/css/iati.min.css" rel="stylesheet" />
 </head>
 
 <body class="iati-design-system--enabled">
@@ -32,7 +32,6 @@
 
       <div class="iati-header__section iati-header__section--last iati-brand-background">
         <div class="iati-header__container iati-brand-background__content">
-
           <div class="iati-header__actions">
             <div class="iati-country-switcher">
               <label for="iati-country-switcher" class="iati-country-switcher__label">Choose your language</label>
@@ -40,11 +39,15 @@
                 <option>English</option>
               </select>
             </div>
+            <button class="iati-button iati-button--light hide--mobile-nav" onclick="window.location.assign('https://docs.unified-platform.iatistandard.org/en/latest/bulk-data-service/')">
+              <span>Help Docs</span>
+              <i class="iati-icon iati-icon--info"></i>
+            </button>
           </div>
 
           <div class="iati-header-title">
             <p class="iati-header-title__eyebrow">IATI Tools</p>
-            <p class="iati-header-title__heading">IATI Bulk Data Download</p>
+            <p class="iati-header-title__heading">IATI Bulk Data Service</p>
           </div>
 
         </div>
@@ -54,6 +57,12 @@
   </div>
 
   <main class="iati-main">
+    <p>
+      You can download IATI data from this service, in the packages below. The
+      first three packages contain indices of the data, and the last package is a
+      ZIP file containing all the data files.
+    </p>
+
     <h1>Links</h1>
     <p><a href="/datasets-minimal">IATI Dataset Index - Minimal (JSON)</a></p>
     <p><a href="/datasets-full">IATI Dataset Index - Full (JSON)</a></p>
