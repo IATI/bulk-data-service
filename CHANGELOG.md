@@ -14,6 +14,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Removed
 
+## [1.4.3] - 2026-03-10
+
+### Changed
+
+- Updated website to link to docs and to match naming of this service as it
+  appears on other websites.
+- Change name of service in page.
+- Upgraded the design system.
+
+## [1.4.2] - 2025-12-01
+
+### Changed
+
+- Modified so that the BDS only pulls public datasets from the Registry.
+
 ## [1.4.1]
 
 ### Changed
