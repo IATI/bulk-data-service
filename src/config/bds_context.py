@@ -20,6 +20,7 @@ class BDSContext(UserDict, metaclass=abc.ABCMeta):
         self._RUN_FOR_N_DATASETS = (
             int(self["run_for_n_datasets"]) if self.get("run_for_n_datasets") is not None else None
         )
+        self._RUN_FOR_SINGLE_REPORTING_ORG = self.get("run_for_single_reporting_org", None)
         self._SEND_DATASET_CHECK_MESSAGES = self["SEND_DATASET_CHECK_RESULT_MESSAGES"] == "yes"
         self._SKIP_SAFETY = self.get("skip_safety", False)
 
@@ -50,6 +51,10 @@ class BDSContext(UserDict, metaclass=abc.ABCMeta):
     @property
     def RUN_FOR_N_DATASETS(self) -> int | None:
         return self._RUN_FOR_N_DATASETS
+
+    @property
+    def RUN_FOR_SINGLE_REPORTING_ORG(self) -> str | None:
+        return self._RUN_FOR_SINGLE_REPORTING_ORG
 
     @property
     def SEND_DATASET_CHECK_MESSAGES(self) -> bool:

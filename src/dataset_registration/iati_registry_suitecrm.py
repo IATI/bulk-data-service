@@ -21,6 +21,8 @@ def fetch_datasets_metadata(
 
     crm.fetch_access_token()
 
+    context.logger.info("Fetching all dataset metadata using the libsuitecrm library...")
+
     filters = Filter().equal("iati_visibility", "public")
 
     suitecrm_dataset_records = [r for r in crm.get_all_records("IATI_Datasets", filters=filters)]
@@ -51,6 +53,8 @@ def fetch_datasets_metadata(
             continue
 
         owning_org = reporting_orgs.get(uuid.UUID(record["attributes"]["iati_dataset_owner_org_id"]), None)
+        if context.RUN_FOR_SINGLE_REPORTING_ORG is not None and owning_org is None:
+            continue
         if owning_org is None:
             context.logger.error(
                 f"SuiteCRM dataset id: {record['id']} has reporting org id: "
@@ -63,6 +67,8 @@ def fetch_datasets_metadata(
             record, owning_org, refresh_timestamp
         )
 
+    context.logger.info("Fetched metadata for {} datasets".format(len(results)))
+
     return results
 
 
@@ -72,10 +78,21 @@ def fetch_reporting_orgs_metadata(context: BDSContext, refresh_timestamp: dateti
 
     crm.fetch_access_token()
 
-    context.logger.info("Fetching all reporting orgs using the libsuitecrm library...")
+    context.logger.info("Fetching all reporting org metadata using the libsuitecrm library...")
 
-    filters = Filter().equal("iati_registry_discoverable", "1")
+    filters = Filter().equal("iati_registry_discoverable", "1").equal("iati_registry_approved", 1)
     suitecrm_reporting_org_records = [r for r in crm.get_all_records("Accounts", filters=filters)]
+
+    if context.RUN_FOR_SINGLE_REPORTING_ORG is not None:
+        suitecrm_reporting_org_records = [
+            o
+            for o in suitecrm_reporting_org_records
+            if o.get("attributes", {}).get("iati_short_name", "") == context.RUN_FOR_SINGLE_REPORTING_ORG
+        ]
+        context.logger.info(
+            "--run-for-single-reporting-org is set so only "
+            f"processing reporting org '{context.RUN_FOR_SINGLE_REPORTING_ORG}'."
+        )
 
     crm.logout()
 

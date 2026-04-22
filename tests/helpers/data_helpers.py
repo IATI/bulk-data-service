@@ -3,8 +3,7 @@ import json
 import uuid
 
 from config.bds_context import BDSContext
-from utilities.azure import get_azure_blob_public_url
-from utilities.misc import dataset_has_iati_xml_download, get_object_from_json_str, get_timestamp
+from utilities.misc import get_object_from_json_str, get_timestamp
 
 
 def check_most_recent_get_attempt_http_error(dataset: dict):
@@ -220,4 +219,6 @@ def expected_values_for_dataset_registration_fields(source_url: str) -> list:
 
 def check_registration_service_refreshed_datetime(data_record: dict):
     assert data_record["registration_service_metadata_refreshed_datetime"] is not None
-    assert data_record["registration_service_metadata_refreshed_datetime"] > (get_timestamp() - datetime.timedelta(minutes=1))
+    assert data_record["registration_service_metadata_refreshed_datetime"] > (
+        get_timestamp() - datetime.timedelta(minutes=1)
+    )

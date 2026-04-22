@@ -9,7 +9,7 @@ from bulk_data_service.checker import checker_run
 from dataset_registration.iati_registry_ckan import get_publisher_metadata_as_str
 from dataset_registration.registration_proxy import fetch_datasets_metadata, fetch_reporting_orgs_metadata
 from helpers.helpers import get_and_clear_up_context  # noqa: F401
-from utilities.misc import find_object_by_key, get_timestamp
+from utilities.misc import get_timestamp
 
 
 @pytest.mark.parametrize("http_status_code", ["400", "404", "500"])
@@ -139,7 +139,7 @@ def test_suitecrm_registry_conversion_of_registry_reporting_orgs(get_and_clear_u
     assert ro_1["default_licence_id"] == "gpl-3.0"
     assert ro_1["description"] == "Eaque eaque nostrum quia illum ipsum."
     assert ro_1["exclusions_policy_url"] == "https://www.example.org/exclusions-policy"
-    assert ro_1["first_publication_date"] == None
+    assert ro_1["first_publication_date"] is None
     assert ro_1["hq_country"] == "GB"
     assert ro_1["human_readable_name"] == "Gov Agency 1234"
     assert ro_1["organisation_identifier"] == "GOV-AGENCY-AID-1234"
