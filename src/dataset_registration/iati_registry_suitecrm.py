@@ -80,7 +80,7 @@ def fetch_reporting_orgs_metadata(context: BDSContext, refresh_timestamp: dateti
 
     context.logger.info("Fetching all reporting org metadata using the libsuitecrm library...")
 
-    filters = Filter().equal("iati_registry_discoverable", "1")
+    filters = Filter().equal("iati_registry_discoverable", "1").equal("iati_registry_approved", 1)
     suitecrm_reporting_org_records = [r for r in crm.get_all_records("Accounts", filters=filters)]
 
     if context.RUN_FOR_SINGLE_REPORTING_ORG is not None:
