@@ -20,6 +20,7 @@ def main(args: argparse.Namespace):
     config = config | {
         "single_run": args.single_run,
         "run_for_n_datasets": args.run_for_n_datasets,
+        "run_for_single_reporting_org": args.run_for_single_reporting_org,
         "skip_safety": args.skip_safety,
     }
 
@@ -62,6 +63,11 @@ if __name__ == "__main__":
         "--run-for-n-datasets",
         type=int,
         help="Run on the first N datasets from registration service (useful for testing)",
+    )
+    parser.add_argument(
+        "--run-for-single-reporting-org",
+        type=str,
+        help="Run only for the datasets belonging to the specified reporting org (useful for testing)",
     )
     parser.add_argument(
         "--skip-safety",
