@@ -52,7 +52,10 @@ def test_add_new_undownloadable_dataset(get_and_clear_up_context, source_url, ex
 
 
 @pytest.mark.parametrize(
-    "dataset_url,last_known_good_dataset_hash,last_known_good_dataset_hash_excluding_generated_timestamp,last_known_good_dataset_content_length",
+    (
+        "dataset_url,last_known_good_dataset_hash,last_known_good_dataset_hash_excluding_generated_timestamp,"
+        "last_known_good_dataset_content_length"
+    ),
     [
         (
             "http://localhost:3000/data/test_foundation_a-dataset-001.xml",

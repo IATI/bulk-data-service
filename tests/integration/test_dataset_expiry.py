@@ -25,8 +25,9 @@ def test_dataset_expiry_after_72_hours_failed_downloads(get_and_clear_up_context
     assert get_number_xml_files_in_working_dir(context) == 1
 
     dataset = datasets_in_bds[uuid.UUID("c8a40aa5-9f31-4bcf-a36f-51c1fc2cc159")]
-    dataset["last_known_good_dataset_downloaded"] = (dataset["last_known_good_dataset_downloaded"]
-                                           - timedelta(hours=max_hours + 2))
+    dataset["last_known_good_dataset_downloaded"] = dataset["last_known_good_dataset_downloaded"] - timedelta(
+        hours=max_hours + 2
+    )
 
     context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-03-1-dataset-404"
     checker_run(context, datasets_in_bds)

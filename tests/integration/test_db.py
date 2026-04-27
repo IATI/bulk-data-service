@@ -12,7 +12,7 @@ from utilities.db import (
 )
 
 
-def test_save_reporting_org_db_record(get_and_clear_up_context):
+def test_save_reporting_org_db_record(get_and_clear_up_context):  # noqa: F811
 
     context = get_and_clear_up_context
 
@@ -51,7 +51,7 @@ def test_save_reporting_org_db_record(get_and_clear_up_context):
     assert reporting_org_from_db == reporting_org
 
 
-def test_save_dataset_db_record(get_and_clear_up_context):
+def test_save_dataset_db_record(get_and_clear_up_context):  # noqa: F811
 
     context = get_and_clear_up_context
 

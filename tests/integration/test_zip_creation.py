@@ -2,7 +2,6 @@ import json
 import os
 import zipfile
 
-import pytest
 import requests
 
 from bulk_data_service.checker import checker_run
@@ -18,9 +17,14 @@ def test_dataset_saved_for_download_success(get_and_clear_up_context):  # noqa: 
     run_checker_then_zipper_once(context)
 
     assert get_number_xml_files_in_working_dir(context) == 1
-    assert os.path.exists("{}{}".format(
-        context["ZIP_WORKING_DIR"],
-        "/iati-data/datasets/test_foundation_a/test_foundation_a-dataset-001.xml")) is True
+    assert (
+        os.path.exists(
+            "{}{}".format(
+                context["ZIP_WORKING_DIR"], "/iati-data/datasets/test_foundation_a/test_foundation_a-dataset-001.xml"
+            )
+        )
+        is True
+    )
 
 
 def test_dataset_not_saved_for_download_fail_and_no_cache(get_and_clear_up_context):  # noqa: F811
@@ -39,9 +43,14 @@ def test_dataset_saved_for_download_fail_but_cached(get_and_clear_up_context):  
     run_checker_then_zipper_download_fail_but_cached(context)
 
     assert get_number_xml_files_in_working_dir(context) == 1
-    assert os.path.exists("{}{}".format(
-        context["ZIP_WORKING_DIR"],
-        "/iati-data/datasets/test_foundation_a/test_foundation_a-dataset-001.xml")) is True
+    assert (
+        os.path.exists(
+            "{}{}".format(
+                context["ZIP_WORKING_DIR"], "/iati-data/datasets/test_foundation_a/test_foundation_a-dataset-001.xml"
+            )
+        )
+        is True
+    )
 
 
 def test_publisher_metadata_saved_for_failed_metadata_dl(get_and_clear_up_context):  # noqa: F811
@@ -106,14 +115,21 @@ def test_dataset_metadata_content_for_successful_metadata_dl(get_and_clear_up_co
 
     download_and_unpack_zip_to_tmp_unpack_folder(context, "code-for-iati-data-download.zip")
 
-    with open(context["TEST_TMP_ZIP_UNPACK"] + "/iati-data-main/metadata/test_foundation_a/test_foundation_a-dataset-001-newname.json", "r") as f:
+    with open(
+        context["TEST_TMP_ZIP_UNPACK"]
+        + "/iati-data-main/metadata/test_foundation_a/test_foundation_a-dataset-001-newname.json",
+        "r",
+    ) as f:
         assert f.read() == json.dumps(
             {
                 "id": "c8a40aa5-9f31-4bcf-a36f-51c1fc2cc159",
                 "license_id": "uk-ogl",
                 "license_title": "UK Open Government Licence (OGL)",
                 "name": "test_foundation_a-dataset-001-newname",
-                "organization": {"id": "ea055d99-f7e9-456f-9f99-963e95493c1b", "name": "test_foundation_a", },
+                "organization": {
+                    "id": "ea055d99-f7e9-456f-9f99-963e95493c1b",
+                    "name": "test_foundation_a",
+                },
                 "resources": [{"url": "http://localhost:3000/not_found"}],
                 "extras": [],
                 "tags": [],
@@ -134,7 +150,9 @@ def test_bds_zip_content_for_download_success(get_and_clear_up_context):  # noqa
     assert file_found_in_extracted_zip(context, "iati-data/datasets-minimal.json")
     assert file_found_in_extracted_zip(context, "iati-data/datasets-full.json")
     assert file_found_in_extracted_zip(context, "iati-data/reporting-orgs.json")
-    assert file_found_in_extracted_zip(context, "iati-data/datasets/test_foundation_a/test_foundation_a-dataset-001.xml")
+    assert file_found_in_extracted_zip(
+        context, "iati-data/datasets/test_foundation_a/test_foundation_a-dataset-001.xml"
+    )
 
 
 def test_bds_zip_content_for_download_success_dataset_updated_meta(get_and_clear_up_context, tmp_path):  # noqa: F811
@@ -161,10 +179,14 @@ def test_bds_zip_content_for_download_success_dataset_updated_meta(get_and_clear
     assert file_found_in_extracted_zip(context, "iati-data/datasets-minimal.json")
     assert file_found_in_extracted_zip(context, "iati-data/datasets-full.json")
     assert file_found_in_extracted_zip(context, "iati-data/reporting-orgs.json")
-    assert file_found_in_extracted_zip(context, "iati-data/datasets/test_foundation_a/test_foundation_a-dataset-001-newname.xml")
+    assert file_found_in_extracted_zip(
+        context, "iati-data/datasets/test_foundation_a/test_foundation_a-dataset-001-newname.xml"
+    )
 
     # The dataset as it was originally named should not be found
-    assert not file_found_in_extracted_zip(context, "iati-data/datasets/test_foundation_a/test_foundation_a-dataset-001.xml")
+    assert not file_found_in_extracted_zip(
+        context, "iati-data/datasets/test_foundation_a/test_foundation_a-dataset-001.xml"
+    )
 
 
 def test_bds_zip_content_for_download_success_dataset_updated_content(get_and_clear_up_context):  # noqa: F811
@@ -193,7 +215,12 @@ def test_bds_zip_content_for_download_success_dataset_updated_content(get_and_cl
 
     assert file_found_in_extracted_zip(context, "iati-data/datasets-minimal.json")
 
-    with open(os.path.join(context["TEST_TMP_ZIP_UNPACK"], "iati-data/datasets/test_foundation_a/test_foundation_a-dataset-001.xml"), "rb") as f:
+    with open(
+        os.path.join(
+            context["TEST_TMP_ZIP_UNPACK"], "iati-data/datasets/test_foundation_a/test_foundation_a-dataset-001.xml"
+        ),
+        "rb",
+    ) as f:
         contents_from_zip = f.read()
 
     with open("tests/artifacts/iati-xml-files/test_foundation_a-dataset-001-updated.xml", "rb") as f:
@@ -213,7 +240,9 @@ def test_bds_zip_content_for_download_fail_but_cached(get_and_clear_up_context):
     assert file_found_in_extracted_zip(context, "iati-data/datasets-minimal.json")
     assert file_found_in_extracted_zip(context, "iati-data/datasets-full.json")
     assert file_found_in_extracted_zip(context, "iati-data/reporting-orgs.json")
-    assert file_found_in_extracted_zip(context, "iati-data/datasets/test_foundation_a/test_foundation_a-dataset-001.xml")
+    assert file_found_in_extracted_zip(
+        context, "iati-data/datasets/test_foundation_a/test_foundation_a-dataset-001.xml"
+    )
 
 
 def test_bds_zip_content_for_download_fail_no_cached(get_and_clear_up_context):  # noqa: F811
@@ -227,7 +256,9 @@ def test_bds_zip_content_for_download_fail_no_cached(get_and_clear_up_context): 
     assert file_found_in_extracted_zip(context, "iati-data/datasets-minimal.json")
     assert file_found_in_extracted_zip(context, "iati-data/datasets-full.json")
     assert file_found_in_extracted_zip(context, "iati-data/reporting-orgs.json")
-    assert not file_found_in_extracted_zip(context, "iati-data/datasets/test_foundation_a/test_foundation_a-dataset-001.xml")
+    assert not file_found_in_extracted_zip(
+        context, "iati-data/datasets/test_foundation_a/test_foundation_a-dataset-001.xml"
+    )
 
 
 def test_codeforiati_zip_content_for_download_success(get_and_clear_up_context):  # noqa: F811
@@ -242,9 +273,13 @@ def test_codeforiati_zip_content_for_download_success(get_and_clear_up_context):
     assert not file_found_in_extracted_zip(context, "iati-data/datasets-full.json")
     assert not file_found_in_extracted_zip(context, "iati-data/reporting-orgs.json")
     assert file_found_in_extracted_zip(context, "iati-data-main/metadata.json")
-    assert file_found_in_extracted_zip(context, "iati-data-main/data/test_foundation_a/test_foundation_a-dataset-001.xml")
+    assert file_found_in_extracted_zip(
+        context, "iati-data-main/data/test_foundation_a/test_foundation_a-dataset-001.xml"
+    )
     assert file_found_in_extracted_zip(context, "iati-data-main/metadata/test_foundation_a.json")
-    assert file_found_in_extracted_zip(context, "iati-data-main/metadata/test_foundation_a/test_foundation_a-dataset-001.json")
+    assert file_found_in_extracted_zip(
+        context, "iati-data-main/metadata/test_foundation_a/test_foundation_a-dataset-001.json"
+    )
 
 
 def test_codeforiati_zip_content_for_download_fail_but_cached(get_and_clear_up_context):  # noqa: F811
@@ -259,9 +294,13 @@ def test_codeforiati_zip_content_for_download_fail_but_cached(get_and_clear_up_c
     assert not file_found_in_extracted_zip(context, "iati-data/datasets-full.json")
     assert not file_found_in_extracted_zip(context, "iati-data/reporting-orgs.json")
     assert file_found_in_extracted_zip(context, "iati-data-main/metadata.json")
-    assert file_found_in_extracted_zip(context, "iati-data-main/data/test_foundation_a/test_foundation_a-dataset-001.xml")
+    assert file_found_in_extracted_zip(
+        context, "iati-data-main/data/test_foundation_a/test_foundation_a-dataset-001.xml"
+    )
     assert file_found_in_extracted_zip(context, "iati-data-main/metadata/test_foundation_a.json")
-    assert file_found_in_extracted_zip(context, "iati-data-main/metadata/test_foundation_a/test_foundation_a-dataset-001.json")
+    assert file_found_in_extracted_zip(
+        context, "iati-data-main/metadata/test_foundation_a/test_foundation_a-dataset-001.json"
+    )
 
 
 def test_codeforiati_zip_content_for_download_fail_no_cached(get_and_clear_up_context):  # noqa: F811
@@ -276,11 +315,23 @@ def test_codeforiati_zip_content_for_download_fail_no_cached(get_and_clear_up_co
     assert not file_found_in_extracted_zip(context, "iati-data/datasets-full.json")
     assert not file_found_in_extracted_zip(context, "iati-data/reporting-orgs.json")
     assert file_found_in_extracted_zip(context, "iati-data-main/metadata.json")
-    assert file_found_in_extracted_zip(context, "iati-data-main/data/test_foundation_a/test_foundation_a-dataset-001.xml")
+    assert file_found_in_extracted_zip(
+        context, "iati-data-main/data/test_foundation_a/test_foundation_a-dataset-001.xml"
+    )
     assert file_found_in_extracted_zip(context, "iati-data-main/metadata/test_foundation_a.json")
-    assert file_found_in_extracted_zip(context, "iati-data-main/metadata/test_foundation_a/test_foundation_a-dataset-001.json")
+    assert file_found_in_extracted_zip(
+        context, "iati-data-main/metadata/test_foundation_a/test_foundation_a-dataset-001.json"
+    )
 
-    assert os.path.getsize(os.path.join(context["TEST_TMP_ZIP_UNPACK"], "iati-data-main/data/test_foundation_a/test_foundation_a-dataset-001.xml")) == 0
+    assert (
+        os.path.getsize(
+            os.path.join(
+                context["TEST_TMP_ZIP_UNPACK"],
+                "iati-data-main/data/test_foundation_a/test_foundation_a-dataset-001.xml",
+            )
+        )
+        == 0
+    )
 
 
 def run_checker_then_zipper(context, registry_url: str, datasets_in_bds: dict, datasets_in_zip: dict):

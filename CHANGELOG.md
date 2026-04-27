@@ -14,6 +14,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Removed
 
+## [1.4.4] - 2026-04-22
+
+### Added
+
+- Command line flag to enable processing of a single reporting org.
+
+### Fixed
+
+- Stop datasets from unapproved reporting orgs from being processed.
+
 ## [1.4.3] - 2026-03-10
 
 ### Changed

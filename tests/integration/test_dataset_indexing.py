@@ -15,7 +15,7 @@ from helpers.data_helpers import (
 from helpers.helpers import download_index_from_azure, get_and_clear_up_context  # noqa: F401
 from utilities.azure import get_azure_container_name
 from utilities.db import get_reporting_orgs_in_bds
-from utilities.misc import find_object_by_key, format_timestamp_as_utc_str
+from utilities.misc import find_object_by_key
 
 
 def test_indices_uploaded_to_blob_storage(get_and_clear_up_context):  # noqa: F811

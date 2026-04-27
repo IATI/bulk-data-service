@@ -48,7 +48,6 @@ async def test_dataset_created_message_01_success(get_and_clear_up_context, serv
     check_registration_service_refreshed_datetime(datasets_in_bds[dataset_id])
 
 
-
 @pytest.mark.asyncio
 async def test_dataset_created_message_02_error_dataset_already_exists(
     get_and_clear_up_context, service_bus_context  # noqa: F811
