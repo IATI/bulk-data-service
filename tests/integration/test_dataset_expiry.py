@@ -36,6 +36,11 @@ def test_dataset_expiry_after_72_hours_failed_downloads(get_and_clear_up_context
     dataset = datasets_in_bds[uuid.UUID("c8a40aa5-9f31-4bcf-a36f-51c1fc2cc159")]
 
     assert len(datasets_in_bds) == 1
+
+    assert dataset["last_known_good_dataset_cached_dataset_xml_url"] is None
+    assert dataset["last_known_good_dataset_cached_dataset_xml_etag"] is None
+    assert dataset["last_known_good_dataset_cached_dataset_zip_url"] is None
+    assert dataset["last_known_good_dataset_cached_dataset_zip_etag"] is None
     assert dataset["last_known_good_dataset_downloaded"] is None
     assert dataset["last_known_good_dataset_hash"] is None
     assert dataset["last_known_good_dataset_hash_excluding_generated_timestamp"] is None
