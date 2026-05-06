@@ -61,7 +61,7 @@ The `.env` file is used when running things locally to store environment variabl
 
 Running the app successfully requires a Postgres database and a connection to an Azure blob storage account. There is a docker compose setup which can be used to start an instance of each service locally, that can be run with:
 
-```
+```bash
 docker compose up -d
 ```
 
@@ -69,17 +69,34 @@ The example `.env` file (`.env-example`) is configured to use the above docker c
 
 Once the docker compose setup is running, you can run the dataset updater part of the app with (this will download the datasets and upload them to Azurite):
 
-```
+```bash
 dotenv run python src/iati_bulk_data_service.py -- --operation checker --single-run --run-for-n-datasets=50
 ```
 
 You can run the zipper operation with:
 
-```
+```bash
 dotenv run python src/iati_bulk_data_service.py -- --operation zipper --single-run
 ```
 
 It will store the ZIP files in the directory defined in the `ZIP_WORKING_DIR` environment variable.
+
+The full range of command line arguments is listed below:
+
+```
+usage: iati_bulk_data_service.py [-h] --operation {checker,zipper,registry-changes-processor} [--single-run] [--run-for-n-datasets RUN_FOR_N_DATASETS] [--run-for-single-reporting-org RUN_FOR_SINGLE_REPORTING_ORG] [--skip-safety]
+
+options:
+  -h, --help            show this help message and exit
+  --operation {checker,zipper,registry-changes-processor}
+                        Operation to run: checker, downloader, registry-changes-processor
+  --single-run          Perform a single run, then exit
+  --run-for-n-datasets RUN_FOR_N_DATASETS
+                        Run on the first N datasets from registration service (useful for testing)
+  --run-for-single-reporting-org RUN_FOR_SINGLE_REPORTING_ORG
+                        Run only for the datasets belonging to the specified reporting org short name (useful for testing)
+  --skip-safety         Skip safety checks during the run (useful for testing)
+```
 
 To shutdown the docker compose setup, use (the Azure Service Bus emulator
 appears to be a bit sensitive to Ctrl-C shutdowns, so always best to shutdown
