@@ -14,6 +14,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Removed
 
+## [1.4.5] - 2026-05-06
+
+### Changed
+
+- Updated IATI Design System to 4.9.0
+
+### Fixed
+
+- Bug where the dataset's cached URLs were not being blanked after dataset expiry. (Resolves #137)
+- Bug where `most_recent_head_attempt.error_occurred` was being set to `null` instead of `false`. (Resolves #136).
+
 ## [1.4.4] - 2026-04-22
 
 ### Added
