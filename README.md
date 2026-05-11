@@ -239,6 +239,8 @@ pytest-watcher .
 
 ### Initial Provisioning
 
+#### Bulk Data Service App
+
 You can create an Azure-based instance of Bulk Data Service using the `azure-create-resources.sh` script. It must be run from the root of the repository, and it requires (i) the environment variable `BDS_DB_ADMIN_PASSWORD` to be set with the password for the database, and (ii) a single parameter which is the name of the environment/instance. For instance, the following command will create a dev instance:
 
 ```bash
@@ -248,6 +250,16 @@ BDS_DB_ADMIN_PASSWORD=passwordHere ./azure-provision/azure-create-resources.sh d
 This will create a resource group on Azure called `rg-bulk-data-service-dev`, and then create and configure all the Azure resources needed for the Bulk Data Service within that resource group (except for the Container Instance, which is created/updated as part of the deploy stage).
 
 At the end of its run, the `azure-create-resources.sh` script will print out various secrets which need to be added to Github Actions.
+
+**NOTE**: This is only really useful for temporary deployment or initial setup; once you're setup with CI/CD, the GitHub action does all this.
+
+#### Bulk Data Service Network and Public IP
+
+The Bulk Data Service is deployed to a dedicated vnet with subnet and attached NAT Gateway which has a public IP. To ensure the IP remains, these are not destroyed and re-created on every release (like the Azure Container Instances are). To create the networks and public IPs for dev and production, run:
+
+```bash
+./azure-provision/create-vnets-public-ips.sh
+```
 
 ### Deployment - Versioning
 

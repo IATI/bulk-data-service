@@ -14,6 +14,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Removed
 
+## [1.4.6] - 2026-05-11
+
+### Changed
+
+- Updated deploy to use dedicated vnet & subnet
+
+### Fixed
+
+- Added env var for the MQ topic name to the GitHub workflow.
+
 ## [1.4.5] - 2026-05-06
 
 ### Changed
