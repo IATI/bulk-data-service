@@ -14,6 +14,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Removed
 
+## [1.4.7] - 2026-05-11
+
+### Added
+
+- Added back in the manual deploy script
+
+### Fixed
+
+- Fixed Azure deploy to use full resource identifiers for dedicated vnet & subnet
+
 ## [1.4.6] - 2026-05-11
 
 ### Changed
