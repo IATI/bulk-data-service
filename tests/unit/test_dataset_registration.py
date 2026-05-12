@@ -5,6 +5,7 @@ from unittest import mock
 
 import pytest
 
+from bulk_data_service.dataset import create_empty_dataset
 from dataset_registration.iati_registry_ckan import clean_datasets_metadata, convert_datasets_metadata
 
 
@@ -40,6 +41,12 @@ def test_incomplete_necessary_data_from_ckan(field_blanker, attribute_value):
     ckan_datasets = clean_datasets_metadata(logger, ckan_datasets)
 
     assert(len(ckan_datasets) == 0)
+
+
+def test_create_empty_dataset_error_occurred_defaults_to_false():
+    ds = create_empty_dataset()
+    assert ds["most_recent_head_attempt_error_occurred"] is False
+    assert ds["most_recent_get_attempt_error_occurred"] is False
 
 
 @pytest.mark.parametrize("resources_value", [None, [], {"url": None}])
