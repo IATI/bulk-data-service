@@ -61,7 +61,7 @@ The `.env` file is used when running things locally to store environment variabl
 
 Running the app successfully requires a Postgres database and a connection to an Azure blob storage account. There is a docker compose setup which can be used to start an instance of each service locally, that can be run with:
 
-```
+```bash
 docker compose up -d
 ```
 
@@ -69,17 +69,34 @@ The example `.env` file (`.env-example`) is configured to use the above docker c
 
 Once the docker compose setup is running, you can run the dataset updater part of the app with (this will download the datasets and upload them to Azurite):
 
-```
+```bash
 dotenv run python src/iati_bulk_data_service.py -- --operation checker --single-run --run-for-n-datasets=50
 ```
 
 You can run the zipper operation with:
 
-```
+```bash
 dotenv run python src/iati_bulk_data_service.py -- --operation zipper --single-run
 ```
 
 It will store the ZIP files in the directory defined in the `ZIP_WORKING_DIR` environment variable.
+
+The full range of command line arguments is listed below:
+
+```
+usage: iati_bulk_data_service.py [-h] --operation {checker,zipper,registry-changes-processor} [--single-run] [--run-for-n-datasets RUN_FOR_N_DATASETS] [--run-for-single-reporting-org RUN_FOR_SINGLE_REPORTING_ORG] [--skip-safety]
+
+options:
+  -h, --help            show this help message and exit
+  --operation {checker,zipper,registry-changes-processor}
+                        Operation to run: checker, downloader, registry-changes-processor
+  --single-run          Perform a single run, then exit
+  --run-for-n-datasets RUN_FOR_N_DATASETS
+                        Run on the first N datasets from registration service (useful for testing)
+  --run-for-single-reporting-org RUN_FOR_SINGLE_REPORTING_ORG
+                        Run only for the datasets belonging to the specified reporting org short name (useful for testing)
+  --skip-safety         Skip safety checks during the run (useful for testing)
+```
 
 To shutdown the docker compose setup, use (the Azure Service Bus emulator
 appears to be a bit sensitive to Ctrl-C shutdowns, so always best to shutdown
@@ -222,6 +239,8 @@ pytest-watcher .
 
 ### Initial Provisioning
 
+#### Bulk Data Service App
+
 You can create an Azure-based instance of Bulk Data Service using the `azure-create-resources.sh` script. It must be run from the root of the repository, and it requires (i) the environment variable `BDS_DB_ADMIN_PASSWORD` to be set with the password for the database, and (ii) a single parameter which is the name of the environment/instance. For instance, the following command will create a dev instance:
 
 ```bash
@@ -231,6 +250,16 @@ BDS_DB_ADMIN_PASSWORD=passwordHere ./azure-provision/azure-create-resources.sh d
 This will create a resource group on Azure called `rg-bulk-data-service-dev`, and then create and configure all the Azure resources needed for the Bulk Data Service within that resource group (except for the Container Instance, which is created/updated as part of the deploy stage).
 
 At the end of its run, the `azure-create-resources.sh` script will print out various secrets which need to be added to Github Actions.
+
+**NOTE**: This is only really useful for temporary deployment or initial setup; once you're setup with CI/CD, the GitHub action does all this.
+
+#### Bulk Data Service Network and Public IP
+
+The Bulk Data Service is deployed to a dedicated vnet with subnet and attached NAT Gateway which has a public IP. To ensure the IP remains, these are not destroyed and re-created on every release (like the Azure Container Instances are). To create the networks and public IPs for dev and production, run:
+
+```bash
+./azure-provision/create-vnets-public-ips.sh
+```
 
 ### Deployment - Versioning
 

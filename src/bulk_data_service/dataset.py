@@ -43,9 +43,11 @@ DATASET_REGISTRATION_FIELDS = [
 def create_empty_dataset() -> dict[str, Any]:
     empty_ds = {
         k: None for k in DATASET_REGISTRATION_FIELDS + DATASET_NON_REGISTRATION_FIELDS
-    }  # type: dict[str, str | None]
+    }  # type: dict[str, str | bool | None]
     empty_ds["most_recent_get_attempt_error_details"] = make_http_attempt_error_details()
+    empty_ds["most_recent_get_attempt_error_occurred"] = False
     empty_ds["most_recent_head_attempt_error_details"] = make_http_attempt_error_details()
+    empty_ds["most_recent_head_attempt_error_occurred"] = False
     return empty_ds
 
 

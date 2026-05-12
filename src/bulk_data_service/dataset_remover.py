@@ -77,6 +77,10 @@ def remove_download_for_expired_dataset(
         "last good download from Bulk Data Service".format(bds_dataset["id"], max_hours)
     )
 
+    bds_dataset["last_known_good_dataset_cached_dataset_xml_url"] = None
+    bds_dataset["last_known_good_dataset_cached_dataset_xml_etag"] = None
+    bds_dataset["last_known_good_dataset_cached_dataset_zip_url"] = None
+    bds_dataset["last_known_good_dataset_cached_dataset_zip_etag"] = None
     bds_dataset["last_known_good_dataset_downloaded"] = None
     bds_dataset["last_known_good_dataset_hash"] = None
     bds_dataset["last_known_good_dataset_hash_excluding_generated_timestamp"] = None

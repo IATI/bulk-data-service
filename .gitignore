@@ -196,5 +196,7 @@ __marimo__/
 
 /azure-deployment/azure-resource-manager-deployment-manifest.yml
 /azure-deployment/nginx-reverse-proxy/htpasswd
+/azure-deployment/manual-azure-deploy-secrets.env
+/azure-deployment/manual-azure-deploy-variables.env
 
 /web/index.html

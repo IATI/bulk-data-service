@@ -6,9 +6,9 @@
 # by the generic 'build-and-deploy' Github action
 
 if [ "$LOCAL_DEPLOY" == "true" ]; then
-    echo "Deploying from local environment..."
-    source ./azure-deployment/manual-azure-deploy-secrets.env
-    source ./azure-deployment/manual-azure-deploy-variables.env
+	echo "Deploying from local environment..."
+	source ./azure-deployment/manual-azure-deploy-secrets.env
+	source ./azure-deployment/manual-azure-deploy-variables.env
 fi
 
 # Copy the template to the manifest
@@ -20,6 +20,8 @@ cp -f ./azure-deployment/azure-resource-manager-deployment-template.yml ./azure-
 sed -i "s^#APP_NAME#^$APP_NAME^g" ./azure-deployment/azure-resource-manager-deployment-manifest.yml
 sed -i "s^#TARGET_ENVIRONMENT#^$TARGET_ENVIRONMENT^g" ./azure-deployment/azure-resource-manager-deployment-manifest.yml
 sed -i "s^#DOCKER_IMAGE_TAG#^$DOCKER_IMAGE_TAG^g" ./azure-deployment/azure-resource-manager-deployment-manifest.yml
+
+sed -i ''s^#AZURE_SUBSCRIPTION_ID#^$AZURE_SUBSCRIPTION_ID^g'' ./azure-deployment/azure-resource-manager-deployment-manifest.yml
 
 sed -i ''s^#ACR_LOGIN_SERVER#^$ACR_LOGIN_SERVER^g'' ./azure-deployment/azure-resource-manager-deployment-manifest.yml
 sed -i ''s^#ACR_USERNAME#^$ACR_USERNAME^g'' ./azure-deployment/azure-resource-manager-deployment-manifest.yml
@@ -37,7 +39,6 @@ sed -i ''s^#DB_PASS#^$DB_PASS^g'' ./azure-deployment/azure-resource-manager-depl
 sed -i ''s^#DB_NAME#^$DB_NAME^g'' ./azure-deployment/azure-resource-manager-deployment-manifest.yml
 sed -i ''s^#DB_SSL_MODE#^$DB_SSL_MODE^g'' ./azure-deployment/azure-resource-manager-deployment-manifest.yml
 sed -i ''s^#DB_CONNECTION_TIMEOUT#^$DB_CONNECTION_TIMEOUT^g'' ./azure-deployment/azure-resource-manager-deployment-manifest.yml
-
 
 # Variables which configure the behaviour of the Bulk Data Service
 

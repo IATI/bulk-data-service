@@ -101,6 +101,8 @@ def test_add_downloadable_dataset_for_various_encodings(
 
     check_most_recent_http_attempt_for_success("get", datasets_in_bds[dataset_id])
 
+    assert datasets_in_bds[dataset_id]["most_recent_head_attempt_error_occurred"] is False
+
     check_last_known_good_dataset_values_are_set(datasets_in_bds[dataset_id])
 
     check_dataset_fields(

@@ -105,8 +105,9 @@ properties: # Properties of container group
           requests:
             cpu: 1.0
             memoryInGB: 0.5
+  subnetIds:
+    - id: "/subscriptions/#AZURE_SUBSCRIPTION_ID#/resourceGroups/rg-#APP_NAME#-vnets/providers/Microsoft.Network/virtualNetworks/#APP_NAME#-#TARGET_ENVIRONMENT#-vnet/subnets/#APP_NAME#-#TARGET_ENVIRONMENT#-subnet"
   ipAddress:
-    type: "public"
-    dnsNameLabel: "#APP_NAME#-#TARGET_ENVIRONMENT#"
+    type: "private"
     ports:
       - port: 9158
