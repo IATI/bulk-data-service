@@ -32,6 +32,7 @@ jobs:
           echo "CONTAINER_INSTANCE_BASE_NAME=aci-${APP_NAME}" >> ${GITHUB_ENV}
           echo "RESOURCE_GROUP_BASE_NAME=rg-${APP_NAME}" >> ${GITHUB_ENV}
           echo "STORAGE_ACCOUNT_NAME=sa${APP_NAME//-/}$TARGET_ENVIRONMENT" >> ${GITHUB_ENV}
+          echo "APP_NAME=${APP_NAME}" >> ${GITHUB_ENV}
 
       - name: 'Print calculated environment variables'
         run: |
@@ -39,7 +40,7 @@ jobs:
           echo $CONTAINER_INSTANCE_BASE_NAME
           echo $RESOURCE_GROUP_BASE_NAME
           echo $STORAGE_ACCOUNT_NAME
-
+          echo $APP_NAME
       - name: 'Checkout GitHub Action'
         uses: actions/checkout@v4
 
@@ -105,6 +106,7 @@ jobs:
           LOG_WORKSPACE_KEY: ${{ secrets[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'LOG_WORKSPACE_KEY')] }}
 
           # Variables which configure the app
+          AZURE_SERVICE_BUS_DATASET_CHECK_RESULTS_TOPIC_NAME: ${{ vars[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'AZURE_SERVICE_BUS_DATASET_CHECK_RESULTS_TOPIC_NAME')] }}
           AZURE_SERVICE_BUS_REGISTRY_SUB_NAME: ${{ vars[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'AZURE_SERVICE_BUS_REGISTRY_SUB_NAME')] }}
           AZURE_SERVICE_BUS_REGISTRY_TOPIC_NAME: ${{ vars[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'AZURE_SERVICE_BUS_REGISTRY_TOPIC_NAME')] }}
           AZURE_SERVICE_BUS_WAIT_TIME: ${{ vars[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'AZURE_SERVICE_BUS_WAIT_TIME')] }}
@@ -137,6 +139,8 @@ jobs:
             az -v
             az container create --debug \
             --resource-group "${{ env.RESOURCE_GROUP_BASE_NAME }}-${{ env.TARGET_ENVIRONMENT }}" \
+            --vnet "${{ env.APP_NAME }}-${{ env.TARGET_ENVIRONMENT }}-vnet" \
+            --subnet "${{ env.APP_NAME }}-${{ env.TARGET_ENVIRONMENT }}-subnet" \
             --file ./azure-deployment/azure-resource-manager-deployment-manifest.yml
 
       - name: 'Re-generate the website links'
