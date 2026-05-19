@@ -14,6 +14,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Removed
 
+## [1.4.8] - 2026-05-18
+
+### Removed
+
+ - Fixed IP deployment
+
 ## [1.4.7] - 2026-05-11
 
 ### Added

@@ -143,8 +143,6 @@ jobs:
             az -v
             az container create --debug \
             --resource-group "${{ env.RESOURCE_GROUP_BASE_NAME }}-${{ env.TARGET_ENVIRONMENT }}" \
-            --vnet "/subscriptions/${{ env.AZURE_SUBSCRIPTION_ID }}/resourceGroups/rg-${{ env.APP_NAME }}-vnets/providers/Microsoft.Network/virtualNetworks/${{ env.APP_NAME }}-${{ env.TARGET_ENVIRONMENT }}-vnet" \
-            --subnet "/subscriptions/${{ env.AZURE_SUBSCRIPTION_ID }}/resourceGroups/rg-${{ env.APP_NAME }}-vnets/providers/Microsoft.Network/virtualNetworks/${{ env.APP_NAME }}-${{ env.TARGET_ENVIRONMENT }}-vnet/subnets/${{ env.APP_NAME }}-${{ env.TARGET_ENVIRONMENT }}-subnet" \
             --file ./azure-deployment/azure-resource-manager-deployment-manifest.yml
 
       - name: 'Re-generate the website links'
