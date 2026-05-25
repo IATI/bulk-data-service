@@ -14,6 +14,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Removed
 
+## [1.4.9] - 2026-05-25
+
+### Fixed
+
+ - Updated error handling for MQ sending so that any errors sending dataset
+   check results doesn't cause checker loop to exit early.
+
 ## [1.4.8] - 2026-05-18
 
 ### Removed

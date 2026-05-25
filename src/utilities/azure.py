@@ -184,9 +184,14 @@ def send_dataset_check_result_message(context: BDSContext, msg_payload: dict, re
         try:
             send_message_to_iati_mq(context, topic_name, msg_payload)
             break
-        except azure.servicebus.exceptions.ServiceBusConnectionError as e:
+        except azure.servicebus.exceptions.ServiceBusError as e:
             if retry_number == retries:
-                raise RuntimeError("{}".format(e))
+                context.logger.error(
+                    "Dataset check result message could not be sent to the IATI MQ after {} attempts. "
+                    "Error details: {}".format(retry_number, e)
+                )
+        except Exception as e:
+            raise RuntimeError("{}".format(e))
 
 
 def send_message_to_iati_mq(context: BDSContext, topic_name, msg_payload):
