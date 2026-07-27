@@ -28,7 +28,7 @@ jobs:
       AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
     steps:
-      - name: 'Generate/build derived environment variables'
+      - name: "Generate/build derived environment variables"
         run: |
           echo "TARGET_ENVIRONMENT_UPPER=${TARGET_ENVIRONMENT^^}" >> ${GITHUB_ENV}
           echo "CONTAINER_INSTANCE_BASE_NAME=aci-${APP_NAME}" >> ${GITHUB_ENV}
@@ -37,7 +37,7 @@ jobs:
           echo "APP_NAME=${APP_NAME}" >> ${GITHUB_ENV}
           echo "AZURE_SUBSCRIPTION_ID=${AZURE_SUBSCRIPTION_ID}" >> ${GITHUB_ENV}
 
-      - name: 'Print calculated environment variables'
+      - name: "Print calculated environment variables"
         run: |
           echo $TARGET_ENVIRONMENT_UPPER
           echo $CONTAINER_INSTANCE_BASE_NAME
@@ -45,45 +45,46 @@ jobs:
           echo $STORAGE_ACCOUNT_NAME
           echo $APP_NAME
           echo $AZURE_SUBSCRIPTION_ID
-      - name: 'Checkout GitHub Action'
+
+      - name: "Checkout GitHub Action"
         uses: actions/checkout@v4
 
-      - name: 'Login via Azure CLI'
+      - name: "Login via Azure CLI"
         uses: azure/login@v2
         with:
           creds: ${{ secrets[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'AZURE_CREDENTIALS')] }}
 
-      - name: 'Login to Docker Hub'
+      - name: "Login to Docker Hub"
         uses: docker/login-action@v3.2.0
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
-      - name: 'Login to Azure Container Registry'
+      - name: "Login to Azure Container Registry"
         uses: azure/docker-login@v2
         with:
           login-server: ${{ env.ACR_LOGIN_SERVER }}
           username: ${{ env.ACR_USERNAME }}
           password: ${{ env.ACR_PASSWORD }}
 
-      - name: 'Build and push image'
+      - name: "Build and push image"
         run: |
           IMAGE_NAME=$ACR_LOGIN_SERVER/$APP_NAME-$TARGET_ENVIRONMENT:$DOCKER_IMAGE_TAG
           echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_ENV
           docker build . -f Dockerfile -t $IMAGE_NAME
           docker push $IMAGE_NAME
 
-      - name: 'Print IMAGE_NAME for Bulk Data Service image'
+      - name: "Print IMAGE_NAME for Bulk Data Service image"
         run: echo $IMAGE_NAME
 
-      - name: 'Create htpasswd file for nginx reverse proxy'
+      - name: "Create htpasswd file for nginx reverse proxy"
         run: |
           htpasswd -BC 10 -c -b ./azure-deployment/nginx-reverse-proxy/htpasswd prom "${{ secrets.PROM_NGINX_REVERSE_PROXY_PASSWORD }}"
           docker build ./azure-deployment/nginx-reverse-proxy -t criati.azurecr.io/bds-prom-nginx-reverse-proxy-$TARGET_ENVIRONMENT:$DOCKER_IMAGE_TAG
           docker push criati.azurecr.io/bds-prom-nginx-reverse-proxy-$TARGET_ENVIRONMENT:$DOCKER_IMAGE_TAG
 
-      - name: 'Delete existing container group'
-        uses: 'azure/CLI@v2'
+      - name: "Delete existing container group"
+        uses: "azure/CLI@v2"
         with:
           inlineScript: |
             az -v
@@ -91,7 +92,7 @@ jobs:
               --name "${{ env.CONTAINER_INSTANCE_BASE_NAME }}-${{ env.TARGET_ENVIRONMENT }}" \
               --resource-group "${{ env.RESOURCE_GROUP_BASE_NAME }}-${{ env.TARGET_ENVIRONMENT }}"
 
-      - name: 'Replace Env Vars and Secrets in ARM Yaml template'
+      - name: "Replace Env Vars and Secrets in ARM Yaml template"
         env:
           # Secrets / credentials for the app's resources
           AZURE_SERVICE_BUS_CONNECTION_STRING: ${{ secrets[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'AZURE_SERVICE_BUS_CONNECTION_STRING')] }}
@@ -136,8 +137,8 @@ jobs:
         run: |
           ./azure-deployment/generate-manifest-from-template.sh
 
-      - name: 'Deploy group to Azure Container Instances'
-        uses: 'azure/CLI@v2'
+      - name: "Deploy group to Azure Container Instances"
+        uses: "azure/CLI@v2"
         with:
           inlineScript: |
             az -v
@@ -145,15 +146,15 @@ jobs:
             --resource-group "${{ env.RESOURCE_GROUP_BASE_NAME }}-${{ env.TARGET_ENVIRONMENT }}" \
             --file ./azure-deployment/azure-resource-manager-deployment-manifest.yml
 
-      - name: 'Re-generate the website links'
+      - name: "Re-generate the website links"
         env:
           WEB_BASE_URL: ${{ vars[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'WEB_BASE_URL')] }}
 
         run: |
-          sed -e "s#{{WEB_BASE_URL}}#$WEB_BASE_URL#" web/index-template.html > web/index.html
+          ./azure-deployment/generate-index-from-template.sh
 
-      - name: 'Update the website'
-        uses: 'azure/CLI@v2'
+      - name: "Update the website"
+        uses: "azure/CLI@v2"
         with:
           inlineScript: |
             az storage blob upload-batch -s web -d '$web' --account-name $STORAGE_ACCOUNT_NAME --overwrite

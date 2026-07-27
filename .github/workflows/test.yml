@@ -27,5 +27,15 @@ jobs:
     - name: Run docker-compose
       run: cd ./tests-local-environment; docker compose up -d
 
+    # The Service Bus emulator has no docker compose healthcheck (its image is
+    # distroless), so `docker compose up -d` returns before it is accepting AMQP
+    # connections. Without this gate the MQ integration tests race its startup.
+    - name: Wait for Service Bus emulator
+      run: ./tests-local-environment/wait-for-mq-emulator.sh
+
     - name: Run automated tests
       run: pytest
+
+    - name: Docker compose logs (on failure)
+      if: failure()
+      run: cd ./tests-local-environment; docker compose logs --no-color
