@@ -255,6 +255,7 @@ COUNTRY_CODELIST = [
 
 LICENCE_LIST = [
     "",
+    "other",
     "notspecified",
     "odc-pddl",
     "odc-odbl",
