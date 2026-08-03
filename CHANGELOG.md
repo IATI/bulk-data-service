@@ -14,6 +14,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Removed
 
+## [1.4.12] - 2026-08-03
+
+### Changed
+
+ - Added a small meta JSON file for use by the landing page so that it can show
+   the last updated timestamps without needing to access the full indices.
+
 ## [1.4.11] - 2026-07-29
 
 ### Changed
