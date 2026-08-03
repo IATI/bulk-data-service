@@ -178,7 +178,7 @@ AZURE_BASE_URL=$(az storage account show -n "$STORAGE_ACCOUNT_NAME" -g "$RESOURC
 AZURE_BASE_HOSTNAME="$(sed "s#https://\(.*\)/#\1#" <<< $AZURE_BASE_URL)"
 
 # WEB_BASE_URL is calculated above from TARGET_ENVIRONMENT, bearing in mind 'prod' doesn't have prefix
-sed -e "s#{{WEB_BASE_URL}}#$WEB_BASE_URL#" web/index-template.html > web/index.html
+./azure-deployment/generate-index-from-template.sh
 
 echo "Uploading index and 404 pages to storage account..."
 az storage blob upload-batch -s web -d '$web' --account-name $STORAGE_ACCOUNT_NAME --overwrite

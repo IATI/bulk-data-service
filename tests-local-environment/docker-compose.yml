@@ -60,8 +60,12 @@ services:
       bds-local-test-net:
 
   bds-test-env-mq-emulator:
-    image: mcr.microsoft.com/azure-messaging/servicebus-emulator:latest
-    pull_policy: always
+    # NOTE: The emulator version is pinned deliberately. The `latest` tag moved
+    #       to 2.0.1 in July 2026, which broke CI (the emulator takes long
+    #       enough to start that the tests raced it), and 2.x carries an open
+    #       bug where sends hang despite the emulator reporting healthy:
+    #       https://github.com/Azure/azure-service-bus-emulator-installer/issues/135
+    image: mcr.microsoft.com/azure-messaging/servicebus-emulator:1.1.2
     volumes:
       # NOTE: The local dev docker compose environment and the local test docker
       #       compose environment use the same Azure Service Bus configuration
