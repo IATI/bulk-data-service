@@ -31,7 +31,7 @@ def test_valid_dataset_azure_xml_upload(get_and_clear_up_context, artifact_filen
 
     dataset_id = uuid.UUID("c8a40aa5-9f31-4bcf-a36f-51c1fc2cc159")
     context["DATA_REGISTRY_BASE_URL"] = (
-        "http://localhost:3000/ckan-registration/datasets-01-1-dataset/" "http%3A%2F%2Flocalhost%3A3000%2Fdata%2F{}"
+        "http://localhost:3000/ckan-registration/datasets-01-1-dataset/http%3A%2F%2Flocalhost%3A3000%2Fdata%2F{}"
     ).format(artifact_filename)
     datasets_in_bds = {}
     checker_run(context, datasets_in_bds)
@@ -61,7 +61,7 @@ def test_valid_dataset_azure_zip_upload(get_and_clear_up_context, artifact_filen
 
     dataset_id = uuid.UUID("c8a40aa5-9f31-4bcf-a36f-51c1fc2cc159")
     context["DATA_REGISTRY_BASE_URL"] = (
-        "http://localhost:3000/ckan-registration/datasets-01-1-dataset/" "http%3A%2F%2Flocalhost%3A3000%2Fdata%2F{}"
+        "http://localhost:3000/ckan-registration/datasets-01-1-dataset/http%3A%2F%2Flocalhost%3A3000%2Fdata%2F{}"
     ).format(artifact_filename)
     datasets_in_bds = {}
     checker_run(context, datasets_in_bds)
@@ -91,7 +91,7 @@ def test_invalid_dataset_no_azure_xml_upload(get_and_clear_up_context, artifact_
 
     dataset_id = uuid.UUID("c8a40aa5-9f31-4bcf-a36f-51c1fc2cc159")
     context["DATA_REGISTRY_BASE_URL"] = (
-        "http://localhost:3000/ckan-registration/datasets-01-1-dataset/" "http%3A%2F%2Flocalhost%3A3000%2Fdata%2F{}"
+        "http://localhost:3000/ckan-registration/datasets-01-1-dataset/http%3A%2F%2Flocalhost%3A3000%2Fdata%2F{}"
     ).format(artifact_filename)
     datasets_in_bds = {}
     checker_run(context, datasets_in_bds)
