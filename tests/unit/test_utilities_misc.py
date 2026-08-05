@@ -32,7 +32,7 @@ def test_get_hash():
 
     hash = get_hash(yiplActivitiesXmlFile, "utf-8")
 
-    assert(hash == "3486d4cee556d2584020bed2c86305465b8b3880")
+    assert hash == "3486d4cee556d2584020bed2c86305465b8b3880"
 
 
 def test_get_hash_excluding_generated_timestamp():
@@ -58,173 +58,151 @@ def test_get_hash_excluding_generated_timestamp():
 
     hash = get_hash_excluding_generated_timestamp(yiplActivitiesXmlFile, "utf-8")
 
-    assert(hash == "759eaa39276381f3fc146232cefd2111a2abc199")
+    assert hash == "759eaa39276381f3fc146232cefd2111a2abc199"
 
 
-@pytest.mark.parametrize("str_to_test,expected_result", [
-    ("None", False),
-    ("not a uuid", False),
-    ("1a3e3f42-6704-4adf-897a-9bdf5b854a00", True)
-])
+@pytest.mark.parametrize(
+    "str_to_test,expected_result",
+    [("None", False), ("not a uuid", False), ("1a3e3f42-6704-4adf-897a-9bdf5b854a00", True)],
+)
 def test_is_str_valid_uuid(str_to_test, expected_result):
     assert is_str_valid_uuid(str_to_test) == expected_result
 
 
-@pytest.mark.parametrize("input,structure,expected", [
-    ({"a": 10}, {"a" : None}, {"a": 10}),
-    ({"a": None}, {"a" : None}, {"a": None}),
-    ({"a": 10, "b": "should be filtered"}, {"a" : None}, {"a": 10}),
-    ({"a": 10, "b": "should be filtered", "c" : "also filtered"}, {"a" : None}, {"a": 10}),
-    ({"a": 10, "b": "included"}, {"a" : None, "b": None}, {"a": 10, "b": "included"}),
-    ({"b": "included"}, {"a" : None, "b": None}, {"b": "included"}),
-    ({"c": 10}, {"a" : None, "b": None}, {}),
-    ({}, {"a" : None, "b": None}, {}),
-    ({}, {}, {}),
-])
+@pytest.mark.parametrize(
+    "input,structure,expected",
+    [
+        ({"a": 10}, {"a": None}, {"a": 10}),
+        ({"a": None}, {"a": None}, {"a": None}),
+        ({"a": 10, "b": "should be filtered"}, {"a": None}, {"a": 10}),
+        ({"a": 10, "b": "should be filtered", "c": "also filtered"}, {"a": None}, {"a": 10}),
+        ({"a": 10, "b": "included"}, {"a": None, "b": None}, {"a": 10, "b": "included"}),
+        ({"b": "included"}, {"a": None, "b": None}, {"b": "included"}),
+        ({"c": 10}, {"a": None, "b": None}, {}),
+        ({}, {"a": None, "b": None}, {}),
+        ({}, {}, {}),
+    ],
+)
 def test_filter_dict_atomic_value(input, structure, expected):
 
     assert filter_dict_by_structure(input, structure) == expected
 
 
-@pytest.mark.parametrize("input,structure,expected", [
-    ({},
-     {"a": {"include": None}},
-     {}),
-
-    ({"a": {}},
-     {"a": {"include": None}},
-     {"a": {}}),
-
-    ({"a": {"include": 10, "filter out": 20}},
-     {"a": {"include": None}},
-     {"a": {"include": 10}}),
-
-    ({"a": {"filter out": 20}},
-     {"a": {"include": None}},
-     {"a": {}}),
-
-    ({"a": {"filter out": 20}},
-     {"a": {}},
-     {"a": {}}),
-
-    ({"a": None},
-     {"a": {}},
-     {"a": None}),
-
-    ({"a": None},
-     {"a": {"b": None}},
-     {"a": None}),
-
-    ({"a": 10},
-     {"a": {"b": {}}},
-     {"a": 10}),
-
-    ({"a": ["test"]},
-     {"a": {"b": {}}},
-     {"a": ["test"]}),
-
-
-])
+@pytest.mark.parametrize(
+    "input,structure,expected",
+    [
+        ({}, {"a": {"include": None}}, {}),
+        ({"a": {}}, {"a": {"include": None}}, {"a": {}}),
+        ({"a": {"include": 10, "filter out": 20}}, {"a": {"include": None}}, {"a": {"include": 10}}),
+        ({"a": {"filter out": 20}}, {"a": {"include": None}}, {"a": {}}),
+        ({"a": {"filter out": 20}}, {"a": {}}, {"a": {}}),
+        ({"a": None}, {"a": {}}, {"a": None}),
+        ({"a": None}, {"a": {"b": None}}, {"a": None}),
+        ({"a": 10}, {"a": {"b": {}}}, {"a": 10}),
+        ({"a": ["test"]}, {"a": {"b": {}}}, {"a": ["test"]}),
+    ],
+)
 def test_filter_dict_nested_dict(input, structure, expected):
 
     assert filter_dict_by_structure(input, structure) == expected
 
 
-@pytest.mark.parametrize("input,structure,expected", [
-    ({},
-     {"a": []},
-     {}),
-
-    ({"a": []},
-     {"a": None},
-     {"a": []}),
-
-    ({"a": ["one", "two"]},
-     {"a": None},
-     {"a": ["one", "two"]}),
-
-])
+@pytest.mark.parametrize(
+    "input,structure,expected",
+    [
+        ({}, {"a": []}, {}),
+        ({"a": []}, {"a": None}, {"a": []}),
+        ({"a": ["one", "two"]}, {"a": None}, {"a": ["one", "two"]}),
+    ],
+)
 def test_filter_dict_with_list_no_dict_items(input, structure, expected):
 
     assert filter_dict_by_structure(input, structure) == expected
 
 
-@pytest.mark.parametrize("input,structure,expected", [
-    ({},
-     {"a": [{}]},
-     {}),
-
-    ({"a": []},
-     {"a": [{}]},
-     {"a": []}),
-
-    ({"a": ["one", "two"]},
-     {"a": [{}]},
-     {"a": [{}, {}]}),
-
-    ({"a": [{"include": 10, "filter": 20}]},
-     {"a": [{"include": None}]},
-     {"a": [{"include": 10}]}),
-
-])
+@pytest.mark.parametrize(
+    "input,structure,expected",
+    [
+        ({}, {"a": [{}]}, {}),
+        ({"a": []}, {"a": [{}]}, {"a": []}),
+        ({"a": ["one", "two"]}, {"a": [{}]}, {"a": [{}, {}]}),
+        ({"a": [{"include": 10, "filter": 20}]}, {"a": [{"include": None}]}, {"a": [{"include": 10}]}),
+    ],
+)
 def test_filter_dict_with_list_with_dict_items(input, structure, expected):
 
     assert filter_dict_by_structure(input, structure) == expected
 
 
-@pytest.mark.parametrize("input,expected",
-                         [
-                             ("", False),
-                             ("String without an opening element", False),
-                             ("Contents with something before correct element <iati-activities>", False),
-                             ("Contents with something before correct element <iati-organisations>", False),
-                             ('<?xml version="1.0"?>String without an opening element', False),
-                             ('<?xml version="1.0"?>String without an opening element<iati-activities>', False),
-                             ("iati-activities more here", False),
-                             ("iati-activities> and more content", False),
-                             ("<iati activities", False),
-                             ("<iati activities something here", False),
-                             ("iati-organisations more here", False),
-                             ("iati-organisations> and more content", False),
-                             ("<iati organisations", False),
-                             ("<iati organisations something here", False),
-                             ("<iati organisations something here", False),
-                             ("<iati organisations something here", False),
-                          ])
+@pytest.mark.parametrize(
+    "input,expected",
+    [
+        ("", False),
+        ("String without an opening element", False),
+        ("Contents with something before correct element <iati-activities>", False),
+        ("Contents with something before correct element <iati-organisations>", False),
+        ('<?xml version="1.0"?>String without an opening element', False),
+        ('<?xml version="1.0"?>String without an opening element<iati-activities>', False),
+        ("iati-activities more here", False),
+        ("iati-activities> and more content", False),
+        ("<iati activities", False),
+        ("<iati activities something here", False),
+        ("iati-organisations more here", False),
+        ("iati-organisations> and more content", False),
+        ("<iati organisations", False),
+        ("<iati organisations something here", False),
+        ("<iati organisations something here", False),
+        ("<iati organisations something here", False),
+    ],
+)
 def test_content_has_iati_opening_element_negatives(input, expected):
     assert content_has_iati_opening_element(input) == expected
 
 
-@pytest.mark.parametrize("input,expected",
-                         [
-                             ("<iati-activities", True),
-                             ("<iati-activities and more content here", True),
-                             ("<iati-organisations", True),
-                             ("<iati-organisations and more content", True),
-                             ("   <iati-activities", True),
-                             ("	<iati-activities", True),  # tab
-                             ("   <iati-activities and more content here", True),
-                             ("   <iati-organisations", True),
-                             ("   <iati-organisations and more content", True),
-                             ("""
-                              <iati-activities and more content""", True),
-                             ("""<!-- comment --><iati-activities and more content""", True),
-                             ("""    <!-- comment --><iati-activities and more content""", True),
-                             ("""<!--  --><iati-activities and more content""", True),
-                             ("""<?xml version="1.0"?><!-- comment --><iati-activities and more content""", True),
-                             ("""<?xml version="1.0"?>  <!-- comment --><iati-activities and more content""", True),
-                             ("""<?xml version="1.0"?><!-- comment -->  <iati-activities and more content""", True),
-                             ("""<?xml version="1.0"?><!-- -->  <iati-activities and more content""", True),
-                             ("""<?xml version="1.0"?><!---->  <iati-activities and more content""", True),
-                             ("""<?xml version="1.0"?><!--
+@pytest.mark.parametrize(
+    "input,expected",
+    [
+        ("<iati-activities", True),
+        ("<iati-activities and more content here", True),
+        ("<iati-organisations", True),
+        ("<iati-organisations and more content", True),
+        ("   <iati-activities", True),
+        ("	<iati-activities", True),  # tab
+        ("   <iati-activities and more content here", True),
+        ("   <iati-organisations", True),
+        ("   <iati-organisations and more content", True),
+        (
+            """
+                              <iati-activities and more content""",
+            True,
+        ),
+        ("""<!-- comment --><iati-activities and more content""", True),
+        ("""    <!-- comment --><iati-activities and more content""", True),
+        ("""<!--  --><iati-activities and more content""", True),
+        ("""<?xml version="1.0"?><!-- comment --><iati-activities and more content""", True),
+        ("""<?xml version="1.0"?>  <!-- comment --><iati-activities and more content""", True),
+        ("""<?xml version="1.0"?><!-- comment -->  <iati-activities and more content""", True),
+        ("""<?xml version="1.0"?><!-- -->  <iati-activities and more content""", True),
+        ("""<?xml version="1.0"?><!---->  <iati-activities and more content""", True),
+        (
+            """<?xml version="1.0"?><!--
                               comment here
-                              -->  <iati-activities and more content""", True),
-                             ("""<?xml version="1.0"?>
+                              -->  <iati-activities and more content""",
+            True,
+        ),
+        (
+            """<?xml version="1.0"?>
                               <!--This file has been generated by a tool which inserts a really long comment before the first IATI element. See https://example.com for more information on this tool. -->
-                              <iati-activities and more content""", True),
-                             ("""<?xml version="1.0"?>
+                              <iati-activities and more content""",
+            True,
+        ),
+        (
+            """<?xml version="1.0"?>
                               <!--This file has two XML comments before the content. --> <!-- A second comment. -->
-                              <iati-activities and more content""", True),
-                          ])
+                              <iati-activities and more content""",
+            True,
+        ),
+    ],
+)
 def test_content_has_iati_opening_element_positives(input, expected):
     assert content_has_iati_opening_element(input) == expected

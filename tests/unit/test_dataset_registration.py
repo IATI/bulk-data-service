@@ -12,23 +12,28 @@ from dataset_registration.iati_registry_ckan import clean_datasets_metadata, con
 def get_level1_field_blanker(key):
     def field_blanker(dict, attribute_value, key=key):
         dict[key] = attribute_value
+
     return partial(field_blanker, key=key)
 
 
 def get_level2_field_blanker(key1, key2):
     def field_blanker(dict, attribute_value, key1=key1, key2=key2):
         dict[key1][key2] = attribute_value
+
     return partial(field_blanker, key1=key1, key2=key2)
 
 
-@pytest.mark.parametrize("field_blanker", [
-    get_level1_field_blanker("id"),
-    get_level1_field_blanker("name"),
-    get_level1_field_blanker("organization"),
-    get_level1_field_blanker("extras"),
-    get_level2_field_blanker("organization", "id"),
-    get_level2_field_blanker("organization", "name")
-    ])
+@pytest.mark.parametrize(
+    "field_blanker",
+    [
+        get_level1_field_blanker("id"),
+        get_level1_field_blanker("name"),
+        get_level1_field_blanker("organization"),
+        get_level1_field_blanker("extras"),
+        get_level2_field_blanker("organization", "id"),
+        get_level2_field_blanker("organization", "name"),
+    ],
+)
 @pytest.mark.parametrize("attribute_value", [None, "None", ""])
 def test_incomplete_necessary_data_from_ckan(field_blanker, attribute_value):
 
@@ -40,7 +45,7 @@ def test_incomplete_necessary_data_from_ckan(field_blanker, attribute_value):
 
     ckan_datasets = clean_datasets_metadata(logger, ckan_datasets)
 
-    assert(len(ckan_datasets) == 0)
+    assert len(ckan_datasets) == 0
 
 
 def test_create_empty_dataset_error_occurred_defaults_to_false():
@@ -62,5 +67,5 @@ def test_missing_url_from_ckan(resources_value):
 
     registered_datasets_dtos = convert_datasets_metadata(ckan_datasets)
 
-    assert(len(registered_datasets_dtos) == 1)
-    assert(registered_datasets_dtos[uuid.UUID("c8a40aa5-9f31-4bcf-a36f-51c1fc2cc159")]["source_url"] == "")
+    assert len(registered_datasets_dtos) == 1
+    assert registered_datasets_dtos[uuid.UUID("c8a40aa5-9f31-4bcf-a36f-51c1fc2cc159")]["source_url"] == ""
