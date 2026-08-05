@@ -86,8 +86,7 @@ def test_remove_unregistered_dataset_from_azure_blob(get_and_clear_up_context): 
     context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-01-1-dataset"
     checker_run(context, datasets_in_bds)
 
-    blob_service_client = \
-        BlobServiceClient.from_connection_string(context["AZURE_STORAGE_CONNECTION_STRING"])
+    blob_service_client = BlobServiceClient.from_connection_string(context["AZURE_STORAGE_CONNECTION_STRING"])
 
     xml_container_name = get_azure_container_name(context, "xml")
     zip_container_name = get_azure_container_name(context, "zip")
