@@ -91,6 +91,7 @@ services:
 
   bds-test-env-mq-db:
     image: "mcr.microsoft.com/azure-sql-edge:latest"
+    platform: linux/amd64
     ports:
       - "1434:1433"
     environment:
