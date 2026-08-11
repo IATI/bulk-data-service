@@ -34,6 +34,10 @@ def create_and_upload_indices(
 
     upload_index_json_to_azure(context, get_reporting_org_index_name(context), reporting_org_index)
 
+    upload_index_json_to_azure(
+        context, get_indices_meta_json_name(context), create_meta_json(context, index_creation_time)
+    )
+
     context.logger.info("Creation of indices finished")
 
 
@@ -74,6 +78,37 @@ def create_reporting_org_index_json(
     index["reporting_orgs"] = get_reporting_orgs_for_datasets(context, datasets_in_bds, reporting_orgs_in_bds)
 
     return json.dumps(index, default=str, sort_keys=True, indent=True)
+
+
+def create_meta_json(
+    context: BDSContext,
+    created_time: datetime,
+) -> str:
+    """Generate meta data for the indices (currently just the timestamps)
+
+    Args:
+        context (BDSContext): App context
+        created_time (datetime): Time the indices were created
+
+    Returns:
+        str: JSON of indices meta data
+    """
+
+    index_created_entries = create_index_created_entries(created_time)
+
+    return json.dumps(
+        {
+            "meta": {
+                "datasets_minimal": index_created_entries,
+                "datasets_full": index_created_entries,
+                "reporting_orgs": index_created_entries,
+                "zip": index_created_entries,
+            }
+        },
+        default=str,
+        sort_keys=True,
+        indent=True,
+    )
 
 
 def create_index_created_entries(created_time: datetime) -> dict[str, Any]:
@@ -117,3 +152,7 @@ def get_dataset_index_name(context: BDSContext, index_type: str) -> str:
 
 def get_reporting_org_index_name(context: BDSContext) -> str:
     return "reporting-orgs"
+
+
+def get_indices_meta_json_name(context: BDSContext) -> str:
+    return "indices-meta"
