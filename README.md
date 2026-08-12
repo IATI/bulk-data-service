@@ -209,6 +209,19 @@ docker compose up --remove-orphans
 
 _Note: the `--remove-orphans` just helps keep things clean as you develop, and alter the setup._
 
+The Azure Service Bus emulator takes a while to start, and `docker compose`
+cannot wait for it because the emulator image is distroless. Running the tests
+before it is ready causes the MQ integration tests to fail with connection
+errors, so wait for it with:
+
+```
+./tests-local-environment/wait-for-mq-emulator.sh
+```
+
+(For the local development docker compose setup, rather than the test setup,
+pass the dev environment's health URL:
+`./tests-local-environment/wait-for-mq-emulator.sh http://localhost:5300/health`)
+
 Once this is running, run the tests with:
 
 ```

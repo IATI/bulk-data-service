@@ -14,6 +14,35 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Removed
 
+## [1.4.12] - 2026-08-03
+
+### Changed
+
+ - Added a small meta JSON file for use by the landing page so that it can show
+   the last updated timestamps without needing to access the full indices.
+
+## [1.4.11] - 2026-07-29
+
+### Changed
+
+ - Updated licence codelist list with new licence code 'other'.
+
+## [1.4.10] - 2026-07-27
+
+### Changed
+
+ - Expanded explanatory text, added 'Last updated: ' for the indices, and
+   brought IATI footer up to date.
+ - Pinned the Azure Service Bus emulator to version 1.1.2 in the local
+   development and test docker compose setups, rather than tracking `latest`.
+
+### Fixed
+
+ - Fixed intermittent CI test failures caused by a race condition due to the
+   tests sometimes starting before the Azure Service Bus emulator was ready: CI
+   now waits for the emulator's health API before running the tests, and dumps
+   the docker compose logs if the tests fail.
+
 ## [1.4.9] - 2026-05-25
 
 ### Fixed

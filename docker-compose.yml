@@ -52,8 +52,9 @@ services:
       bds-local-dev-net:
 
   bds-local-dev-mq-emulator:
-    image: mcr.microsoft.com/azure-messaging/servicebus-emulator:latest
-    pull_policy: always
+    # NOTE: The emulator version is pinned deliberately; see the note in
+    #       tests-local-environment/docker-compose.yml for why.
+    image: mcr.microsoft.com/azure-messaging/servicebus-emulator:1.1.2
     volumes:
       # NOTE: The local dev docker compose environment and the local test docker
       #       compose environment use the same Azure Service Bus configuration
@@ -79,6 +80,7 @@ services:
 
   bds-local-dev-mq-db:
     image: "mcr.microsoft.com/azure-sql-edge:latest"
+    platform: linux/amd64
     ports:
       - "1433:1433"
     environment:

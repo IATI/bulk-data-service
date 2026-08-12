@@ -20,7 +20,7 @@ def test_metrics_after_simple_add(get_and_clear_up_context):  # noqa: F811
         ("datasets_unregistered", 0),
         ("datasets_expired", 0),
         ("datasets_head_request_non_200", 0),
-        ("datasets_downloads_non_200", 0)
+        ("datasets_downloads_non_200", 0),
     ]
 
     for expected_result in expected_results:
@@ -48,7 +48,7 @@ def test_metrics_after_new_registration(get_and_clear_up_context):  # noqa: F811
         ("datasets_unregistered", 0),
         ("datasets_expired", 0),
         ("datasets_head_request_non_200", 0),
-        ("datasets_downloads_non_200", 0)
+        ("datasets_downloads_non_200", 0),
     ]
 
     for expected_result in expected_results:
@@ -76,7 +76,7 @@ def test_metrics_after_unregistration(get_and_clear_up_context):  # noqa: F811
         ("datasets_unregistered", 1),
         ("datasets_expired", 0),
         ("datasets_head_request_non_200", 0),
-        ("datasets_downloads_non_200", 0)
+        ("datasets_downloads_non_200", 0),
     ]
 
     for expected_result in expected_results:
@@ -101,14 +101,14 @@ def test_metrics_with_success_then_immediate_404(get_and_clear_up_context):  # n
         ("datasets_unregistered", 0),
         ("datasets_expired", 0),
         ("datasets_head_request_non_200", 0),
-        ("datasets_downloads_non_200", 1)
+        ("datasets_downloads_non_200", 1),
     ]
 
     for expected in expected_results:
-        assert context["prom_metrics"][expected[0]].set.called, \
-               "metric name: {}".format(expected[0])
-        assert context["prom_metrics"][expected[0]].set.call_args.args == (expected[1],), \
-               "metric name: {}".format(expected[0])
+        assert context["prom_metrics"][expected[0]].set.called, "metric name: {}".format(expected[0])
+        assert context["prom_metrics"][expected[0]].set.call_args.args == (expected[1],), "metric name: {}".format(
+            expected[0]
+        )
 
 
 def test_metrics_with_success_then_delay_404(get_and_clear_up_context):  # noqa: F811
@@ -133,14 +133,14 @@ def test_metrics_with_success_then_delay_404(get_and_clear_up_context):  # noqa:
         ("datasets_unregistered", 0),
         ("datasets_expired", 0),
         ("datasets_head_request_non_200", 0),
-        ("datasets_downloads_non_200", 1)
+        ("datasets_downloads_non_200", 1),
     ]
 
     for expected in expected_results:
-        assert context["prom_metrics"][expected[0]].set.called, \
-               "metric name: {}".format(expected[0])
-        assert context["prom_metrics"][expected[0]].set.call_args.args == (expected[1],), \
-               "metric name: {}".format(expected[0])
+        assert context["prom_metrics"][expected[0]].set.called, "metric name: {}".format(expected[0])
+        assert context["prom_metrics"][expected[0]].set.call_args.args == (expected[1],), "metric name: {}".format(
+            expected[0]
+        )
 
 
 def test_metrics_with_only_404(get_and_clear_up_context):  # noqa: F811
@@ -157,11 +157,11 @@ def test_metrics_with_only_404(get_and_clear_up_context):  # noqa: F811
         ("datasets_unregistered", 0),
         ("datasets_expired", 0),
         ("datasets_head_request_non_200", 0),  # 0 b/c HEAD reqs only after successful dl
-        ("datasets_downloads_non_200", 1)
+        ("datasets_downloads_non_200", 1),
     ]
 
     for expected in expected_results:
-        assert context["prom_metrics"][expected[0]].set.called, \
-               "metric name: {}".format(expected[0])
-        assert context["prom_metrics"][expected[0]].set.call_args.args == (expected[1],), \
-               "metric name: {}".format(expected[0])
+        assert context["prom_metrics"][expected[0]].set.called, "metric name: {}".format(expected[0])
+        assert context["prom_metrics"][expected[0]].set.call_args.args == (expected[1],), "metric name: {}".format(
+            expected[0]
+        )
