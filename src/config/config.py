@@ -1,48 +1,53 @@
 import os
+from enum import Enum, auto
 from pathlib import Path
 
 import toml
 
-# Flags for whether a configuration variable's value may be written to the logs
-# when the app starts. Anything marked SECRET is not logged at all, not even to
-# indicate whether it is set.
-LOGGABLE = True
-SECRET = False
 
-_config_variables = {
-    "DATA_REGISTRATION": LOGGABLE,
-    "DATA_REGISTRY_BASE_URL": LOGGABLE,
-    "DATA_REGISTRY_PUBLISHER_PLAIN_LIST_URL": LOGGABLE,
-    "DATA_REGISTRY_PUBLISHER_METADATA_URL": LOGGABLE,
-    "DATA_REGISTRY_PUBLISHER_METADATA_BATCH_SIZE": LOGGABLE,
-    "DATA_REGISTRY_SUITECRM_API_URL": LOGGABLE,
-    "DATA_REGISTRY_SUITECRM_CLIENT_ID": SECRET,
-    "DATA_REGISTRY_SUITECRM_CLIENT_SECRET": SECRET,
-    "DATA_REGISTRY_SUITECRM_SECURE": LOGGABLE,
-    "WEB_BASE_URL": LOGGABLE,
-    "NUMBER_DOWNLOADER_THREADS": LOGGABLE,
-    "FORCE_REDOWNLOAD_AFTER_HOURS": LOGGABLE,
-    "REDOWNLOAD_FROM_NON_HEAD_SERVERS_AFTER_HOURS": LOGGABLE,
-    "REMOVE_LAST_GOOD_DOWNLOAD_AFTER_FAILING_HOURS": LOGGABLE,
-    "ZIP_WORKING_DIR": LOGGABLE,
-    "DB_NAME": SECRET,
-    "DB_USER": SECRET,
-    "DB_PASS": SECRET,
-    "DB_HOST": SECRET,
-    "DB_PORT": SECRET,
-    "DB_SSL_MODE": SECRET,
-    "DB_CONNECTION_TIMEOUT": LOGGABLE,
-    "AZURE_STORAGE_CONNECTION_STRING": SECRET,
-    "AZURE_STORAGE_BLOB_CONTAINER_NAME": LOGGABLE,
-    "CHECKER_LOOP_WAIT_MINS": LOGGABLE,
-    "AZURE_SERVICE_BUS_CONNECTION_STRING": SECRET,
-    "AZURE_SERVICE_BUS_REGISTRY_TOPIC_NAME": LOGGABLE,
-    "AZURE_SERVICE_BUS_REGISTRY_SUB_NAME": LOGGABLE,
-    "AZURE_SERVICE_BUS_WAIT_TIME": LOGGABLE,
-    "AZURE_SERVICE_BUS_DATASET_CHECK_RESULTS_TOPIC_NAME": LOGGABLE,
-    "SEND_DATASET_CHECK_RESULT_MESSAGES": LOGGABLE,
-    "DATASET_HEAD_TIMEOUT": LOGGABLE,
-    "DATASET_GET_TIMEOUT": LOGGABLE,
+class LogPolicy(Enum):
+    """Whether a configuration variable's value may be written to the logs when
+    the app starts. Anything marked SECRET is not logged at all, not even to
+    indicate whether it is set."""
+
+    LOGGABLE = auto()
+    SECRET = auto()
+
+
+_config_variables: dict[str, LogPolicy] = {
+    "DATA_REGISTRATION": LogPolicy.LOGGABLE,
+    "DATA_REGISTRY_BASE_URL": LogPolicy.LOGGABLE,
+    "DATA_REGISTRY_PUBLISHER_PLAIN_LIST_URL": LogPolicy.LOGGABLE,
+    "DATA_REGISTRY_PUBLISHER_METADATA_URL": LogPolicy.LOGGABLE,
+    "DATA_REGISTRY_PUBLISHER_METADATA_BATCH_SIZE": LogPolicy.LOGGABLE,
+    "DATA_REGISTRY_SUITECRM_API_URL": LogPolicy.LOGGABLE,
+    "DATA_REGISTRY_SUITECRM_CLIENT_ID": LogPolicy.SECRET,
+    "DATA_REGISTRY_SUITECRM_CLIENT_SECRET": LogPolicy.SECRET,
+    "DATA_REGISTRY_SUITECRM_SECURE": LogPolicy.LOGGABLE,
+    "WEB_BASE_URL": LogPolicy.LOGGABLE,
+    "NUMBER_DOWNLOADER_THREADS": LogPolicy.LOGGABLE,
+    "FORCE_REDOWNLOAD_AFTER_HOURS": LogPolicy.LOGGABLE,
+    "REDOWNLOAD_FROM_NON_HEAD_SERVERS_AFTER_HOURS": LogPolicy.LOGGABLE,
+    "REMOVE_LAST_GOOD_DOWNLOAD_AFTER_FAILING_HOURS": LogPolicy.LOGGABLE,
+    "ZIP_WORKING_DIR": LogPolicy.LOGGABLE,
+    "DB_NAME": LogPolicy.SECRET,
+    "DB_USER": LogPolicy.SECRET,
+    "DB_PASS": LogPolicy.SECRET,
+    "DB_HOST": LogPolicy.SECRET,
+    "DB_PORT": LogPolicy.SECRET,
+    "DB_SSL_MODE": LogPolicy.SECRET,
+    "DB_CONNECTION_TIMEOUT": LogPolicy.LOGGABLE,
+    "AZURE_STORAGE_CONNECTION_STRING": LogPolicy.SECRET,
+    "AZURE_STORAGE_BLOB_CONTAINER_NAME": LogPolicy.LOGGABLE,
+    "CHECKER_LOOP_WAIT_MINS": LogPolicy.LOGGABLE,
+    "AZURE_SERVICE_BUS_CONNECTION_STRING": LogPolicy.SECRET,
+    "AZURE_SERVICE_BUS_REGISTRY_TOPIC_NAME": LogPolicy.LOGGABLE,
+    "AZURE_SERVICE_BUS_REGISTRY_SUB_NAME": LogPolicy.LOGGABLE,
+    "AZURE_SERVICE_BUS_WAIT_TIME": LogPolicy.LOGGABLE,
+    "AZURE_SERVICE_BUS_DATASET_CHECK_RESULTS_TOPIC_NAME": LogPolicy.LOGGABLE,
+    "SEND_DATASET_CHECK_RESULT_MESSAGES": LogPolicy.LOGGABLE,
+    "DATASET_HEAD_TIMEOUT": LogPolicy.LOGGABLE,
+    "DATASET_GET_TIMEOUT": LogPolicy.LOGGABLE,
 }
 
 # Settings which come from the command line rather than from the environment.
@@ -69,12 +74,12 @@ def get_basic_config() -> dict:
 
 def get_config_for_logging(config: dict) -> list[str]:
     """Returns the configuration as a list of 'NAME=value' strings, containing
-    only the variables which are marked as LOGGABLE, plus the settings which
+    only the variables which are marked as LogPolicy.LOGGABLE, plus the settings which
     come from the command line."""
 
-    loggable_variables = [name for name, loggable in _config_variables.items() if loggable]
+    loggable_variables = [name for name, policy in _config_variables.items() if policy is LogPolicy.LOGGABLE]
 
-    return ["{}={}".format(name, config.get(name)) for name in loggable_variables + _loggable_runtime_settings]
+    return [f"{name}={config.get(name)}" for name in loggable_variables + _loggable_runtime_settings]
 
 
 def get_app_version() -> str:
