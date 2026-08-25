@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Non-secret configuration variables are written to the log when the service 
+  starts. 
+
 ### Changed
 
 ### Fixed
