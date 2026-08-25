@@ -3,12 +3,7 @@ from unittest import mock
 from dotenv import load_dotenv
 
 from config.bds_context import BDSContext
-from config.config import (
-    _config_variables,
-    _loggable_runtime_settings,
-    get_basic_config,
-    get_config_for_logging,
-)
+from config.config import get_basic_config, get_config_for_logging
 
 
 def test_config_blob_storage_base_url_has_no_trailing_slash_1():
@@ -41,51 +36,161 @@ def test_config_dataset_timeouts_loaded():
     assert context.DATASET_HEAD_TIMEOUT == 7
 
 
-def get_config_lines_for_env_file_2() -> list[str]:
+# The configuration variables which may appear in the startup log, in the order in which
+# they are logged. These lists are written out by hand rather than derived from
+# config.py, so that they are an independent statement of what the log is allowed to
+# contain: a variable added to config.py, or whose log policy is changed there, cannot
+# silently start appearing in the log.
+EXPECTED_LOGGABLE_VARIABLES = [
+    "DATA_REGISTRATION",
+    "DATA_REGISTRY_BASE_URL",
+    "DATA_REGISTRY_PUBLISHER_PLAIN_LIST_URL",
+    "DATA_REGISTRY_PUBLISHER_METADATA_URL",
+    "DATA_REGISTRY_PUBLISHER_METADATA_BATCH_SIZE",
+    "DATA_REGISTRY_SUITECRM_API_URL",
+    "DATA_REGISTRY_SUITECRM_SECURE",
+    "WEB_BASE_URL",
+    "NUMBER_DOWNLOADER_THREADS",
+    "FORCE_REDOWNLOAD_AFTER_HOURS",
+    "REDOWNLOAD_FROM_NON_HEAD_SERVERS_AFTER_HOURS",
+    "REMOVE_LAST_GOOD_DOWNLOAD_AFTER_FAILING_HOURS",
+    "ZIP_WORKING_DIR",
+    "DB_CONNECTION_TIMEOUT",
+    "AZURE_STORAGE_BLOB_CONTAINER_NAME",
+    "CHECKER_LOOP_WAIT_MINS",
+    "AZURE_SERVICE_BUS_REGISTRY_TOPIC_NAME",
+    "AZURE_SERVICE_BUS_REGISTRY_SUB_NAME",
+    "AZURE_SERVICE_BUS_WAIT_TIME",
+    "AZURE_SERVICE_BUS_DATASET_CHECK_RESULTS_TOPIC_NAME",
+    "SEND_DATASET_CHECK_RESULT_MESSAGES",
+    "DATASET_HEAD_TIMEOUT",
+    "DATASET_GET_TIMEOUT",
+]
+
+# Configuration variables whose name and value must never appear in the log.
+EXPECTED_SECRET_VARIABLES = [
+    "DATA_REGISTRY_SUITECRM_CLIENT_ID",
+    "DATA_REGISTRY_SUITECRM_CLIENT_SECRET",
+    "DB_NAME",
+    "DB_USER",
+    "DB_PASS",
+    "DB_HOST",
+    "DB_PORT",
+    "DB_SSL_MODE",
+    "AZURE_STORAGE_CONNECTION_STRING",
+    "AZURE_SERVICE_BUS_CONNECTION_STRING",
+]
+
+# Settings which come from the command line rather than from the environment.
+EXPECTED_RUNTIME_SETTINGS = [
+    "single_run",
+    "run_for_n_datasets",
+    "run_for_single_reporting_org",
+    "skip_safety",
+]
+
+# Set by get_basic_config, but not read from the environment.
+EXPECTED_DERIVED_VARIABLES = ["BULK_DATA_SERVICE_VERSION"]
+
+# Substrings which suggest that a variable holds a credential. A variable whose name
+# contains one of these must never be logged, whatever config.py says about it. This is a
+# backstop against a variable being mis-classified: unlike the lists above, it does not
+# have to be updated when a variable is added, so it covers variables which nobody has
+# thought about yet.
+SECRET_NAME_FRAGMENTS = [
+    "PASS",
+    "API_KEY",
+    "SECRET",
+    "CLIENT_ID",
+    "CREDENTIAL",
+    "TOKEN",
+    "CONNECTION_STRING",
+]
+
+
+def get_config_lines(config: dict) -> list[str]:
+    return get_config_for_logging(
+        config
+        | {
+            "single_run": True,
+            "run_for_n_datasets": 3,
+            "run_for_single_reporting_org": None,
+            "skip_safety": False,
+        }
+    )
+
+
+def get_full_configuration() -> list[str]:
     load_dotenv("tests/artifacts/config-files/env-file-2", override=True)
 
-    config = get_basic_config() | {
-        "single_run": True,
-        "run_for_n_datasets": 3,
-        "run_for_single_reporting_org": None,
-        "skip_safety": False,
-    }
+    return get_config_lines(get_basic_config())
 
-    return get_config_for_logging(config)
+
+def get_config_lines_with_sentinel_values(monkeypatch) -> list[str]:
+    """Returns the loggable config, with every configuration variable set to a value
+    which identifies the variable it came from, so that the presence or absence of a
+    particular variable's value in the output can be checked."""
+
+    for name in EXPECTED_LOGGABLE_VARIABLES + EXPECTED_SECRET_VARIABLES:
+        monkeypatch.setenv(name, f"sentinel-{name}")
+
+    return get_config_lines(get_basic_config())
 
 
 def test_config_for_logging_contains_exactly_the_loggable_variables():
 
-    names_logged = [line.split("=", 1)[0] for line in get_config_lines_for_env_file_2()]
+    names_logged = [line.split("=", 1)[0] for line in get_full_configuration()]
 
-    expected_names = [name for name, loggable in _config_variables.items() if loggable] + _loggable_runtime_settings
-
-    assert names_logged == expected_names
+    assert names_logged == EXPECTED_LOGGABLE_VARIABLES + EXPECTED_RUNTIME_SETTINGS
 
 
 def test_config_for_logging_omits_secret_variables():
 
-    config_output = "\n".join(get_config_lines_for_env_file_2())
+    config_output = "\n".join(get_full_configuration())
 
-    secret_names = [name for name, loggable in _config_variables.items() if not loggable]
-
-    for secret_name in secret_names:
+    for secret_name in EXPECTED_SECRET_VARIABLES:
         assert secret_name not in config_output
 
 
-def test_config_for_logging_does_not_contain_secret_values():
+def test_config_for_logging_omits_anything_named_like_a_credential():
 
-    config_output = "\n".join(get_config_lines_for_env_file_2())
+    names_logged = [line.split("=", 1)[0] for line in get_full_configuration()]
 
-    # fragments of the secret values which are set in the env file used above
-    for secret_value_fragment in ["AccountKey", "SharedAccessKey", "Eby8vdM02xNOcqFlqUwJPLl"]:
-        assert secret_value_fragment not in config_output
+    for name in names_logged:
+        matches = [fragment for fragment in SECRET_NAME_FRAGMENTS if fragment in name]
+
+        assert not matches, f"{name} is logged, but its name suggests a credential: {matches}"
 
 
-def test_get_basic_config_reads_every_config_variable():
+def test_config_for_logging_contains_every_loggable_value(monkeypatch):
+
+    values_logged = dict(line.split("=", 1) for line in get_config_lines_with_sentinel_values(monkeypatch))
+
+    for name in EXPECTED_LOGGABLE_VARIABLES:
+        assert values_logged[name] == f"sentinel-{name}"
+
+
+def test_config_for_logging_omits_secret_values(monkeypatch):
+
+    config_output = "\n".join(get_config_lines_with_sentinel_values(monkeypatch))
+
+    for name in EXPECTED_SECRET_VARIABLES:
+        assert f"sentinel-{name}" not in config_output
+
+
+def test_get_basic_config_reads_exactly_the_expected_variables():
     load_dotenv("tests/artifacts/config-files/env-file-2", override=True)
 
     config = get_basic_config()
 
-    for name in _config_variables:
-        assert name in config
+    expected = set(EXPECTED_LOGGABLE_VARIABLES + EXPECTED_SECRET_VARIABLES + EXPECTED_DERIVED_VARIABLES)
+
+    unclassified = sorted(set(config) - expected)
+    no_longer_read = sorted(expected - set(config))
+
+    assert not unclassified, (
+        f"{unclassified} read by get_basic_config but not classified here: decide whether each may appear "
+        f"in the startup log, then add it to EXPECTED_LOGGABLE_VARIABLES or EXPECTED_SECRET_VARIABLES"
+    )
+
+    assert not no_longer_read, f"{no_longer_read} no longer read by get_basic_config: remove from the lists above"
