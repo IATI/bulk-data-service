@@ -3,8 +3,6 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-from azure.storage.blob import BlobServiceClient
-
 from bulk_data_service.data_converters import (
     convert_reporting_org_to_reporting_org_dto,
     get_full_dataset_check_result_dto,
@@ -43,7 +41,7 @@ def create_and_upload_indices(
 
 def upload_index_json_to_azure(context: BDSContext, index_name: str, index_json: str):
 
-    az_blob_service = BlobServiceClient.from_connection_string(context["AZURE_STORAGE_CONNECTION_STRING"])
+    az_blob_service = context.service_factory.get_azure_blob_service_client()
 
     azure_upload_to_blob(
         az_blob_service, context["AZURE_STORAGE_BLOB_CONTAINER_NAME"], index_name, index_json, "application/json"
