@@ -2,6 +2,7 @@ import abc
 from typing import Any
 
 from azure.servicebus import ServiceBusClient
+from azure.storage.blob import BlobServiceClient
 from libsuitecrm import SuiteCRM  # type: ignore
 
 
@@ -16,4 +17,8 @@ class IServiceFactory(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def get_suitecrm_client(self) -> SuiteCRM:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def get_azure_blob_service_client(self) -> BlobServiceClient:
         raise NotImplementedError
