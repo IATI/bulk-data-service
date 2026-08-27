@@ -3,6 +3,8 @@ import uuid
 
 import pytest
 from azure.servicebus.exceptions import ServiceBusQuotaExceededError
+
+from bulk_data_service.checker import checker_run
 from helpers.data_helpers import (
     check_last_known_good_dataset_values_are_set,
     check_last_known_good_dataset_values_are_unset,
@@ -10,8 +12,6 @@ from helpers.data_helpers import (
     check_most_recent_http_attempt_for_success,
 )
 from helpers.helpers import get_and_clear_up_context  # noqa: F401
-
-from bulk_data_service.checker import checker_run
 
 
 @pytest.mark.parametrize(
