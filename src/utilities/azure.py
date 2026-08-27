@@ -96,7 +96,7 @@ def azure_upload_to_blob(
 
 
 def create_azure_blob_containers(context: BDSContext):
-    blob_service = BlobServiceClient.from_connection_string(context["AZURE_STORAGE_CONNECTION_STRING"])
+    blob_service = context.service_factory.get_azure_blob_service_client()
 
     containers = blob_service.list_containers()
     container_names = [c.name for c in containers]
@@ -120,7 +120,7 @@ def create_azure_blob_containers(context: BDSContext):
 
 
 def delete_azure_blob_containers(context: BDSContext):
-    blob_service = BlobServiceClient.from_connection_string(context["AZURE_STORAGE_CONNECTION_STRING"])
+    blob_service = context.service_factory.get_azure_blob_service_client()
 
     containers = blob_service.list_containers()
     container_names = [c.name for c in containers]
@@ -214,7 +214,7 @@ def send_message_to_iati_mq(context: BDSContext, topic_name, msg_payload):
 
 
 def upload_zip_to_azure(context: BDSContext, zip_local_pathname: str, zip_azure_filename: str):
-    az_blob_service = BlobServiceClient.from_connection_string(context["AZURE_STORAGE_CONNECTION_STRING"])
+    az_blob_service = context.service_factory.get_azure_blob_service_client()
 
     blob_client = az_blob_service.get_blob_client(context["AZURE_STORAGE_BLOB_CONTAINER_NAME"], zip_azure_filename)
 

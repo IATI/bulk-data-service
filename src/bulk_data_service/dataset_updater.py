@@ -67,7 +67,7 @@ def add_or_update_dataset_batch(
 
     db_conn = get_db_connection(context)
 
-    az_blob_service = BlobServiceClient.from_connection_string(context["AZURE_STORAGE_CONNECTION_STRING"])
+    az_blob_service = context.service_factory.get_azure_blob_service_client()
 
     session = get_requests_session(context)
 

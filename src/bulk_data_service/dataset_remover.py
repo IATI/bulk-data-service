@@ -17,7 +17,7 @@ def remove_deleted_datasets_from_bds(
 
     db_conn = get_db_connection(context)
 
-    az_blob_service = BlobServiceClient.from_connection_string(context["AZURE_STORAGE_CONNECTION_STRING"])
+    az_blob_service = context.service_factory.get_azure_blob_service_client()
 
     ids_to_delete = [k for k in datasets_in_bds.keys() if k not in registered_datasets]
 
@@ -49,7 +49,7 @@ def remove_expired_downloads(context: BDSContext, datasets_in_bds: dict[uuid.UUI
 
     db_conn = get_db_connection(context)
 
-    az_blob_service = BlobServiceClient.from_connection_string(context["AZURE_STORAGE_CONNECTION_STRING"])
+    az_blob_service = context.service_factory.get_azure_blob_service_client()
 
     expired_datasets = 0
 

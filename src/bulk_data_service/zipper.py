@@ -6,7 +6,6 @@ import time
 import uuid
 
 from azure.core.exceptions import ResourceNotFoundError
-from azure.storage.blob import BlobServiceClient
 
 from bulk_data_service.zippers import CodeforIATILegacyZipper, IATIBulkDataServiceZipper
 from config.bds_context import BDSContext
@@ -175,7 +174,7 @@ def remove_datasets_without_dls_from_working_dir(
 
 def download_new_or_updated_to_working_dir(context: BDSContext, updated_datasets: dict[uuid.UUID, dict]):
 
-    az_blob_service = BlobServiceClient.from_connection_string(context["AZURE_STORAGE_CONNECTION_STRING"])
+    az_blob_service = context.service_factory.get_azure_blob_service_client()
 
     xml_container_name = get_azure_container_name(context, "xml")
 

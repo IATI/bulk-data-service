@@ -13,6 +13,7 @@ from dotenv import dotenv_values
 
 from config.bds_context import BDSContext
 from config.config import get_app_version
+from config.service_factory import ServiceFactory
 from config.service_factory_interface import IServiceFactory
 from utilities.azure import (
     create_azure_blob_containers,
@@ -84,7 +85,13 @@ def get_and_clear_up_context():
     for metric in get_metrics_definitions():
         config["prom_metrics"][metric[0]] = mock.Mock()  # type: ignore
 
-    context = BDSContext(config, logger, mock.create_autospec(IServiceFactory))
+    # the Service Bus and SuiteCRM clients are mocked, so that tests can stub them, but
+    # blob storage is exercised for real against the Azurite emulator, so the blob client
+    # is delegated to the real service factory
+    service_factory = mock.create_autospec(IServiceFactory)
+    service_factory.get_azure_blob_service_client.side_effect = ServiceFactory(config).get_azure_blob_service_client
+
+    context = BDSContext(config, logger, service_factory)
 
     context["TEST_TMP_ZIP_UNPACK"] = "tests/tmp_zip_unpack"
 
