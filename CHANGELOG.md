@@ -15,6 +15,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- Exceptions which the service loops catch and retry are now logged with the
+  exception attached, so that the traceback reaches the log and Sentry as one
+  structured record rather than as separate messages. Previously the traceback
+  was logged as a separate string, or printed to stdout.
+
 ### Fixed
 
 ### Removed
