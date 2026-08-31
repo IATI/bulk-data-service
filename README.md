@@ -248,6 +248,41 @@ When you are developing you may want to have the tests run whenever you make cha
 pytest-watcher .
 ```
 
+## Error reporting
+
+Errors are reported to [Sentry](https://sentry.io). Reporting is switched on by
+setting `SENTRY_DSN` to the DSN of the Sentry project the errors should go to;
+when it is unset — which is the default for local development and for the
+automated tests — nothing is sent anywhere and the app is unaffected.
+
+The following environment variables configure it:
+
+| Variable | Purpose |
+| --- | --- |
+| `SENTRY_DSN` | The DSN of the Sentry project to report to. Unset disables reporting. Treated as a secret: it is never written to the log. |
+| `SENTRY_ENVIRONMENT` | The environment name events are tagged with, e.g. `dev` or `prod`. Set automatically to the deployment's target environment. Defaults to `local-development`. |
+| `SENTRY_TRACES_SAMPLE_RATE` | The proportion of transactions (`0.0` to `1.0`) sent for performance tracing. Defaults to `1.0`. |
+
+Sentry is initialised in `src/config/sentry.py`, before anything else in the
+app's startup which can fail, so that errors in the rest of the startup are
+reported. Every event is tagged with the app version, the environment, and
+which of the three operations (`checker`, `zipper`,
+`registry-changes-processor`) it came from, since they run as separate
+containers reporting to the same Sentry project.
+
+Unhandled exceptions are reported automatically, as are messages logged at
+`ERROR` or above.
+
+### Error reporting and secrets
+
+Sentry attaches the local variables of every stack frame to an event, and the
+config dict — which holds the app's credentials — is a local variable through
+much of the app. The variables which `src/config/config.py` marks as
+`LogPolicy.SECRET` are therefore scrubbed from events by name, using the same
+list that keeps them out of the startup log. A new secret configuration
+variable is covered as soon as it is marked `SECRET`; the tests in
+`tests/unit/test_sentry.py` fail if one is not.
+
 ## Provisioning and Deployment
 
 ### Initial Provisioning

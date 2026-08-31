@@ -8,6 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Errors are reported to Sentry, when a `SENTRY_DSN` is configured. Events are
+  tagged with the environment, the app version, and which of the three
+  operations they came from. The configuration variables which hold credentials
+  are scrubbed from the stack-frame variables Sentry attaches to an event.
+
 ### Changed
 
 ### Fixed

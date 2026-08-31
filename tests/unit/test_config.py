@@ -65,6 +65,8 @@ EXPECTED_LOGGABLE_VARIABLES = [
     "SEND_DATASET_CHECK_RESULT_MESSAGES",
     "DATASET_HEAD_TIMEOUT",
     "DATASET_GET_TIMEOUT",
+    "SENTRY_ENVIRONMENT",
+    "SENTRY_TRACES_SAMPLE_RATE",
 ]
 
 # Configuration variables whose name and value must never appear in the log.
@@ -79,6 +81,7 @@ EXPECTED_SECRET_VARIABLES = [
     "DB_SSL_MODE",
     "AZURE_STORAGE_CONNECTION_STRING",
     "AZURE_SERVICE_BUS_CONNECTION_STRING",
+    "SENTRY_DSN",
 ]
 
 # Settings which come from the command line rather than from the environment.
@@ -105,6 +108,7 @@ SECRET_NAME_FRAGMENTS = [
     "CREDENTIAL",
     "TOKEN",
     "CONNECTION_STRING",
+    "DSN",
 ]
 
 
