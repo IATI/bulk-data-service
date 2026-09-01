@@ -10,8 +10,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Errors are reported to Sentry, when a `SENTRY_DSN` is configured. Events are
   tagged with the environment, the app version, and which of the three
-  operations they came from. The configuration variables which hold credentials
-  are scrubbed from the stack-frame variables Sentry attaches to an event.
+  operations they came from. Stack-frame variables are not sent, and the
+  configuration variables which hold credentials are scrubbed by name, so that
+  the app's credentials are not included in an event.
 
 ### Changed
 
