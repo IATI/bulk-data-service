@@ -11,6 +11,7 @@ from config.sentry import (
     UNCONFIGURED_ENVIRONMENT,
     WITHHELD,
     before_breadcrumb,
+    before_send,
     before_send_transaction,
     initialise_sentry,
 )
@@ -119,6 +120,64 @@ def test_sentry_scrubs_secrets_nested_inside_local_variables():
     variables in their own right, so scrubbing has to be recursive."""
 
     assert initialise_with({})["event_scrubber"].recursive is True
+
+
+def make_log_record(**attributes) -> logging.LogRecord:
+    record = logging.LogRecord("bds", logging.ERROR, "some_module.py", 1, "a message", None, None)
+    for name, value in attributes.items():
+        setattr(record, name, value)
+    return record
+
+
+def test_sentry_is_given_the_grouping_hook():
+
+    assert initialise_with({})["before_send"] is before_send
+
+
+def test_events_marked_with_an_alert_group_are_grouped_by_it():
+    """Without this, each occurrence would be a separate issue: these messages
+    name the record they are about, and Sentry groups log events on their text."""
+
+    event = before_send({}, {"log_record": make_log_record(bds_alert_group="suitecrm-orphan-dataset")})
+
+    assert event is not None
+
+    assert event.get("fingerprint") == ["suitecrm-orphan-dataset"]
+
+    assert event.get("tags") == {"bds.alert_group": "suitecrm-orphan-dataset"}
+
+
+def test_events_marked_with_an_alert_group_keep_their_own_message():
+    """The message identifies the record, which is what makes an individual event
+    useful once the alert has been raised, so grouping must not flatten it."""
+
+    event = before_send(
+        {"logentry": {"message": "dataset 320cf690 has no reporting org"}},
+        {"log_record": make_log_record(bds_alert_group="suitecrm-orphan-dataset")},
+    )
+
+    assert event is not None
+
+    assert event.get("logentry", {}).get("message") == "dataset 320cf690 has no reporting org"
+
+
+def test_events_without_an_alert_group_are_left_alone():
+
+    event = before_send({}, {"log_record": make_log_record()})
+
+    assert event == {}
+
+
+def test_events_which_did_not_come_from_a_log_record_are_left_alone():
+    """Unhandled exceptions have no log record, and group on their stack trace,
+    which is better than anything a fingerprint could do."""
+
+    assert before_send({}, {}) == {}
+
+
+def test_an_empty_alert_group_does_not_group_events_together():
+
+    assert before_send({}, {"log_record": make_log_record(bds_alert_group="")}) == {}
 
 
 def test_sentry_is_given_the_request_url_hooks():

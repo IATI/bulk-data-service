@@ -59,6 +59,7 @@ def initialise_sentry(config: dict, operation: str, logger: logging.Logger):
             denylist=DEFAULT_DENYLIST + get_secret_variable_names(),
             recursive=True,
         ),
+        before_send=before_send,
         before_breadcrumb=before_breadcrumb,
         before_send_transaction=before_send_transaction,
         traces_sample_rate=get_traces_sample_rate(config, logger),
@@ -73,6 +74,30 @@ def initialise_sentry(config: dict, operation: str, logger: logging.Logger):
     sentry_sdk.set_tag("bds.operation", operation)
 
     logger.info("Sentry: error reporting enabled for environment '{}'".format(environment))
+
+
+def before_send(event: Event, hint: Hint) -> Event | None:
+    """Groups events which the app has marked as belonging to one class of alert.
+
+    An event made from a log message is otherwise grouped on the message text,
+    and the app's messages name the record they are about, so each occurrence
+    would arrive as a separate issue instead of accumulating on one. A call site
+    opts in by logging with `extra={"bds_alert_group": "..."}`, which is a plain
+    logging keyword and so needs no knowledge of the error reporting service."""
+
+    record = hint.get("log_record")
+
+    alert_group = getattr(record, "bds_alert_group", None) if record is not None else None
+
+    if alert_group:
+        event["fingerprint"] = [alert_group]
+
+        # also recorded as a tag, so that alerting rules can be written against
+        # a class of alert rather than against a message
+        tags = event.setdefault("tags", {})
+        tags["bds.alert_group"] = alert_group
+
+    return event
 
 
 def before_breadcrumb(crumb: Breadcrumb, _hint: BreadcrumbHint) -> Breadcrumb | None:
