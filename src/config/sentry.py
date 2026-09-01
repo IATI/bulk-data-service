@@ -1,7 +1,9 @@
 import logging
+from typing import Any
 
 import sentry_sdk
 from sentry_sdk.scrubber import DEFAULT_DENYLIST, EventScrubber
+from sentry_sdk.types import Breadcrumb, BreadcrumbHint, Event, Hint
 
 from config.config import get_secret_variable_names
 
@@ -13,6 +15,13 @@ DEFAULT_TRACES_SAMPLE_RATE = 1.0
 # default of 'production', so that an unconfigured environment can never be
 # mistaken for the live one
 UNCONFIGURED_ENVIRONMENT = "local-development"
+
+# What Sentry itself puts in place of a value it withholds
+WITHHELD = "[Filtered]"
+
+# The parts of a request's URL which Sentry records with their values intact,
+# and which can therefore carry a credential
+REQUEST_URL_PARTS_TO_WITHHOLD = ("http.query", "http.fragment")
 
 
 def initialise_sentry(config: dict, operation: str, logger: logging.Logger):
@@ -36,15 +45,22 @@ def initialise_sentry(config: dict, operation: str, logger: logging.Logger):
         # nothing to be gained from letting the SDK attach identifying
         # information to events
         send_default_pii=False,
-        # Sentry attaches the local variables of every stack frame to an event,
-        # and the config dict (which holds the app's credentials) is a local
-        # variable in much of the app, so the secret config variables are
-        # scrubbed by name. 'recursive' is needed because the values sit inside
-        # the dict rather than being locals in their own right
+        # Sentry attaches the local variables of every stack frame to an
+        # event, and the app's credentials reach the stack in forms which
+        # cannot all be recognised: psycopg assembles the database password
+        # into a single 'conninfo' string, and the Azure SDK holds the storage
+        # account key in locals of its own. The scrubber can only match
+        # variables by name, so local variables are not sent at all
+        include_local_variables=False,
+        # kept as well, because it scrubs the values which the SDK collects by
+        # other means, and because a variable marked SECRET in config.py should
+        # be withheld by name wherever it appears
         event_scrubber=EventScrubber(
             denylist=DEFAULT_DENYLIST + get_secret_variable_names(),
             recursive=True,
         ),
+        before_breadcrumb=before_breadcrumb,
+        before_send_transaction=before_send_transaction,
         traces_sample_rate=get_traces_sample_rate(config, logger),
         # the checker and the registry changes processor run until they are
         # stopped, so being interrupted is a normal way for the app to end
@@ -57,6 +73,53 @@ def initialise_sentry(config: dict, operation: str, logger: logging.Logger):
     sentry_sdk.set_tag("bds.operation", operation)
 
     logger.info("Sentry: error reporting enabled for environment '{}'".format(environment))
+
+
+def before_breadcrumb(crumb: Breadcrumb, _hint: BreadcrumbHint) -> Breadcrumb | None:
+    """Withholds the query string of the outgoing HTTP requests which Sentry
+    records as breadcrumbs.
+
+    Sentry records each request's query string with its values intact, and an
+    Azure storage connection string which uses a shared access signature puts
+    that signature in the query string of every request. The event scrubber
+    cannot withhold it, because the only name it sees is 'http.query'."""
+
+    withhold_request_url_parts(crumb.get("data"))
+
+    return crumb
+
+
+def before_send_transaction(event: Event, _hint: Hint) -> Event | None:
+    """Withholds the same query strings from the spans of a transaction, for the
+    same reason as `before_breadcrumb`.
+
+    The app creates no transactions, so no spans are sent at present. This is
+    here because a sample rate is configured, so adding a transaction later would
+    otherwise quietly start sending query strings again: `before_send` is not
+    given transactions, and so cannot cover this."""
+
+    spans = event.get("spans")
+
+    # Sentry replaces a value it has trimmed with a marker object, so the spans
+    # are not necessarily a list, and this must not be the thing which raises
+    if isinstance(spans, list):
+        for span in spans:
+            withhold_request_url_parts(span.get("data"))
+
+    return event
+
+
+def withhold_request_url_parts(data: Any):
+    """Replaces the parts of a recorded request URL which can carry a credential.
+    The method, the URL without its query string, and the response status are
+    left alone, so a breadcrumb still says which request was being made."""
+
+    if not isinstance(data, dict):
+        return
+
+    for part in REQUEST_URL_PARTS_TO_WITHHOLD:
+        if part in data:
+            data[part] = WITHHELD
 
 
 def get_traces_sample_rate(config: dict, logger: logging.Logger) -> float:
