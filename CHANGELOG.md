@@ -21,6 +21,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   structured record rather than as separate messages. Previously the traceback
   was logged as a separate string, or printed to stdout.
 
+- Errors about individual SuiteCRM records are marked with the class of alert
+  they belong to, so that repeat occurrences accumulate on one Sentry issue
+  instead of producing one issue per record. The log messages are unchanged.
+
 ### Fixed
 
 ### Removed
