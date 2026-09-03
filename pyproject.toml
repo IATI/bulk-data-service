@@ -79,10 +79,3 @@ line-length = 119
 target-version = ['py312']
 include='''(src|tests)/.*\.py$'''
 
-
-# Ruff is not part of the project's own tooling, but editor extensions which use
-# it (its default line length is 88) would otherwise re-wrap imports to a
-# different width from black, isort and flake8 every time a file is saved
-[tool.ruff]
-line-length = 119
-target-version = 'py312'
