@@ -1,6 +1,5 @@
 import asyncio
 import json
-import traceback
 import uuid
 
 from azure.servicebus import ServiceBusReceivedMessage
@@ -62,9 +61,8 @@ async def registry_changes_service_loop(context: BDSContext):
         except ServiceBusConnectionError as e:
             context.logger.warning(f"registry_changes_service_loop - Could not connect to Azure Service Bus - {e}")
             await asyncio.sleep(15)
-        except Exception as e:
-            context.logger.warning(f"registry_changes_service_loop - Unexpected Error - {e}")
-            print(traceback.format_exc())
+        except Exception:
+            context.logger.exception("registry_changes_service_loop - Unexpected Error")
             await asyncio.sleep(15)
         finally:
             if sb_client is not None:
@@ -90,8 +88,8 @@ async def fetch_and_process_messages(context: BDSContext, sb_client: ServiceBusC
     for message in msgs:
         try:
             await process_message(context, message)
-        except BulkDataServiceRuntimeError as e:
-            context.logger.error(f"process_message - Error processing message: {e}")
+        except BulkDataServiceRuntimeError:
+            context.logger.exception("process_message - Error processing message")
         finally:
             await receiver.complete_message(message)
 

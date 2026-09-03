@@ -1,5 +1,4 @@
 import time
-import traceback
 import uuid
 from datetime import UTC, datetime, timedelta
 
@@ -37,21 +36,16 @@ def checker_service_loop(context: BDSContext):
             context.logger.info("Pausing for {} mins".format(context["CHECKER_LOOP_WAIT_MINS"]))
             time.sleep(60 * int(context["CHECKER_LOOP_WAIT_MINS"]))
 
-        except SafetyCheckError as e:
-            context.logger.error("{}. Waiting 10 minutes then re-trying.".format(e))
-
+        except SafetyCheckError:
+            # logged with the exception attached so that the traceback reaches the
+            # log and the error reporting service as one structured record, rather
+            # than as separate messages which have to be pieced back together
+            context.logger.exception("Safety check failed. Waiting 10 minutes then re-trying.")
             time.sleep(60 * 10)
 
-        except Exception as e:
-            context.logger.error(
-                "Exception in checker service loop. "
-                "Waiting 10 minutes then restarting. "
-                "Exception message: {}".format(e).replace("\n", "")
-            )
-            context.logger.error("Full traceback: " "{}".format(traceback.format_exc()))
-
+        except Exception:
+            context.logger.exception("Exception in checker service loop. Waiting 10 minutes then restarting.")
             get_prom_metric(context, "number_crashes").inc()
-
             time.sleep(60 * 10)
 
 

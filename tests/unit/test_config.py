@@ -2,8 +2,9 @@ from unittest import mock
 
 from dotenv import load_dotenv
 
+from config import config as config_module
 from config.bds_context import BDSContext
-from config.config import get_basic_config, get_config_for_logging
+from config.config import LogPolicy, get_basic_config, get_config_for_logging, get_secret_variable_names
 
 
 def test_config_blob_storage_base_url_has_no_trailing_slash_1():
@@ -65,6 +66,8 @@ EXPECTED_LOGGABLE_VARIABLES = [
     "SEND_DATASET_CHECK_RESULT_MESSAGES",
     "DATASET_HEAD_TIMEOUT",
     "DATASET_GET_TIMEOUT",
+    "SENTRY_ENVIRONMENT",
+    "SENTRY_TRACES_SAMPLE_RATE",
 ]
 
 # Configuration variables whose name and value must never appear in the log.
@@ -79,6 +82,7 @@ EXPECTED_SECRET_VARIABLES = [
     "DB_SSL_MODE",
     "AZURE_STORAGE_CONNECTION_STRING",
     "AZURE_SERVICE_BUS_CONNECTION_STRING",
+    "SENTRY_DSN",
 ]
 
 # Settings which come from the command line rather than from the environment.
@@ -105,6 +109,7 @@ SECRET_NAME_FRAGMENTS = [
     "CREDENTIAL",
     "TOKEN",
     "CONNECTION_STRING",
+    "DSN",
 ]
 
 
@@ -194,3 +199,51 @@ def test_get_basic_config_reads_exactly_the_expected_variables():
     )
 
     assert not no_longer_read, f"{no_longer_read} no longer read by get_basic_config: remove from the lists above"
+
+
+def test_get_secret_variable_names_returns_exactly_the_secret_variables():
+    # compared as sets: the caller has no reason to depend on the order in which
+    # the variables happen to be declared in config.py
+
+    names = get_secret_variable_names()
+
+    assert sorted(names) == sorted(EXPECTED_SECRET_VARIABLES)
+
+    assert len(names) == len(set(names)), f"get_secret_variable_names returned duplicates: {names}"
+
+
+def test_get_secret_variable_names_is_derived_from_the_log_policies(monkeypatch):
+    """The Sentry event scrubber uses this as its denylist, so it has to track
+    config.py: marking a new variable SECRET must be enough to keep its value out
+    of anything sent off the machine, with nothing else to remember to update."""
+
+    monkeypatch.setitem(config_module._config_variables, "A_NEWLY_ADDED_SECRET", LogPolicy.SECRET)
+    monkeypatch.setitem(config_module._config_variables, "A_NEWLY_ADDED_SETTING", LogPolicy.LOGGABLE)
+
+    names = get_secret_variable_names()
+
+    assert "A_NEWLY_ADDED_SECRET" in names, "a variable marked SECRET in config.py was not reported as secret"
+
+    assert "A_NEWLY_ADDED_SETTING" not in names
+
+
+def test_every_configuration_variable_is_either_logged_or_secret():
+    """A variable which is neither would be unclassified: withheld by nothing and
+    deliberately allowed by nothing. Guards against a further LogPolicy value
+    being added and applied without deciding how Sentry and the log should treat
+    it."""
+
+    load_dotenv("tests/artifacts/config-files/env-file-2", override=True)
+
+    config = get_basic_config()
+
+    secret_names = set(get_secret_variable_names())
+    logged_names = {line.split("=", 1)[0] for line in get_config_lines(config)} - set(EXPECTED_RUNTIME_SETTINGS)
+    read_names = set(config) - set(EXPECTED_DERIVED_VARIABLES)
+
+    unclassified = sorted(read_names - secret_names - logged_names)
+
+    assert not unclassified, (
+        f"{unclassified} are read from the environment but are neither logged nor treated as secret: "
+        f"give each a LogPolicy in config.py which the log and the Sentry scrubber both understand"
+    )

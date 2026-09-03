@@ -13,7 +13,9 @@ azure-servicebus==7.14.2
 azure-storage-blob==12.25.1
     # via bulk-data-service (pyproject.toml)
 certifi==2025.7.9
-    # via requests
+    # via
+    #   requests
+    #   sentry-sdk
 cffi==1.17.1
     # via cryptography
 chardet==5.2.0
@@ -54,6 +56,8 @@ requests==2.32.4
     #   requests-oauthlib
 requests-oauthlib==2.0.0
     # via libsuitecrm
+sentry-sdk==2.68.1
+    # via bulk-data-service (pyproject.toml)
 six==1.17.0
     # via azure-core
 sqlparse==0.5.3
@@ -70,7 +74,9 @@ typing-extensions==4.14.1
     #   psycopg
     #   psycopg-pool
 urllib3==2.5.0
-    # via requests
+    # via
+    #   requests
+    #   sentry-sdk
 yoyo-migrations==9.0.0
     # via bulk-data-service (pyproject.toml)
 zipp==3.23.0
