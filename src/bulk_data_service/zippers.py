@@ -93,7 +93,7 @@ class IATIDataZipper(ABC):
 class IATIBulkDataServiceZipper(IATIDataZipper):
 
     def prepare(self):
-        az_blob_service = BlobServiceClient.from_connection_string(self.context["AZURE_STORAGE_CONNECTION_STRING"])
+        az_blob_service = self.context.service_factory.get_azure_blob_service_client()
 
         self.download_dataset_index_to_working_dir(az_blob_service, "minimal")
 

@@ -200,7 +200,7 @@ def test_update_dataset_registration_details(get_and_clear_up_context, field, or
     assert datasets_in_bds[dataset_id][field] == expected
 
 
-def test_update_dataset_mq_message_send_doesnt_crash_on_error(monkeypatch, get_and_clear_up_context):  # noqa: F811
+def test_update_dataset_mq_message_send_doesnt_crash_on_error(get_and_clear_up_context):  # noqa: F811
 
     context = get_and_clear_up_context
 
@@ -220,14 +220,10 @@ def test_update_dataset_mq_message_send_doesnt_crash_on_error(monkeypatch, get_a
         def close(self):
             return None
 
-    class FakeServiceFactory:
-        def get_service_bus_client(self, *args, **kwargs):
-            return FakeServiceBusClient()
-
-        def get_suitecrm_client(self):
-            raise NotImplementedError
-
-    monkeypatch.setattr(context, "_service_factory", FakeServiceFactory())
+    # only the Service Bus client is faked: the rest of the factory, including the blob
+    # storage client, is left as the fixture set it up
+    context.service_factory.get_service_bus_client.return_value = FakeServiceBusClient()
+    context.service_factory.get_suitecrm_client.side_effect = NotImplementedError
 
     dataset_id = uuid.UUID("c8a40aa5-9f31-4bcf-a36f-51c1fc2cc159")
 

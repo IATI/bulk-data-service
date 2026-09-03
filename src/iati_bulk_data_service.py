@@ -4,7 +4,7 @@ from bulk_data_service.checker import checker
 from bulk_data_service.registry_changes_processor import registry_changes_processor_start
 from bulk_data_service.zipper import zipper
 from config.bds_context import BDSContext
-from config.config import get_basic_config
+from config.config import get_basic_config, get_config_for_logging
 from config.initialisation import misc_global_initialisation
 from config.service_factory import ServiceFactory
 from utilities.azure import create_azure_blob_containers
@@ -24,9 +24,17 @@ def main(args: argparse.Namespace):
         "skip_safety": args.skip_safety,
     }
 
-    context = BDSContext(config, initialise_logging(config), ServiceFactory(config))
+    logger = initialise_logging(config)
 
-    context.logger.info("Bulk Data Service {} initialising...".format(context["BULK_DATA_SERVICE_VERSION"]))
+    logger.info("Bulk Data Service {} initialising...".format(config["BULK_DATA_SERVICE_VERSION"]))
+
+    # logged before the context is created because creating the context coerces
+    # some of the config values, and so can fail on a bad value: we want the
+    # config to be in the log before that can happen
+    for config_line in get_config_for_logging(config):
+        logger.info("Config: {}".format(config_line))
+
+    context = BDSContext(config, logger, ServiceFactory(config))
 
     apply_db_migrations(context)
 

@@ -14,6 +14,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Removed
 
+## [1.4.13] - 2026-08-27
+
+### Added
+
+ - Non-secret configuration variables are written to the log when the service
+   starts.
+
+### Changed
+
+ - Azure blob service clients are now obtained from the service factory, which
+   applies an explicit exponential retry policy rather than relying on the
+   Azure SDK defaults.
+
 ## [1.4.12] - 2026-08-03
 
 ### Changed
