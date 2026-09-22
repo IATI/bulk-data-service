@@ -8,6 +8,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+### Changed
+
+### Fixed
+
+### Removed
+
+## [1.4.14] - 2026-09-22
+
+### Added
+
 - Errors are reported to Sentry, when a `SENTRY_DSN` is configured. Events are
   tagged with the environment, the app version, and which of the three
   operations they came from. Stack-frame variables are not sent, and the
@@ -24,10 +34,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Errors about individual SuiteCRM records are marked with the class of alert
   they belong to, so that repeat occurrences accumulate on one Sentry issue
   instead of producing one issue per record. The log messages are unchanged.
-
-### Fixed
-
-### Removed
 
 ## [1.4.13] - 2026-08-27
 
