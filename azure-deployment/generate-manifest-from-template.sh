@@ -70,3 +70,8 @@ sed -i ''s^#AZURE_SERVICE_BUS_REGISTRY_TOPIC_NAME#^$AZURE_SERVICE_BUS_REGISTRY_T
 sed -i ''s^#AZURE_SERVICE_BUS_REGISTRY_SUB_NAME#^$AZURE_SERVICE_BUS_REGISTRY_SUB_NAME^g'' ./azure-deployment/azure-resource-manager-deployment-manifest.yml
 sed -i ''s^#AZURE_SERVICE_BUS_DATASET_CHECK_RESULTS_TOPIC_NAME#^$AZURE_SERVICE_BUS_DATASET_CHECK_RESULTS_TOPIC_NAME^g'' ./azure-deployment/azure-resource-manager-deployment-manifest.yml
 sed -i ''s^#AZURE_SERVICE_BUS_WAIT_TIME#^$AZURE_SERVICE_BUS_WAIT_TIME^g'' ./azure-deployment/azure-resource-manager-deployment-manifest.yml
+
+# Variables which configure error reporting to Sentry
+
+sed -i ''s^#SENTRY_DSN#^$SENTRY_DSN^g'' ./azure-deployment/azure-resource-manager-deployment-manifest.yml
+sed -i ''s^#SENTRY_TRACES_SAMPLE_RATE#^$SENTRY_TRACES_SAMPLE_RATE^g'' ./azure-deployment/azure-resource-manager-deployment-manifest.yml

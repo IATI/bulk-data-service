@@ -248,6 +248,111 @@ When you are developing you may want to have the tests run whenever you make cha
 pytest-watcher .
 ```
 
+## Error reporting
+
+Errors are reported to [Sentry](https://sentry.io). Reporting is switched on by
+setting `SENTRY_DSN` to the DSN of the Sentry project the errors should go to;
+when it is unset — which is the default for local development and for the
+automated tests — nothing is sent anywhere and the app is unaffected.
+
+The following environment variables configure it:
+
+| Variable | Purpose |
+| --- | --- |
+| `SENTRY_DSN` | The DSN of the Sentry project to report to. Unset disables reporting. Treated as a secret: it is never written to the log. |
+| `SENTRY_ENVIRONMENT` | The environment name events are tagged with, e.g. `dev` or `prod`. Set automatically to the deployment's target environment. Defaults to `local-development`. |
+| `SENTRY_TRACES_SAMPLE_RATE` | The proportion of transactions (`0.0` to `1.0`) sent for performance tracing. Defaults to `1.0`. |
+
+Sentry is initialised in `src/config/sentry.py`, before anything else in the
+app's startup which can fail, so that errors in the rest of the startup are
+reported. Every event is tagged with the app version, the environment, and
+which of the three operations (`checker`, `zipper`,
+`registry-changes-processor`) it came from, since they run as separate
+containers reporting to the same Sentry project.
+
+Unhandled exceptions are reported automatically, as are messages logged at
+`ERROR` or above.
+
+### Error reporting and secrets
+
+Sentry would otherwise attach the local variables of every stack frame to an
+event, and the app's credentials reach the stack in forms which cannot be
+recognised by name: `psycopg` assembles the database password into a single
+`conninfo` string, and the Azure SDK holds the storage account key in locals of
+its own. Local variables are therefore not sent at all
+(`include_local_variables=False`), which costs the variable values in a
+traceback but keeps the file, line, function and source line of every frame.
+
+In addition, the variables which `src/config/config.py` marks as
+`LogPolicy.SECRET` are scrubbed by name wherever the SDK collects them by other
+means, using the same list that keeps them out of the startup log.
+
+Deciding that a variable holds a credential is still a manual step:
+`tests/unit/test_config.py::test_every_configuration_variable_is_either_logged_or_secret`
+requires every configuration variable to be classified, but a credential
+wrongly marked `LOGGABLE` would satisfy it. The
+`SECRET_NAME_FRAGMENTS` backstop in that file is what catches the common cases
+by name.
+
+Sentry also records the query string of every outgoing HTTP request, with the
+values intact. An Azure storage connection string which uses a
+`SharedAccessSignature=` rather than an `AccountKey=` puts that signature in the
+query string of every request to blob storage, so `before_breadcrumb` and
+`before_send_transaction` in `src/config/sentry.py` withhold it. The method, the
+URL without its query string and the response status are kept, so a breadcrumb
+still says which request was being made.
+
+`tests/unit/test_sentry.py::test_a_failing_database_connection_does_not_send_the_password`
+is the regression test for all of this: it stands a fake Sentry endpoint up,
+makes a real database connection fail with a recognisable password, and asserts
+that the password is nowhere in what the SDK transmitted.
+
+### What error reporting does not protect
+
+Sentry withholds nothing from the following, so these are rules to follow rather
+than protections to rely on. All of them hold at the time of writing.
+
+- **Exception messages are never scrubbed.** Never let a credential reach an
+  exception message. Note that `psycopg`'s own message names the database host,
+  port, user and database — a deliberate trade, because those four are marked
+  `SECRET` out of caution rather than because they are credentials, and losing
+  them would make a database outage much harder to diagnose. The password itself
+  does not appear there.
+- **Log messages and breadcrumbs are never scrubbed.** The `LogPolicy` split in
+  `src/config/config.py` is what keeps credentials out of them, and it governs
+  only this app's own logging. Third-party libraries log too, and anything they
+  log at `ERROR` becomes a Sentry event — `libsuitecrm`, for instance, logs
+  response bodies.
+- **The command line is sent with every event.** Never pass a credential as a
+  command-line argument. The current arguments are `--operation`,
+  `--single-run`, `--run-for-n-datasets`, `--run-for-single-reporting-org` and
+  `--skip-safety`.
+- **Never put a credential in a URL path.** The query string is withheld, the
+  path is not.
+
+### Sentry's own data scrubbing
+
+The settings in the Sentry project are a second layer, and are relied on rather
+than optional. Sentry applies them after the event has been transmitted but
+before it is stored, so they are a backstop for anything the app fails to
+withhold — not a substitute for withholding it.
+
+- Leave the default data scrubber enabled.
+- Add Advanced Data Scrubbing rules which replace credential-shaped patterns
+  (`password=`, `AccountKey=`, `SharedAccessSignature=`, `sig=`) in
+  `$error.value`, `$message`, `$breadcrumb` and `$http.query`. Pattern rules
+  belong here rather than in the app: adding one is a settings change instead of
+  a deploy.
+
+Three things to know about those settings:
+
+- the rules are not retroactive, and apply only to events received after they
+  are saved;
+- organisation-level settings override project-level ones, so a project rule can
+  be silently ineffective;
+- "Additional Sensitive Fields" matches field *values* by substring as well as
+  field names, so a short entry such as `pass` would corrupt unrelated text.
+
 ## Provisioning and Deployment
 
 ### Initial Provisioning

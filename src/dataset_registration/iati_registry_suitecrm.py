@@ -42,13 +42,14 @@ def fetch_datasets_metadata(
         (is_valid, error_msg) = validate_suitecrm_record_structure("dataset", record)
 
         if not is_valid:
-            context.logger.error(f"{error_msg}")
+            context.logger.error(f"{error_msg}", extra={"bds_alert_group": "suitecrm-invalid-dataset-record"})
             continue
 
         if not is_str_valid_uuid(record["attributes"].get("iati_dataset_owner_org_id", "")):
             context.logger.error(
                 f"SuiteCRM dataset id: {record['id']} has invalid reporting org id: "
-                f"{record['attributes'].get('iati_dataset_owner_org_id', '')}. Skipping."
+                f"{record['attributes'].get('iati_dataset_owner_org_id', '')}. Skipping.",
+                extra={"bds_alert_group": "suitecrm-invalid-reporting-org-id"},
             )
             continue
 
@@ -59,7 +60,8 @@ def fetch_datasets_metadata(
             context.logger.error(
                 f"SuiteCRM dataset id: {record['id']} has reporting org id: "
                 f"{record['attributes'].get('iati_dataset_owner_org_id', '')} but that reporting org does not exist "
-                "or is not discoverable. Skipping."
+                "or is not discoverable. Skipping.",
+                extra={"bds_alert_group": "suitecrm-orphan-dataset"},
             )
             continue
 
@@ -103,7 +105,7 @@ def fetch_reporting_orgs_metadata(context: BDSContext, refresh_timestamp: dateti
         (is_valid_structure, error_msg) = validate_suitecrm_record_structure("reporting_org", record)
 
         if not is_valid_structure:
-            context.logger.error(f"{error_msg}")
+            context.logger.error(f"{error_msg}", extra={"bds_alert_group": "suitecrm-invalid-reporting-org-record"})
             continue
 
         validation_errors = validate_suitecrm_reporting_org_non_free_text_fields(record)

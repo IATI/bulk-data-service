@@ -21,7 +21,9 @@ black==25.1.0
 build==1.2.2.post1
     # via pip-tools
 certifi==2025.7.14
-    # via requests
+    # via
+    #   requests
+    #   sentry-sdk
 cffi==1.17.1
     # via cryptography
 chardet==5.2.0
@@ -136,6 +138,8 @@ rpds-py==0.28.0
     # via
     #   jsonschema
     #   referencing
+sentry-sdk==2.68.1
+    # via bulk-data-service (pyproject.toml)
 six==1.17.0
     # via azure-core
 sqlparse==0.5.3
@@ -161,6 +165,7 @@ urllib3==2.5.0
     # via
     #   requests
     #   responses
+    #   sentry-sdk
     #   types-requests
 watchdog==6.0.0
     # via pytest-watcher
