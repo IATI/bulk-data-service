@@ -202,6 +202,12 @@ def clean_working_dir(
         else:
             context.logger.info("Force clean requested, so deleting all XML files in the ZIP working dir.")
         shutil.rmtree("{}/{}".format(context["ZIP_WORKING_DIR"], "iati-data"), ignore_errors=True)
+
+        # every XML file has just been deleted, so what we believe is in the working dir has to be
+        # emptied to match. Without this, a forced clean leaves the datasets all looking present
+        # and unchanged, nothing is re-downloaded to replace them, and the re-try ZIPs an empty
+        # directory.
+        datasets_in_zip.clear()
     else:
         context.logger.info("Zipper: removing deleted or renamed datasets from working directory")
 

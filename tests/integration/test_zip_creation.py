@@ -1,11 +1,13 @@
 import json
 import os
 import zipfile
+from unittest import mock
 
 import requests
 
 from bulk_data_service.checker import checker_run
-from bulk_data_service.zipper import zipper_run
+from bulk_data_service.zipper import setup_working_dir_with_downloaded_datasets, zipper_run
+from bulk_data_service.zippers import IATIDataZipper
 from helpers.helpers import get_and_clear_up_context, get_number_xml_files_in_working_dir  # noqa: F401
 from utilities.db import get_reporting_orgs_in_bds
 
@@ -365,6 +367,54 @@ def test_per_format_working_dirs_removed_but_master_copy_kept(get_and_clear_up_c
     download_and_unpack_zip_to_tmp_unpack_folder(context, "code-for-iati-data-download.zip")
     assert file_found_in_extracted_zip(
         context, "iati-data-main/data/test_foundation_a/test_foundation_a-dataset-001.xml"
+    )
+
+
+def test_forced_full_clean_redownloads_the_xml(get_and_clear_up_context):  # noqa: F811
+    """A forced full clean is how the zipper recovers when ZIP verification fails. It deletes
+    every XML file, so it has to re-download them all — otherwise the re-try ZIPs an empty tree."""
+
+    context = get_and_clear_up_context
+
+    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-01-1-dataset"
+    datasets_in_bds = {}
+    checker_run(context, datasets_in_bds)
+
+    datasets_in_zip = {}
+    zipper_run(context, datasets_in_zip, datasets_in_bds, get_reporting_orgs_in_bds(context))
+
+    assert get_number_xml_files_in_working_dir(context) == 1
+
+    setup_working_dir_with_downloaded_datasets(context, True, datasets_in_zip, datasets_in_bds)
+
+    assert get_number_xml_files_in_working_dir(context) == 1
+
+
+def test_zip_still_correct_when_first_verification_attempt_fails(get_and_clear_up_context):  # noqa: F811
+    """The re-try has to produce the same ZIP as a first-time success, not an empty one."""
+
+    context = get_and_clear_up_context
+
+    context["DATA_REGISTRY_BASE_URL"] = "http://localhost:3000/ckan-registration/datasets-01-1-dataset"
+    datasets_in_bds = {}
+    checker_run(context, datasets_in_bds)
+
+    real_valid_zip_created = IATIDataZipper.valid_zip_created
+    calls = []
+
+    def fail_first_attempt(self):
+        calls.append(self.zip_type)
+        if len(calls) == 1:
+            return False
+        return real_valid_zip_created(self)
+
+    with mock.patch.object(IATIDataZipper, "valid_zip_created", fail_first_attempt):
+        zipper_run(context, {}, datasets_in_bds, get_reporting_orgs_in_bds(context))
+
+    download_and_unpack_zip_to_tmp_unpack_folder(context)
+
+    assert file_found_in_extracted_zip(
+        context, "iati-data/datasets/test_foundation_a/test_foundation_a-dataset-001.xml"
     )
 
 
