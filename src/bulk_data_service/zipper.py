@@ -7,7 +7,7 @@ import uuid
 
 from azure.core.exceptions import ResourceNotFoundError
 
-from bulk_data_service.zippers import CodeforIATILegacyZipper, IATIBulkDataServiceZipper
+from bulk_data_service.zippers import CodeforIATILegacyZipper, IATIBulkDataServiceZipper, IATIDataZipper
 from config.bds_context import BDSContext
 from utilities.azure import azure_download_blob, get_azure_blob_name, get_azure_container_name
 from utilities.db import get_datasets_in_bds, get_reporting_orgs_in_bds
@@ -71,21 +71,7 @@ def zipper_run(
 
     for zip_creator in zip_creators:
 
-        for _ in range(2):
-            zip_creator.clean_working_dir()
-
-            shutil.copytree(context["ZIP_WORKING_DIR"], zip_creator.zip_working_dir)
-
-            zip_creator.prepare()
-
-            zip_creator.zip()
-
-            if zip_creator.valid_zip_created():
-                zip_creator.upload()
-                break
-            else:
-                context.logger.error("Zip validation failed so resetting working directory and re-trying")
-                setup_working_dir_with_downloaded_datasets(context, True, datasets_in_working_dir, datasets_in_bds)
+        create_and_upload_zip(context, zip_creator, datasets_in_working_dir, datasets_in_bds)
 
         # Whether ZIP was successfully created and uploaded or not, we wipe the working dir for this ZIP format
         # We have to do this because now that we verify the ZIP by unpacking it, more storage is needed, but ACI
@@ -95,6 +81,30 @@ def zipper_run(
     run_end = datetime.datetime.now(datetime.UTC)
     context.logger.info("Zipper run finished in {}.".format(run_end - run_start))
     update_prom_metric(context, "zipper_run_duration", (run_end - run_start).seconds)
+
+
+def create_and_upload_zip(
+    context: BDSContext,
+    zip_creator: IATIDataZipper,
+    datasets_in_working_dir: dict[uuid.UUID, dict],
+    datasets_in_bds: dict[uuid.UUID, dict],
+):
+
+    for _ in range(2):
+        zip_creator.clean_working_dir()
+
+        shutil.copytree(context["ZIP_WORKING_DIR"], zip_creator.zip_working_dir)
+
+        zip_creator.prepare()
+
+        zip_creator.zip()
+
+        if zip_creator.valid_zip_created():
+            zip_creator.upload()
+            return
+
+        context.logger.error("Zip validation failed so resetting working directory and re-trying")
+        setup_working_dir_with_downloaded_datasets(context, True, datasets_in_working_dir, datasets_in_bds)
 
 
 def setup_working_dir_with_downloaded_datasets(
