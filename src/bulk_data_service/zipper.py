@@ -50,7 +50,11 @@ def zipper_run(
     run_start = datetime.datetime.now(datetime.UTC)
     context.logger.info("Zipper run starting")
 
+    log_disk_usage(context, "zipper run starting")
+
     setup_working_dir_with_downloaded_datasets(context, False, datasets_in_working_dir, datasets_in_bds)
+
+    log_disk_usage(context, "XML downloaded to ZIP working dir")
 
     zip_creators = [
         IATIBulkDataServiceZipper(
@@ -83,6 +87,8 @@ def zipper_run(
     context.logger.info("Zipper run finished in {}.".format(run_end - run_start))
     update_prom_metric(context, "zipper_run_duration", (run_end - run_start).seconds)
 
+    log_disk_usage(context, "zipper run finished")
+
 
 def create_and_upload_zip(
     context: BDSContext,
@@ -102,9 +108,13 @@ def create_and_upload_zip(
 
         zip_creator.zip()
 
+        log_disk_usage(context, "{} ZIP created".format(zip_creator.zip_type))
+
         # the files the ZIP was built from are no longer needed, and verifying the ZIP means
         # extracting all of it again, so they are removed first to make room for that
         zip_creator.clean_zip_source_dir()
+
+        log_disk_usage(context, "{} ZIP source dir removed".format(zip_creator.zip_type))
 
         if zip_creator.valid_zip_created():
             zip_creator.upload()
@@ -124,6 +134,24 @@ def create_and_upload_zip(
         ),
         extra={"bds_alert_group": "zip-creation-failed"},
     )
+
+
+def log_disk_usage(context: BDSContext, stage: str):
+    # the working dir may not exist yet on the first run of a session, and disk_usage needs a
+    # path which does
+    os.makedirs(context["ZIP_WORKING_DIR"], exist_ok=True)
+
+    usage = shutil.disk_usage(context["ZIP_WORKING_DIR"])
+
+    context.logger.info(
+        "Disk usage for the filesystem holding the ZIP working dir ({}): "
+        "{:.1f} Gb used, {:.1f} Gb free, {:.1f} Gb total.".format(
+            stage, usage.used / 1024**3, usage.free / 1024**3, usage.total / 1024**3
+        )
+    )
+
+    update_prom_metric(context, "disk_free_bytes", usage.free)
+    update_prom_metric(context, "disk_used_bytes", usage.used)
 
 
 def setup_working_dir_with_downloaded_datasets(

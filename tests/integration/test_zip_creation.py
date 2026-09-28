@@ -368,6 +368,16 @@ def test_per_format_working_dirs_removed_but_master_copy_kept(get_and_clear_up_c
     )
 
 
+def test_disk_usage_metrics_updated_by_zipper_run(get_and_clear_up_context):  # noqa: F811
+
+    context = get_and_clear_up_context
+
+    run_checker_then_zipper_once(context)
+
+    for metric_name in ["disk_free_bytes", "disk_used_bytes"]:
+        assert context["prom_metrics"][metric_name].set.called is True
+
+
 def run_checker_then_zipper(context, registry_url: str, datasets_in_bds: dict, datasets_in_zip: dict):
     context["DATA_REGISTRY_BASE_URL"] = registry_url
     checker_run(context, datasets_in_bds)
