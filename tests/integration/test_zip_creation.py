@@ -334,6 +334,40 @@ def test_codeforiati_zip_content_for_download_fail_no_cached(get_and_clear_up_co
     )
 
 
+def test_per_format_working_dirs_removed_but_master_copy_kept(get_and_clear_up_context):  # noqa: F811
+    """The ZIPs are built from copies of the master working dir, and those copies (including the
+    files each ZIP was built from) must not survive the run, or the next run starts with the
+    container's fixed 50 Gb disk already part-full."""
+
+    context = get_and_clear_up_context
+
+    run_checker_then_zipper_once(context)
+
+    for suffix in ["-1", "-2"]:
+        assert os.path.exists("{}{}".format(context["ZIP_WORKING_DIR"], suffix)) is False
+
+    # the master copy is deliberately kept, so the next run only re-downloads what changed
+    assert (
+        os.path.exists(
+            "{}{}".format(
+                context["ZIP_WORKING_DIR"], "/iati-data/datasets/test_foundation_a/test_foundation_a-dataset-001.xml"
+            )
+        )
+        is True
+    )
+
+    # and both ZIPs were still created and uploaded intact
+    download_and_unpack_zip_to_tmp_unpack_folder(context)
+    assert file_found_in_extracted_zip(
+        context, "iati-data/datasets/test_foundation_a/test_foundation_a-dataset-001.xml"
+    )
+
+    download_and_unpack_zip_to_tmp_unpack_folder(context, "code-for-iati-data-download.zip")
+    assert file_found_in_extracted_zip(
+        context, "iati-data-main/data/test_foundation_a/test_foundation_a-dataset-001.xml"
+    )
+
+
 def run_checker_then_zipper(context, registry_url: str, datasets_in_bds: dict, datasets_in_zip: dict):
     context["DATA_REGISTRY_BASE_URL"] = registry_url
     checker_run(context, datasets_in_bds)

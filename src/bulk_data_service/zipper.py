@@ -70,13 +70,14 @@ def zipper_run(
     ]
 
     for zip_creator in zip_creators:
-
-        create_and_upload_zip(context, zip_creator, datasets_in_working_dir, datasets_in_bds)
-
-        # Whether ZIP was successfully created and uploaded or not, we wipe the working dir for this ZIP format
-        # We have to do this because now that we verify the ZIP by unpacking it, more storage is needed, but ACI
-        # temporary disks are not configurable and max out at 50 Gb.
-        zip_creator.clean_working_dir()
+        try:
+            create_and_upload_zip(context, zip_creator, datasets_in_working_dir, datasets_in_bds)
+        finally:
+            # Whether ZIP was successfully created and uploaded or not, we wipe the working dir for this ZIP format
+            # We have to do this because now that we verify the ZIP by unpacking it, more storage is needed, but ACI
+            # temporary disks are not configurable and max out at 50 Gb. The 'finally' means an exception on the way
+            # through (running out of disk, most likely) doesn't leave the copy behind for the next run to trip over.
+            zip_creator.clean_working_dir()
 
     run_end = datetime.datetime.now(datetime.UTC)
     context.logger.info("Zipper run finished in {}.".format(run_end - run_start))
@@ -90,7 +91,9 @@ def create_and_upload_zip(
     datasets_in_bds: dict[uuid.UUID, dict],
 ):
 
-    for _ in range(2):
+    attempts = 2
+
+    for attempt in range(attempts):
         zip_creator.clean_working_dir()
 
         shutil.copytree(context["ZIP_WORKING_DIR"], zip_creator.zip_working_dir)
@@ -99,12 +102,28 @@ def create_and_upload_zip(
 
         zip_creator.zip()
 
+        # the files the ZIP was built from are no longer needed, and verifying the ZIP means
+        # extracting all of it again, so they are removed first to make room for that
+        zip_creator.clean_zip_source_dir()
+
         if zip_creator.valid_zip_created():
             zip_creator.upload()
             return
 
-        context.logger.error("Zip validation failed so resetting working directory and re-trying")
-        setup_working_dir_with_downloaded_datasets(context, True, datasets_in_working_dir, datasets_in_bds)
+        if attempt < attempts - 1:
+            # the ZIP which failed verification is of no further use, and freeing it now means
+            # the disk isn't carrying it through the re-download below as well
+            zip_creator.clean_working_dir()
+
+            context.logger.error("Zip validation failed so resetting working directory and re-trying")
+            setup_working_dir_with_downloaded_datasets(context, True, datasets_in_working_dir, datasets_in_bds)
+
+    context.logger.error(
+        "Failed to create a valid {} ZIP after {} attempts, so no ZIP was uploaded this run.".format(
+            zip_creator.zip_type, attempts
+        ),
+        extra={"bds_alert_group": "zip-creation-failed"},
+    )
 
 
 def setup_working_dir_with_downloaded_datasets(

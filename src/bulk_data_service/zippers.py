@@ -50,9 +50,21 @@ class IATIDataZipper(ABC):
     def zip_local_filename_no_extension(self) -> str:
         return "iati-data"
 
+    @property
+    def zip_source_dir(self) -> str:
+        return os.path.join(self.zip_working_dir, self.zip_internal_directory_name)
+
+    @property
+    def verify_dir(self) -> str:
+        return os.path.join(self.zip_working_dir, "verifyzip")
+
     def clean_working_dir(self):
         if os.path.exists(self.zip_working_dir):
             shutil.rmtree(self.zip_working_dir)
+
+    def clean_zip_source_dir(self):
+        self.context.logger.info("Removing ZIP source directory {} to free disk space.".format(self.zip_source_dir))
+        shutil.rmtree(self.zip_source_dir, ignore_errors=True)
 
     def zip(self):
         self.context.logger.info("Zipping {} datasets.".format(get_number_xml_files_in_dir(self.zip_working_dir)))
@@ -64,14 +76,23 @@ class IATIDataZipper(ABC):
         )
 
     def valid_zip_created(self) -> bool:
-        self.context.logger.info("Verifying ZIP file {}.zip".format(self.get_zip_local_pathname_no_extension()))
-        with zipfile.ZipFile(self.get_zip_local_pathname(), "r") as zf:
-            try:
-                zf.extractall(os.path.join(self.zip_working_dir, "verifyzip"))
-            except zipfile.BadZipFile:
-                shutil.rmtree(os.path.join(self.zip_working_dir, "verifyzip"))
-                return False
-        shutil.rmtree(os.path.join(self.zip_working_dir, "verifyzip"))
+        self.context.logger.info("Verifying ZIP file {}".format(self.get_zip_local_pathname()))
+        try:
+            # opening the file is inside the try because a truncated or missing archive raises
+            # here rather than in extractall, and that is a failed verification like any other
+            with zipfile.ZipFile(self.get_zip_local_pathname(), "r") as zf:
+                zf.extractall(self.verify_dir)
+        except (zipfile.BadZipFile, OSError):
+            # OSError covers anything which stops the extraction part-way: running out of disk,
+            # an I/O error, a permission problem. Whatever the cause, it previously escaped the
+            # zipper run entirely, skipping the clean up in the finally below
+            self.context.logger.exception(
+                "Verification of {} ZIP failed.".format(self.zip_type),
+                extra={"bds_alert_group": "zip-verification-failed"},
+            )
+            return False
+        finally:
+            shutil.rmtree(self.verify_dir, ignore_errors=True)
         return True
 
     def upload(self):
