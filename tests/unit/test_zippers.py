@@ -1,5 +1,7 @@
+import datetime
 import errno
 import os
+import uuid
 import zipfile
 from unittest import mock
 
@@ -90,6 +92,54 @@ def test_valid_zip_created_false_for_missing_zip(tmp_path):
     zipper = get_zipper(IATIBulkDataServiceZipper, tmp_path)
 
     assert zipper.valid_zip_created() is False
+
+
+def get_code_for_iati_zipper_for_one_dataset(tmp_path, has_download: bool):
+    dataset_id = uuid.uuid4()
+
+    datasets_in_bds = {
+        dataset_id: {
+            "id": dataset_id,
+            "short_name": "test_foundation_a-dataset-001",
+            "reporting_org_short_name": "test_foundation_a",
+            "last_known_good_dataset_downloaded": (datetime.datetime.now(datetime.UTC) if has_download else None),
+        }
+    }
+
+    return CodeforIATILegacyZipper(mock.Mock(), str(tmp_path), {}, datasets_in_bds, {})
+
+
+@pytest.mark.parametrize("has_download", [True, False])
+def test_placeholder_file_created_when_dataset_has_no_xml_in_working_dir(has_download, tmp_path):
+    """The Code for IATI ZIP holds a file for every dataset, empty where there is no data. A
+    dataset recorded as having a good download can still have no XML file in the working dir,
+    because a download which is not found in Azure is logged and skipped, and if it is the only
+    dataset for its publisher then nothing else creates the publisher's directory."""
+
+    zipper = get_code_for_iati_zipper_for_one_dataset(tmp_path, has_download)
+
+    zipper.create_empty_files_for_non_downloadable_datasets()
+
+    placeholder = os.path.join(
+        str(tmp_path), "iati-data-main", "data", "test_foundation_a", "test_foundation_a-dataset-001.xml"
+    )
+
+    assert os.path.exists(placeholder) is True
+    assert os.path.getsize(placeholder) == 0
+
+
+def test_existing_xml_is_not_replaced_by_placeholder(tmp_path):
+
+    zipper = get_code_for_iati_zipper_for_one_dataset(tmp_path, has_download=True)
+
+    data_dir = os.path.join(str(tmp_path), "iati-data-main", "data", "test_foundation_a")
+    os.makedirs(data_dir)
+    with open(os.path.join(data_dir, "test_foundation_a-dataset-001.xml"), "w") as xml_file:
+        xml_file.write("<iati-activities></iati-activities>")
+
+    zipper.create_empty_files_for_non_downloadable_datasets()
+
+    assert os.path.getsize(os.path.join(data_dir, "test_foundation_a-dataset-001.xml")) > 0
 
 
 def test_valid_zip_created_false_and_cleans_up_when_disk_full(tmp_path):

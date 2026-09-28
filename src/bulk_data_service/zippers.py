@@ -9,12 +9,7 @@ from azure.storage.blob import BlobServiceClient
 
 from bulk_data_service.dataset_indexing import get_dataset_index_name, get_reporting_org_index_name
 from utilities.azure import azure_download_blob, get_azure_container_name, upload_zip_to_azure
-from utilities.misc import (
-    dataset_has_iati_xml_download,
-    get_current_timestamp_as_str,
-    get_number_xml_files_in_dir,
-    lookup_licence_title_from_id,
-)
+from utilities.misc import get_current_timestamp_as_str, get_number_xml_files_in_dir, lookup_licence_title_from_id
 
 
 class IATIDataZipper(ABC):
@@ -207,12 +202,11 @@ class CodeforIATILegacyZipper(IATIDataZipper):
 
     def create_empty_files_for_non_downloadable_datasets(self):
         for dataset_in_bds_db in self.datasets_in_bds:
-            dataset = self.datasets_in_bds[dataset_in_bds_db]
             dataset_pathname = self.get_dataset_data_pathname(self.datasets_in_bds[dataset_in_bds_db])
             dataset_filename = self.get_dataset_data_filename(self.datasets_in_bds[dataset_in_bds_db])
-            if not dataset_has_iati_xml_download(dataset):
-                if not os.path.exists(dataset_pathname):
-                    os.makedirs(dataset_pathname, exist_ok=True)
+            # the directory is created unconditionally: a dataset which has a download but whose
+            # XML file is missing from the working dir would otherwise fail to open below
+            os.makedirs(dataset_pathname, exist_ok=True)
             if not os.path.exists(dataset_filename):
                 open(dataset_filename, "w").close()
 
