@@ -8,13 +8,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+### Changed
+
+### Fixed
+
+### Removed
+
+## [1.4.15] - 2026-10-06
+
+### Added
+
 - The zipper logs the space used and free on the filesystem holding its working
   directory at each stage of a run, and exports those figures as the
   `disk_free_bytes` and `disk_used_bytes` Prometheus gauges. The container's
   disk is fixed at 50 Gb and a run needs a large fraction of it, so the
   headroom is worth being able to see before it runs out.
-
-### Changed
 
 ### Fixed
 
@@ -45,8 +53,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   over the good one. There is no sign this ever happened, but the change above
   routes disk failures into that re-try for the first time, which would have
   made it likely.
-
-### Removed
 
 ## [1.4.14] - 2026-09-22
 
