@@ -48,6 +48,9 @@ _config_variables: dict[str, LogPolicy] = {
     "SEND_DATASET_CHECK_RESULT_MESSAGES": LogPolicy.LOGGABLE,
     "DATASET_HEAD_TIMEOUT": LogPolicy.LOGGABLE,
     "DATASET_GET_TIMEOUT": LogPolicy.LOGGABLE,
+    "SENTRY_DSN": LogPolicy.SECRET,
+    "SENTRY_ENVIRONMENT": LogPolicy.LOGGABLE,
+    "SENTRY_TRACES_SAMPLE_RATE": LogPolicy.LOGGABLE,
 }
 
 # Settings which come from the command line rather than from the environment.
@@ -80,6 +83,14 @@ def get_config_for_logging(config: dict) -> list[str]:
     loggable_variables = [name for name, policy in _config_variables.items() if policy is LogPolicy.LOGGABLE]
 
     return [f"{name}={config.get(name)}" for name in loggable_variables + _loggable_runtime_settings]
+
+
+def get_secret_variable_names() -> list[str]:
+    """Returns the names of the configuration variables which hold credentials,
+    for use by anything which sends data off the machine and so must not pass on
+    their values."""
+
+    return [name for name, policy in _config_variables.items() if policy is LogPolicy.SECRET]
 
 
 def get_app_version() -> str:

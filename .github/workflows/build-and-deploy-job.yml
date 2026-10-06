@@ -106,6 +106,7 @@ jobs:
           DB_PORT: ${{ secrets[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'DB_PORT')] }}
           DB_SSL_MODE: ${{ secrets[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'DB_SSL_MODE')] }}
           DB_USER: ${{ secrets[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'DB_USER')] }}
+          SENTRY_DSN: ${{ secrets[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'SENTRY_DSN')] }}
 
           LOG_WORKSPACE_ID: ${{ secrets[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'LOG_WORKSPACE_ID')] }}
           LOG_WORKSPACE_KEY: ${{ secrets[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'LOG_WORKSPACE_KEY')] }}
@@ -131,6 +132,7 @@ jobs:
           REDOWNLOAD_FROM_NON_HEAD_SERVERS_AFTER_HOURS: ${{ vars[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'REDOWNLOAD_FROM_NON_HEAD_SERVERS_AFTER_HOURS')] }}
           REMOVE_LAST_GOOD_DOWNLOAD_AFTER_FAILING_HOURS: ${{ vars[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'REMOVE_LAST_GOOD_DOWNLOAD_AFTER_FAILING_HOURS')] }}
           SEND_DATASET_CHECK_RESULT_MESSAGES: ${{ vars[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'SEND_DATASET_CHECK_RESULT_MESSAGES')] }}
+          SENTRY_TRACES_SAMPLE_RATE: ${{ vars[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'SENTRY_TRACES_SAMPLE_RATE')] }}
           WEB_BASE_URL: ${{ vars[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'WEB_BASE_URL')] }}
           ZIP_WORKING_DIR: ${{ vars[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'ZIP_WORKING_DIR')] }}
 

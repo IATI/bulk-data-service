@@ -6,6 +6,7 @@ from bulk_data_service.zipper import zipper
 from config.bds_context import BDSContext
 from config.config import get_basic_config, get_config_for_logging
 from config.initialisation import misc_global_initialisation
+from config.sentry import initialise_sentry
 from config.service_factory import ServiceFactory
 from utilities.azure import create_azure_blob_containers
 from utilities.db import apply_db_migrations
@@ -25,6 +26,10 @@ def main(args: argparse.Namespace):
     }
 
     logger = initialise_logging(config)
+
+    # initialised before anything else which can fail, so that errors during
+    # the rest of the app's startup are reported
+    initialise_sentry(config, args.operation, logger)
 
     logger.info("Bulk Data Service {} initialising...".format(config["BULK_DATA_SERVICE_VERSION"]))
 
