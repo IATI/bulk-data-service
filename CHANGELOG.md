@@ -14,6 +14,46 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Removed
 
+## [1.4.15] - 2026-10-06
+
+### Added
+
+- The zipper logs the space used and free on the filesystem holding its working
+  directory at each stage of a run, and exports those figures as the
+  `disk_free_bytes` and `disk_used_bytes` Prometheus gauges. The container's
+  disk is fixed at 50 Gb and a run needs a large fraction of it, so the
+  headroom is worth being able to see before it runs out.
+
+### Fixed
+
+- Creating the Code for IATI ZIP no longer fails when a dataset which has a
+  download has no XML file in the working directory. The publisher directory
+  was only created for datasets with no download, but the line creating the
+  placeholder file ran for every dataset, wherever one was missing.
+
+- The files a ZIP is built from are now deleted as soon as the ZIP exists,
+  rather than being kept until after it has been extracted again to verify it.
+  This removes one entire copy of the XML from the peak disk usage of a run.
+
+- A failure part-way through creating or verifying a ZIP no longer leaves
+  copies of the data behind. Previously only a corrupt ZIP found during
+  extraction counted as a failed verification. Anything else - an error while
+  preparing the files, running out of disk, an I/O or permission problem, or an
+  archive too damaged to open at all - ended the run without clearing up,
+  stranding the copy the ZIP was built from, the ZIP itself, and any
+  part-finished extraction. All of those are now treated as a failed
+  verification, the copies are always removed, and the run continues.
+
+- When both attempts to create a ZIP fail, this is now reported as an error.
+
+- A forced full clean of the ZIP working directory now re-downloads the XML it
+  deleted. Previously it did not, so the re-try which that clean exists to
+  support would have built its ZIP from an empty working directory. An empty
+  ZIP is a valid one, so it would have passed verification and been published
+  over the good one. There is no sign this ever happened, but the change above
+  routes disk failures into that re-try for the first time, which would have
+  made it likely.
+
 ## [1.4.14] - 2026-09-22
 
 ### Added

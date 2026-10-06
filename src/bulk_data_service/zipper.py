@@ -7,7 +7,7 @@ import uuid
 
 from azure.core.exceptions import ResourceNotFoundError
 
-from bulk_data_service.zippers import CodeforIATILegacyZipper, IATIBulkDataServiceZipper
+from bulk_data_service.zippers import CodeforIATILegacyZipper, IATIBulkDataServiceZipper, IATIDataZipper
 from config.bds_context import BDSContext
 from utilities.azure import azure_download_blob, get_azure_blob_name, get_azure_container_name
 from utilities.db import get_datasets_in_bds, get_reporting_orgs_in_bds
@@ -50,7 +50,11 @@ def zipper_run(
     run_start = datetime.datetime.now(datetime.UTC)
     context.logger.info("Zipper run starting")
 
+    log_disk_usage(context, "zipper run starting")
+
     setup_working_dir_with_downloaded_datasets(context, False, datasets_in_working_dir, datasets_in_bds)
+
+    log_disk_usage(context, "XML downloaded to ZIP working dir")
 
     zip_creators = [
         IATIBulkDataServiceZipper(
@@ -70,31 +74,84 @@ def zipper_run(
     ]
 
     for zip_creator in zip_creators:
-
-        for _ in range(2):
+        try:
+            create_and_upload_zip(context, zip_creator, datasets_in_working_dir, datasets_in_bds)
+        finally:
+            # Whether ZIP was successfully created and uploaded or not, we wipe the working dir for this ZIP format
+            # We have to do this because now that we verify the ZIP by unpacking it, more storage is needed, but ACI
+            # temporary disks are not configurable and max out at 50 Gb. The 'finally' means an exception on the way
+            # through (running out of disk, most likely) doesn't leave the copy behind for the next run to trip over.
             zip_creator.clean_working_dir()
-
-            shutil.copytree(context["ZIP_WORKING_DIR"], zip_creator.zip_working_dir)
-
-            zip_creator.prepare()
-
-            zip_creator.zip()
-
-            if zip_creator.valid_zip_created():
-                zip_creator.upload()
-                break
-            else:
-                context.logger.error("Zip validation failed so resetting working directory and re-trying")
-                setup_working_dir_with_downloaded_datasets(context, True, datasets_in_working_dir, datasets_in_bds)
-
-        # Whether ZIP was successfully created and uploaded or not, we wipe the working dir for this ZIP format
-        # We have to do this because now that we verify the ZIP by unpacking it, more storage is needed, but ACI
-        # temporary disks are not configurable and max out at 50 Gb.
-        zip_creator.clean_working_dir()
 
     run_end = datetime.datetime.now(datetime.UTC)
     context.logger.info("Zipper run finished in {}.".format(run_end - run_start))
     update_prom_metric(context, "zipper_run_duration", (run_end - run_start).seconds)
+
+    log_disk_usage(context, "zipper run finished")
+
+
+def create_and_upload_zip(
+    context: BDSContext,
+    zip_creator: IATIDataZipper,
+    datasets_in_working_dir: dict[uuid.UUID, dict],
+    datasets_in_bds: dict[uuid.UUID, dict],
+):
+
+    attempts = 2
+
+    for attempt in range(attempts):
+        zip_creator.clean_working_dir()
+
+        shutil.copytree(context["ZIP_WORKING_DIR"], zip_creator.zip_working_dir)
+
+        zip_creator.prepare()
+
+        zip_creator.zip()
+
+        log_disk_usage(context, "{} ZIP created".format(zip_creator.zip_type))
+
+        # the files the ZIP was built from are no longer needed, and verifying the ZIP means
+        # extracting all of it again, so they are removed first to make room for that
+        zip_creator.clean_zip_source_dir()
+
+        log_disk_usage(context, "{} ZIP source dir removed".format(zip_creator.zip_type))
+
+        if zip_creator.valid_zip_created():
+            zip_creator.upload()
+            return
+
+        if attempt < attempts - 1:
+            # the ZIP which failed verification is of no further use, and freeing it now means
+            # the disk isn't carrying it through the re-download below as well
+            zip_creator.clean_working_dir()
+
+            context.logger.error("Zip validation failed so resetting working directory and re-trying")
+            setup_working_dir_with_downloaded_datasets(context, True, datasets_in_working_dir, datasets_in_bds)
+
+    context.logger.error(
+        "Failed to create a valid {} ZIP after {} attempts, so no ZIP was uploaded this run.".format(
+            zip_creator.zip_type, attempts
+        ),
+        extra={"bds_alert_group": "zip-creation-failed"},
+    )
+
+
+def log_disk_usage(context: BDSContext, stage: str):
+    # the working dir may not exist yet on the first run of a session, and disk_usage needs a
+    # path which does
+    os.makedirs(context["ZIP_WORKING_DIR"], exist_ok=True)
+
+    usage = shutil.disk_usage(context["ZIP_WORKING_DIR"])
+
+    context.logger.info(
+        "Disk usage for the filesystem holding the ZIP working dir ({}): "
+        "{:.1f} Gb used, {:.1f} Gb free, {:.1f} Gb total.".format(
+            stage, usage.used / 1024**3, usage.free / 1024**3, usage.total / 1024**3
+        )
+    )
+
+    update_prom_metric(context, "disk_free_bytes", usage.free)
+    update_prom_metric(context, "disk_used_bytes", usage.used)
 
 
 def setup_working_dir_with_downloaded_datasets(
@@ -145,6 +202,12 @@ def clean_working_dir(
         else:
             context.logger.info("Force clean requested, so deleting all XML files in the ZIP working dir.")
         shutil.rmtree("{}/{}".format(context["ZIP_WORKING_DIR"], "iati-data"), ignore_errors=True)
+
+        # every XML file has just been deleted, so what we believe is in the working dir has to be
+        # emptied to match. Without this, a forced clean leaves the datasets all looking present
+        # and unchanged, nothing is re-downloaded to replace them, and the re-try ZIPs an empty
+        # directory.
+        datasets_in_zip.clear()
     else:
         context.logger.info("Zipper: removing deleted or renamed datasets from working directory")
 

@@ -9,12 +9,7 @@ from azure.storage.blob import BlobServiceClient
 
 from bulk_data_service.dataset_indexing import get_dataset_index_name, get_reporting_org_index_name
 from utilities.azure import azure_download_blob, get_azure_container_name, upload_zip_to_azure
-from utilities.misc import (
-    dataset_has_iati_xml_download,
-    get_current_timestamp_as_str,
-    get_number_xml_files_in_dir,
-    lookup_licence_title_from_id,
-)
+from utilities.misc import get_current_timestamp_as_str, get_number_xml_files_in_dir, lookup_licence_title_from_id
 
 
 class IATIDataZipper(ABC):
@@ -50,9 +45,21 @@ class IATIDataZipper(ABC):
     def zip_local_filename_no_extension(self) -> str:
         return "iati-data"
 
+    @property
+    def zip_source_dir(self) -> str:
+        return os.path.join(self.zip_working_dir, self.zip_internal_directory_name)
+
+    @property
+    def verify_dir(self) -> str:
+        return os.path.join(self.zip_working_dir, "verifyzip")
+
     def clean_working_dir(self):
         if os.path.exists(self.zip_working_dir):
             shutil.rmtree(self.zip_working_dir)
+
+    def clean_zip_source_dir(self):
+        self.context.logger.info("Removing ZIP source directory {} to free disk space.".format(self.zip_source_dir))
+        shutil.rmtree(self.zip_source_dir, ignore_errors=True)
 
     def zip(self):
         self.context.logger.info("Zipping {} datasets.".format(get_number_xml_files_in_dir(self.zip_working_dir)))
@@ -64,14 +71,23 @@ class IATIDataZipper(ABC):
         )
 
     def valid_zip_created(self) -> bool:
-        self.context.logger.info("Verifying ZIP file {}.zip".format(self.get_zip_local_pathname_no_extension()))
-        with zipfile.ZipFile(self.get_zip_local_pathname(), "r") as zf:
-            try:
-                zf.extractall(os.path.join(self.zip_working_dir, "verifyzip"))
-            except zipfile.BadZipFile:
-                shutil.rmtree(os.path.join(self.zip_working_dir, "verifyzip"))
-                return False
-        shutil.rmtree(os.path.join(self.zip_working_dir, "verifyzip"))
+        self.context.logger.info("Verifying ZIP file {}".format(self.get_zip_local_pathname()))
+        try:
+            # opening the file is inside the try because a truncated or missing archive raises
+            # here rather than in extractall, and that is a failed verification like any other
+            with zipfile.ZipFile(self.get_zip_local_pathname(), "r") as zf:
+                zf.extractall(self.verify_dir)
+        except (zipfile.BadZipFile, OSError):
+            # OSError covers anything which stops the extraction part-way: running out of disk,
+            # an I/O error, a permission problem. Whatever the cause, it previously escaped the
+            # zipper run entirely, skipping the clean up in the finally below
+            self.context.logger.exception(
+                "Verification of {} ZIP failed.".format(self.zip_type),
+                extra={"bds_alert_group": "zip-verification-failed"},
+            )
+            return False
+        finally:
+            shutil.rmtree(self.verify_dir, ignore_errors=True)
         return True
 
     def upload(self):
@@ -186,12 +202,11 @@ class CodeforIATILegacyZipper(IATIDataZipper):
 
     def create_empty_files_for_non_downloadable_datasets(self):
         for dataset_in_bds_db in self.datasets_in_bds:
-            dataset = self.datasets_in_bds[dataset_in_bds_db]
             dataset_pathname = self.get_dataset_data_pathname(self.datasets_in_bds[dataset_in_bds_db])
             dataset_filename = self.get_dataset_data_filename(self.datasets_in_bds[dataset_in_bds_db])
-            if not dataset_has_iati_xml_download(dataset):
-                if not os.path.exists(dataset_pathname):
-                    os.makedirs(dataset_pathname, exist_ok=True)
+            # the directory is created unconditionally: a dataset which has a download but whose
+            # XML file is missing from the working dir would otherwise fail to open below
+            os.makedirs(dataset_pathname, exist_ok=True)
             if not os.path.exists(dataset_filename):
                 open(dataset_filename, "w").close()
 
