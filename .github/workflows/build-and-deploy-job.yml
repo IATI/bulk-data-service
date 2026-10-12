@@ -47,10 +47,10 @@ jobs:
           echo $AZURE_SUBSCRIPTION_ID
 
       - name: "Checkout GitHub Action"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: "Login via Azure CLI"
-        uses: azure/login@v2
+        uses: azure/login@v3
         with:
           creds: ${{ secrets[format('{0}_{1}', env.TARGET_ENVIRONMENT_UPPER, 'AZURE_CREDENTIALS')] }}
 
@@ -84,7 +84,7 @@ jobs:
           docker push criati.azurecr.io/bds-prom-nginx-reverse-proxy-$TARGET_ENVIRONMENT:$DOCKER_IMAGE_TAG
 
       - name: "Delete existing container group"
-        uses: "azure/CLI@v2"
+        uses: "azure/CLI@v3"
         with:
           inlineScript: |
             az -v
@@ -140,7 +140,7 @@ jobs:
           ./azure-deployment/generate-manifest-from-template.sh
 
       - name: "Deploy group to Azure Container Instances"
-        uses: "azure/CLI@v2"
+        uses: "azure/CLI@v3"
         with:
           inlineScript: |
             az -v
@@ -156,7 +156,7 @@ jobs:
           ./azure-deployment/generate-index-from-template.sh
 
       - name: "Update the website"
-        uses: "azure/CLI@v2"
+        uses: "azure/CLI@v3"
         with:
           inlineScript: |
             az storage blob upload-batch -s web -d '$web' --account-name $STORAGE_ACCOUNT_NAME --overwrite
