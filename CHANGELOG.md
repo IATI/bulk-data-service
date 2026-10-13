@@ -18,9 +18,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
-- Upgraded the GitHub CI actions to latest vesrions.
+- Upgraded the GitHub CI actions to latest versions.
 
-- Reduced the CPU allocations to both the main app and ngingx reverse proxy.
+- Reduced the CPU allocations to both the main app and nginx reverse proxy.
 
 ## [1.4.15] - 2026-10-06
 
