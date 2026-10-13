@@ -14,6 +14,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Removed
 
+## [1.4.16] - 2026-10-12
+
+### Changed
+
+- Upgraded the GitHub CI actions to latest versions.
+
+- Reduced the CPU allocations to both the main app and nginx reverse proxy.
+
 ## [1.4.15] - 2026-10-06
 
 ### Added
