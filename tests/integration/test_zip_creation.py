@@ -260,6 +260,39 @@ def test_bds_zip_content_after_dataset_renamed_has_xml_content(get_and_clear_up_
     )
 
 
+def test_bds_zip_content_after_reporting_org_renamed(get_and_clear_up_context):  # noqa: F811
+    """Checks that when a dataset's reporting org short_name is altered, the dataset's XML is found
+    in the ZIP under the new reporting org name, and not under the old one"""
+
+    context = get_and_clear_up_context
+
+    datasets_in_bds = {}
+    datasets_in_zip = {}
+
+    run_checker_then_zipper(
+        context, "http://localhost:3000/ckan-registration/datasets-01-1-dataset", datasets_in_bds, datasets_in_zip
+    )
+
+    run_checker_then_zipper(
+        context,
+        "http://localhost:3000/ckan-registration/datasets-07-1-dataset-reporting-org-renamed",
+        datasets_in_bds,
+        datasets_in_zip,
+    )
+
+    download_and_unpack_zip_to_tmp_unpack_folder(context)
+
+    assert_extracted_file_matches(
+        context,
+        "iati-data/datasets/test_foundation_a_renamed/test_foundation_a-dataset-001.xml",
+        "tests/artifacts/iati-xml-files/test_foundation_a-dataset-001.xml",
+    )
+
+    assert not file_found_in_extracted_zip(
+        context, "iati-data/datasets/test_foundation_a/test_foundation_a-dataset-001.xml"
+    ), "dataset still found in the ZIP under its old reporting org name"
+
+
 def test_bds_zip_content_for_download_fail_but_cached(get_and_clear_up_context):  # noqa: F811
 
     context = get_and_clear_up_context
