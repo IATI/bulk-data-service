@@ -27,6 +27,8 @@ def get_metrics_definitions() -> list[tuple[str, str, str | None]]:
         ),
         ("checker_run_duration", "The time taken by the last run of the checker (seconds)", None),
         ("zipper_run_duration", "The time taken by the last run of the zipper (seconds)", None),
+        ("disk_free_bytes", "Free space on the filesystem holding the ZIP working dir (bytes)", None),
+        ("disk_used_bytes", "Used space on the filesystem holding the ZIP working dir (bytes)", None),
         ("number_crashes", "The number of crashes since app restart", None),
     ]
 
