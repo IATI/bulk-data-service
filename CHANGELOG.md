@@ -14,6 +14,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Removed
 
+## [1.4.17] - 2026-10-29
+
+### Fixed
+
+- Datasets are no longer dropped from the bulk data ZIPs after their reporting
+  org is renamed, or included as an empty file after the dataset is renamed.
+
 ## [1.4.16] - 2026-10-12
 
 ### Changed
