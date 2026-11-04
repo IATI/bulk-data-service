@@ -19,8 +19,9 @@ The update process is documented in [Dataset update process](docs/dataset-update
 
 ## High-level requirements
 
-- Python 3.12.6 or above
+- Python 3.15.2 or above
   - (This is specified in .python-version, Dockerfile, and pyproject.toml)
+- Pip-tools
 - Postgres DB
 - Azure storage account with blob storage enabled
 
@@ -35,7 +36,7 @@ python -m venv .ve
 source .ve/bin/activate
 ```
 
-_Note: if you don't use `pyenv`, you may need to run `python3.12 -m venv .ve`_
+_Note: if you don't use `pyenv`, you may need to run `python3.13 -m venv .ve`_
 
 #### 2. Install the dependencies
 
@@ -203,7 +204,7 @@ The Mockoon server serves some of the artifacts in `tests/artifacts` over HTTP, 
 To run the tests, you must first start this docker compose setup with:
 
 ```
-cd tests-automated-environment
+cd tests-local-environment
 docker compose up --remove-orphans
 ```
 
