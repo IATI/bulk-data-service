@@ -36,7 +36,7 @@ python -m venv .ve
 source .ve/bin/activate
 ```
 
-_Note: if you don't use `pyenv`, you may need to run `python3.13 -m venv .ve`_
+_Note: if you don't use `pyenv`, you may need to run `python3.15 -m venv .ve`_
 
 #### 2. Install the dependencies
 

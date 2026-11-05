@@ -19,7 +19,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Changed
 
 - Upgraded to Python 3.15.2
-- Upgraded certifi to resolve CVE-2026-111943
+- Upgraded certifi to avoid use of the compromised eMudhra (emSign) certificates
 - Upgraded various other deps
 
 ## [1.4.17] - 2026-10-29
