@@ -231,6 +231,68 @@ def test_bds_zip_content_for_download_success_dataset_updated_content(get_and_cl
     assert contents_from_disk == contents_from_zip
 
 
+def test_bds_zip_content_after_dataset_renamed_has_xml_content(get_and_clear_up_context):  # noqa: F811
+    """As test_bds_zip_content_for_download_success_dataset_updated_meta, but checks the renamed
+    file has the dataset's XML in it, rather than only that a file of that name exists"""
+
+    context = get_and_clear_up_context
+
+    datasets_in_bds = {}
+    datasets_in_zip = {}
+
+    run_checker_then_zipper(
+        context, "http://localhost:3000/ckan-registration/datasets-01-1-dataset", datasets_in_bds, datasets_in_zip
+    )
+
+    run_checker_then_zipper(
+        context,
+        "http://localhost:3000/ckan-registration/datasets-06-1-dataset-updated-metadata",
+        datasets_in_bds,
+        datasets_in_zip,
+    )
+
+    download_and_unpack_zip_to_tmp_unpack_folder(context)
+
+    assert_extracted_file_matches(
+        context,
+        "iati-data/datasets/test_foundation_a/test_foundation_a-dataset-001-newname.xml",
+        "tests/artifacts/iati-xml-files/test_foundation_a-dataset-001.xml",
+    )
+
+
+def test_bds_zip_content_after_reporting_org_renamed(get_and_clear_up_context):  # noqa: F811
+    """Checks that when a dataset's reporting org short_name is altered, the dataset's XML is found
+    in the ZIP under the new reporting org name, and not under the old one"""
+
+    context = get_and_clear_up_context
+
+    datasets_in_bds = {}
+    datasets_in_zip = {}
+
+    run_checker_then_zipper(
+        context, "http://localhost:3000/ckan-registration/datasets-01-1-dataset", datasets_in_bds, datasets_in_zip
+    )
+
+    run_checker_then_zipper(
+        context,
+        "http://localhost:3000/ckan-registration/datasets-07-1-dataset-reporting-org-renamed",
+        datasets_in_bds,
+        datasets_in_zip,
+    )
+
+    download_and_unpack_zip_to_tmp_unpack_folder(context)
+
+    assert_extracted_file_matches(
+        context,
+        "iati-data/datasets/test_foundation_a_renamed/test_foundation_a-dataset-001.xml",
+        "tests/artifacts/iati-xml-files/test_foundation_a-dataset-001.xml",
+    )
+
+    assert not file_found_in_extracted_zip(
+        context, "iati-data/datasets/test_foundation_a/test_foundation_a-dataset-001.xml"
+    ), "dataset still found in the ZIP under its old reporting org name"
+
+
 def test_bds_zip_content_for_download_fail_but_cached(get_and_clear_up_context):  # noqa: F811
 
     context = get_and_clear_up_context
@@ -482,3 +544,18 @@ def download_and_unpack_zip_to_tmp_unpack_folder(context, zip_name: str = "iati-
 
 def file_found_in_extracted_zip(context, filename: str) -> bool:
     return os.path.exists(os.path.join(context["TEST_TMP_ZIP_UNPACK"], filename))
+
+
+def assert_extracted_file_matches(context, filename: str, expected_contents_filename: str):
+    extracted_filename = os.path.join(context["TEST_TMP_ZIP_UNPACK"], filename)
+
+    assert os.path.exists(extracted_filename), f"{filename} not found in the ZIP"
+
+    with open(extracted_filename, "rb") as extracted, open(expected_contents_filename, "rb") as expected:
+        extracted_contents = extracted.read()
+        expected_contents = expected.read()
+
+    assert extracted_contents == expected_contents, (
+        f"{filename} in the ZIP is {len(extracted_contents)} bytes, and does not match the "
+        f"{len(expected_contents)} bytes of {expected_contents_filename}"
+    )

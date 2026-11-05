@@ -1,15 +1,18 @@
 [project]
 name = "bulk-data-service"
-version = "1.4.16"
-requires-python = ">= 3.12.6"
+version = "1.4.18"
+requires-python = ">= 3.15.2"
 readme = "README.md"
 dependencies = [
-    "azure-servicebus~=7.14",
+    # azure-servicebus 7.15 has changes which require BDS code changes, so
+    # left for now
+    "azure-servicebus~=7.14.0",
     "azure-storage-blob~=12.25",
+    "certifi>=2026.10.23",
     "chardet~=5.2",
     "libsuitecrm @ git+https://github.com/IATI/iati-registry-libsuitecrm.git",
     "prometheus-client~=0.22",
-    "psycopg[binary,pool]~=3.2",
+    "psycopg[binary,pool]~=3.3",
     "requests~=2.23",
     "sentry-sdk~=2.35",
     "toml~=0.10",
@@ -22,10 +25,9 @@ dev = [
     "black~=25.1",
     "flake8~=7.3",
     "flake8-pyproject~=1.2",
-    "isort~=6.0",
+    "isort~=9.0",
     "jsonschema~=4.25",
     "mypy~=1.17",
-    "pip-tools~=7.4",
     "pytest-asyncio~=1.0",
     "python-dotenv~=1.1",
     "pytest~=8.4",
@@ -54,7 +56,7 @@ filterwarnings = [
 ]
 
 [tool.isort]
-py_version = "312"
+py_version = "315"
 extend_skip = ['__pycache__', '.mypy_cache', '.ve', '.venv', '.vagrant-ve']
 skip_gitignore = true
 src_paths = ['src', 'tests']

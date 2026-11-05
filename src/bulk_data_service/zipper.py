@@ -174,6 +174,8 @@ def setup_working_dir_with_downloaded_datasets(
         or datasets_in_working_dir[k]["last_known_good_dataset_hash"]
         != datasets_with_downloads[k]["last_known_good_dataset_hash"]
         or datasets_in_working_dir[k]["short_name"] != datasets_with_downloads[k]["short_name"]
+        or datasets_in_working_dir[k]["reporting_org_short_name"]
+        != datasets_with_downloads[k]["reporting_org_short_name"]
     }
 
     context.logger.info(

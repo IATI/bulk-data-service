@@ -14,6 +14,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Removed
 
+## [1.4.18] - 2026-11-04
+
+### Changed
+
+- Upgraded to Python 3.15.2
+- Upgraded certifi to avoid use of the compromised eMudhra (emSign) certificates
+- Upgraded various other deps
+
+## [1.4.17] - 2026-10-29
+
+### Fixed
+
+- Datasets are no longer dropped from the bulk data ZIPs after their reporting
+  org is renamed, or included as an empty file after the dataset is renamed.
+
 ## [1.4.16] - 2026-10-12
 
 ### Changed

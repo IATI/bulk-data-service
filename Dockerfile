@@ -1,4 +1,4 @@
-FROM python:3.12.6-slim-bookworm AS builder
+FROM python:3.15.2-slim-bookworm AS builder
 
 RUN apt-get update && apt-get install -y git
 
@@ -15,7 +15,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 
-FROM python:3.12.6-slim-bookworm
+FROM python:3.15.2-slim-bookworm
 
 RUN apt-get update -y
 

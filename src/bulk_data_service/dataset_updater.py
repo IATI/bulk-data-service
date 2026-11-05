@@ -16,7 +16,12 @@ from bulk_data_service.dataset import (
     update_dataset_http_attempt_fields_as_success,
 )
 from config.bds_context import BDSContext
-from utilities.azure import azure_get_blob_etag, azure_upload_to_blob_and_verify, send_dataset_check_result_message
+from utilities.azure import (
+    azure_get_blob_etag,
+    azure_upload_to_blob_and_verify,
+    get_azure_blob_name,
+    send_dataset_check_result_message,
+)
 from utilities.db import get_db_connection, insert_or_update_dataset
 from utilities.http import (
     determine_response_encoding,
@@ -127,9 +132,15 @@ def add_or_update_registered_dataset(
 
     if bds_dataset["source_url"] == old_source_url and dataset_downloaded_within(bds_dataset, hours):
 
-        attempt_download = check_dataset_etag_last_mod_header(
-            context, db_conn, session, bds_dataset, hours, check_time
-        )
+        if dataset_cached_under_current_blob_name(bds_dataset):
+            attempt_download = check_dataset_etag_last_mod_header(
+                context, db_conn, session, bds_dataset, hours, check_time
+            )
+        else:
+            context.logger.info(
+                "dataset id: {} - Cached copy is not stored under the dataset's current reporting org and "
+                "short name, so redownloading to store it there".format(bds_dataset["id"])
+            )
 
     if attempt_download:
         try:
@@ -192,6 +203,15 @@ def get_randomised_redownload_after_n_hours(context: BDSContext) -> int:
         hours_force_redownload -= int(random() * 8)
 
     return hours_force_redownload
+
+
+def dataset_cached_under_current_blob_name(bds_dataset: dict) -> bool:
+    # the cached copy's URL is fixed when it is uploaded, so after the reporting org or the dataset
+    # is renamed it still points at the old blob name, and nothing exists under the new one until
+    # the dataset is uploaded again
+    cached_xml_url = bds_dataset["last_known_good_dataset_cached_dataset_xml_url"]
+
+    return cached_xml_url is not None and cached_xml_url.endswith("/" + get_azure_blob_name(bds_dataset, "xml"))
 
 
 def dataset_downloaded_within(bds_dataset: dict, hours: int) -> bool:
